@@ -4,7 +4,7 @@
      sha256 hash for the actual inline script/style blocks below instead of blanket 'unsafe-inline', and
      (b) fills in the real Supabase host from env vars. This exact tag is also a safe fallback if you
      ever open this file directly without running the build step. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://__SUPABASE_PROJECT_REF__.supabase.co wss://__SUPABASE_PROJECT_REF__.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cqepdjgaigwhxilxhnzs.supabase.co wss://cqepdjgaigwhxilxhnzs.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>⚡ NabinPOS — Complete POS System</title>
 <!-- PWA / Mobile App Meta -->
@@ -445,7 +445,7 @@
 </head>
 <body>
 
-<div id="toast" style="display: none; background: rgb(14, 165, 233);">✅ 💾 Download भयो!</div>
+<div id="toast" style="display: none; background: rgb(14, 165, 233);">✅ नमस्ते Nabin Regmi! 🙏</div>
 
 <!-- ════════════════════════════════════════════════════════════
      LOGIN PAGE
@@ -460,9 +460,9 @@
     </div>
     <div class="login-box">
       <div class="field"><label>Username</label><input id="loginUN" name="npos_field_a1" placeholder="username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" onfocus="this.removeAttribute('readonly')"></div>
-      <div class="field"><label>Password</label><input id="loginPW" name="npos_field_b2" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()" onfocus="this.removeAttribute('readonly')"></div>
+      <div class="field"><label>Password</label><input id="loginPW" name="npos_field_b2" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()" onfocus="this.removeAttribute('readonly')" aria-autocomplete="list"></div>
       <button class="btn btn-gold" style="width:100%;padding:12px;font-size:15px;margin-top:4px;" onclick="doLogin()">🔐 Login</button>
-      <div id="biometricBtn" style="display:none;margin-top:10px;">
+      <div id="biometricBtn" style="display: block; margin-top: 10px;">
         <button onclick="doBiometricLogin()" style="width:100%;padding:11px;background:#1e293b;border:1.5px solid #475569;color:#e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🪪 Biometric / Fingerprint Login</button>
       </div>
       <div style="text-align:center;margin-top:10px;"><a href="javascript:void(0)" onclick="openForgotPassword()" style="font-size:11px;color:var(--blue);text-decoration:none;">Password बिर्सनुभयो?</a></div>
@@ -486,7 +486,7 @@
   <span style="font-size:11px;opacity:.8;">POS Billing</span>
   <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
     <span id="cashierFSName" style="font-size:12px;font-weight:700;opacity:.9;">Nabin Regmi (admin)</span>
-    <span id="cashierFSTime" style="font-size:11px;opacity:.7;font-family:monospace;">13:27:43</span>
+    <span id="cashierFSTime" style="font-size:11px;opacity:.7;font-family:monospace;">12:21:50</span>
     <button onclick="doLogout()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">⏏ Logout</button>
   </div>
 </div>
@@ -513,7 +513,7 @@
         </div>
         <button onclick="doLogout()" title="Logout" style="background:#fee2e2;border:1px solid #fca5a5;color:var(--red);width:26px;height:26px;border-radius:6px;font-size:12px;">⏏</button>
       </div>
-      <div style="font-size:9px;color:var(--text4);text-align:center;margin-top:6px;" id="clockEl">13:27:43</div>
+      <div style="font-size:9px;color:var(--text4);text-align:center;margin-top:6px;" id="clockEl">12:21:50</div>
     </div>
   </aside>
 
@@ -812,8 +812,202 @@
     <div id="s-reports" class="screen">
       <div class="screen-inner">
         <div class="page-header"><div class="page-title">📊 Reports</div></div>
-        <div class="tabs" id="repTabs"></div>
-        <div id="repContent"></div>
+        <div class="tabs" id="repTabs"><button class="tab active" onclick="repTab='pl';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📊 P&amp;L</button><button class="tab" onclick="repTab='sales';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🧾 Sales</button><button class="tab" onclick="repTab='purchase';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🛒 Purchase</button><button class="tab" onclick="repTab='expense';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">💸 Expenses</button><button class="tab" onclick="repTab='damage';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">💔 Damage</button><button class="tab" onclick="repTab='vat';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🧾 VAT</button><button class="tab" onclick="repTab='stock';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📦 Stock</button><button class="tab" onclick="repTab='credit';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📒 Credit</button><button class="tab" onclick="repTab='supplier_due';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🤝 Supplier Due</button><button class="tab" onclick="repTab='item_inv';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📋 Item Inventory Sheet</button><button class="tab" onclick="repTab='audit';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🔍 Stock Audit</button></div>
+        <div id="repContent">
+    <!-- Date Range Filter -->
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:16px;flex-shrink:0;">📅</span>
+        <input type="date" id="repFrom" value="2026-07-25" onchange="repFromDate=this.value;renderRepContent();" style="flex:1;min-width:0;padding:6px 4px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:11.5px;outline:none;">
+        <span style="color:var(--text4);flex-shrink:0;font-size:11px;">—</span>
+        <input type="date" id="repTo" value="2026-07-25" onchange="repToDate=this.value;renderRepContent();" style="flex:1;min-width:0;padding:6px 4px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:11.5px;outline:none;">
+        <button id="repPreset_month" onclick="getDefaultDates('month')" style="flex-shrink: 0; white-space: nowrap; padding: 6px 10px; border-radius: 18px; border: 1.5px solid var(--blue); background: rgb(219, 234, 254); color: var(--blue); cursor: pointer; font-size: 11px; font-weight: 800;">यो महिना</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;">
+        <button onclick="renderRepContent();toast$('Report refresh ✅')" style="padding:7px 4px;background:#fef3c7;border:1px solid var(--gold);color:#92400e;border-radius:8px;cursor:pointer;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🔄 Refresh</button>
+        <button onclick="printReport()" style="padding:7px 4px;background:#dbeafe;border:1px solid var(--blue);color:var(--blue);border-radius:8px;cursor:pointer;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🖨️ Print</button>
+        <button onclick="previewReport()" style="padding:7px 4px;background:#f5faff;border:1px solid var(--border2);color:var(--text3);border-radius:8px;cursor:pointer;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">👁️ Preview</button>
+        <button onclick="shareReportWA()" style="padding:7px 4px;background:#dcfce7;border:1px solid #25d366;color:#16a34a;border-radius:8px;cursor:pointer;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📱 WA</button>
+      </div>
+    </div>
+    <div id="repInner" style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px;">
+      <div style="text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid var(--border);">
+        <div style="font-size:16px;font-weight:900;color:var(--text);">⚡ Nabin Mart — P&amp;L Report</div>
+        <div style="font-size:11px;color:var(--text4);margin-top:2px;">📅 2026-07-25 — 2026-07-25</div>
+      </div>
+
+      
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">📅 Performance — 2026-07-25 — 2026-07-25</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💰 Total Sales</span>
+          <span style="font-size:14px;font-weight:800;color:var(--gold);">रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">↩️ Sales Returns</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">-रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">📈 Gross Profit</span>
+          <span style="font-size:14px;font-weight:800;color:var(--green);">रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">🏆 Net Profit</span>
+          <span style="font-size:14px;font-weight:800;color:var(--green);">रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">👥 Customer Count</span>
+          <span style="font-size:14px;font-weight:800;color:var(--purple);">0</span>
+        </div>
+    </div>
+
+      
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">📒 Credit &amp; Cash — 2026-07-25 — 2026-07-25</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">📒 Credit Sales</span>
+          <span style="font-size:14px;font-weight:800;color:var(--red);">रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💚 Credit Collection</span>
+          <span style="font-size:14px;font-weight:800;color:var(--green);">रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💵 Cash Refunded (यही मितिमा)</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">-रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💵 Cash in Hand</span>
+          <span style="font-size:14px;font-weight:800;color:var(--green);">रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">💔 Damage Loss</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">रु 0</span>
+        </div>
+    </div>
+
+      
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">↩️🚫 Returns &amp; Void — 2026-07-25 — 2026-07-25 (Original sale को मिति अनुसार)</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">↩️ Return Transactions</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">0 bills / 0 item(s)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">↩️ Total Refunded</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">🚫 Voided Bills</span>
+          <span style="font-size:14px;font-weight:800;color:var(--red);">0 bills</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">🚫 Total Voided Amount</span>
+          <span style="font-size:14px;font-weight:800;color:var(--red);">रु 0</span>
+        </div>
+    </div>
+      
+
+      
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">📌 हालको अवस्था (Current — Date filter लागू हुँदैन)</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">👥 All Customer Due</span>
+          <span style="font-size:14px;font-weight:800;color:var(--red);">रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">🤝 All Supplier Due</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">रु 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">📦 Inventory Value (COGS)</span>
+          <span style="font-size:14px;font-weight:800;color:var(--blue);">रु 0</span>
+        </div>
+    </div>
+
+      <div class="g2" style="margin-top:14px;">
+        <div>
+          
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">📊 P&amp;L Summary</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💰 Gross Sales (before returns)</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text2);">रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">↩️ Sales Returns</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">-रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💰 Net Sales Revenue</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text2);">रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">🛒 Purchase Cost (COGS)</span>
+          <span style="font-size:14px;font-weight:800;color:var(--red);">-रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">📈 Gross Profit</span>
+          <span style="font-size:14px;font-weight:800;color:var(--green);">रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💸 Total Expenses</span>
+          <span style="font-size:14px;font-weight:800;color:var(--red);">-रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💔 Damage / Loss</span>
+          <span style="font-size:14px;font-weight:800;color:var(--warn);">-रु 0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">🏆 NET PROFIT</span>
+          <span style="font-size:14px;font-weight:800;color:var(--green);">रु 0.00</span>
+        </div>
+    </div>
+          <div style="padding:8px 12px;background:#dcfce7;border-radius:8px;text-align:center;">
+            <span style="color:var(--green);font-weight:800;font-size:13px;">✅ Profit मा छ — 0.0% margin</span>
+          </div>
+        </div>
+        <div>
+          
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">💸 Expenses Breakdown</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">Σ Total</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text);">रु 0</span>
+        </div>
+    </div>
+          
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;">📦 Bills Summary</div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px;">
+      
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">🧾 Total Bills</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text2);">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">💳 Cash Sales</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text2);">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--text3);">📱 Digital Sales</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text2);">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;">
+          <span style="font-size:12px;color:var(--text3);">📒 Credit Sales</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text2);">0</span>
+        </div>
+    </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1.5px dashed var(--border);font-size:10px;color:var(--text4);">
+        ⚡ NabinPOS v1.0 · © 2026 Nabin Mart · Printed: 25/07/2026, 12:21:35
+      </div></div></div>
       </div>
     </div>
 
@@ -927,6 +1121,25 @@
       </div>
     </div>
 
+    <!-- ── FIXED ASSETS ── -->
+    <div id="s-assets" class="screen">
+      <div class="screen-inner">
+        <div class="page-header">
+          <div><div class="page-title">🏢 Fixed Assets</div><div class="page-sub" id="assetsSub"></div></div>
+          <button class="btn btn-blue" onclick="showAssetForm()">➕ Asset थप्नुस्</button>
+        </div>
+        <div class="card" style="overflow:auto;">
+          <table class="tbl" id="assetsTable"></table>
+        </div>
+        <div class="page-header" style="margin-top:18px;">
+          <div><div class="page-title" style="font-size:15px;">💔 Loss / Damage / Disposal Log</div></div>
+        </div>
+        <div class="card" style="overflow:auto;">
+          <table class="tbl" id="assetLossTable"></table>
+        </div>
+      </div>
+    </div>
+
     <!-- ── RETURNS ── -->
     <div id="s-returns" class="screen">
       <div class="screen-inner">
@@ -994,7 +1207,7 @@
     <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);background:#f5faff;">
       <span style="font-size:18px;">🥬</span>
       <span style="flex:1;font-size:12px;font-weight:600;color:var(--text);">तरकारी</span>
-      <span style="font-size:10px;color:var(--text4);">0 items</span>
+      <span style="font-size:10px;color:var(--text4);">1 items</span>
       <button onclick="renameCatInline(1,'तरकारी')" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:4px 9px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;">✏️</button>
       <button onclick="deleteCatInline(1,'तरकारी')" style="background:#fee2e2;border:1px solid #fca5a5;color:var(--red);padding:4px 9px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;">🗑️</button>
     </div>
@@ -1015,7 +1228,7 @@
     <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);background:#fff;">
       <span style="font-size:18px;">🧴</span>
       <span style="flex:1;font-size:12px;font-weight:600;color:var(--text);">सफाई</span>
-      <span style="font-size:10px;color:var(--text4);">0 items</span>
+      <span style="font-size:10px;color:var(--text4);">1 items</span>
       <button onclick="renameCatInline(4,'सफाई')" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:4px 9px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;">✏️</button>
       <button onclick="deleteCatInline(4,'सफाई')" style="background:#fee2e2;border:1px solid #fca5a5;color:var(--red);padding:4px 9px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;">🗑️</button>
     </div>
@@ -1177,7 +1390,7 @@
 
 <!-- ════════════════════ MODALS ════════════════════ -->
 <datalist id="unitOptions"><option value="pcs"></option><option value="kg"></option><option value="g"></option><option value="ltr"></option><option value="ml"></option><option value="dozen"></option><option value="packet"></option><option value="box"></option><option value="bag"></option><option value="bottle"></option><option value="plate"></option></datalist>
-<div id="fsDetailOverlay" style="display: none; position: fixed; inset: 0px; background: var(--bg); z-index: 10000; flex-direction: column;">
+<div id="fsDetailOverlay" style="display: flex; position: fixed; inset: 0px; background: var(--bg); z-index: 10000; flex-direction: column;">
   <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;">
     <button onclick="closeFullScreenDetail()" style="background:none;border:none;font-size:24px;color:var(--text);cursor:pointer;padding:0 4px;">←</button>
     <div id="fsDetailTitle" style="flex:1;font-weight:800;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">💾 Backup &amp; Export</div>
@@ -1209,7 +1422,7 @@
   <div style="color:#fff;font-size:16px;font-weight:800;margin-bottom:4px;" id="lockUserName">Locked</div>
   <div style="color:#94a3b8;font-size:11px;margin-bottom:20px;text-align:center;">App पछाडि गएको थियो — सुरक्षाको लागि फेरि Password/Fingerprint चाहिन्छ</div>
   <div style="width:100%;max-width:280px;">
-    <input id="lockPW" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doUnlockApp()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #334155;background:#1e293b;color:#fff;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:10px;"/>
+    <input id="lockPW" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doUnlockApp()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #334155;background:#1e293b;color:#fff;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:10px;">
     <button onclick="doUnlockApp()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px;">🔓 Unlock</button>
     <button id="lockBioBtn" onclick="doUnlockBiometric()" style="display:none;width:100%;padding:11px;border-radius:10px;border:1.5px solid #475569;background:#1e293b;color:#e2e8f0;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:8px;">🪪 Fingerprint</button>
     <button onclick="doLogout()" style="width:100%;padding:9px;border-radius:10px;border:none;background:none;color:#94a3b8;font-size:11px;cursor:pointer;">⏏ अर्को Account बाट Login गर्ने</button>
@@ -1241,8 +1454,8 @@
 // Build-time injected (see build.js + netlify.toml) from Netlify env vars SUPABASE_URL / SUPABASE_ANON_KEY.
 // If you're opening this file directly without running the Netlify build, these placeholders won't be
 // replaced and the app will clearly warn below instead of silently failing against a wrong project.
-const SUPABASE_URL="__SUPABASE_URL__";
-const SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY__";
+const SUPABASE_URL="https://cqepdjgaigwhxilxhnzs.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxZXBkamdhaWd3aHhpbHhobnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODYxMzIsImV4cCI6MjA5ODU2MjEzMn0.LHGPE9qkgNl4jxcHQLOmeYW9qgbybEBl1lFao-59HhE";
 if(SUPABASE_URL.startsWith("__")||SUPABASE_ANON_KEY.startsWith("__")){
   console.error("⚠️ Supabase config placeholders were not replaced — run the Netlify build (or set SUPABASE_URL/SUPABASE_ANON_KEY) instead of opening index.html directly. See DEPLOY.md.");
 }
@@ -1284,9 +1497,9 @@ const USERS=[
   {id:3,name:"Ram Bahadur",  un:"ram",  pw:"cash123", role:"cashier",av:"RB",c:"#60b4ff",email:"ram@nabinpos.local"},
 ];
 const PERMS={
-  admin:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:1,suppliers:1,inventory:1,stocklog:1,damage:1,returns:1,reports:1,expenses:1,actlog:1,settings:1},
-  staff:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:0,suppliers:0,inventory:1,stocklog:1,damage:1,returns:1,reports:0,expenses:0,actlog:0,settings:0},
-  cashier:{dashboard:1,pos:1,saleslog:0,customers:0,purchase:0,suppliers:0,inventory:0,stocklog:0,damage:0,returns:0,reports:0,expenses:0,actlog:0,settings:0},
+  admin:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:1,suppliers:1,inventory:1,stocklog:1,damage:1,assets:1,returns:1,reports:1,expenses:1,actlog:1,settings:1},
+  staff:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:0,suppliers:0,inventory:1,stocklog:1,damage:1,assets:0,returns:1,reports:0,expenses:0,actlog:0,settings:0},
+  cashier:{dashboard:1,pos:1,saleslog:0,customers:0,purchase:0,suppliers:0,inventory:0,stocklog:0,damage:0,assets:0,returns:0,reports:0,expenses:0,actlog:0,settings:0},
 };
 const NAV_ALL=[
   {id:"dashboard", icon:"▦", label:"Dashboard"},
@@ -1298,6 +1511,7 @@ const NAV_ALL=[
   {id:"inventory", icon:"📦",label:"Inventory"},
   {id:"stocklog",  icon:"🔄",label:"Stock Log"},
   {id:"damage",    icon:"💔",label:"Damage/Loss"},
+  {id:"assets",    icon:"🏢",label:"Fixed Assets"},
   {id:"returns",   icon:"↩️",label:"Returns"},
   {id:"reports",   icon:"📊",label:"Reports"},
   {id:"expenses",  icon:"💸",label:"Expenses"},
@@ -1379,6 +1593,11 @@ let salesHistory=[];
 let stockMovements=[];
 // Damage entries
 let damageEntries=[];
+// Fixed Assets — Furniture, Machinery, Equipment, Fixtures, Vehicle आदि
+let fixedAssets=[];
+// Fixed Asset Loss/Damage/Disposal log
+let assetLossLog=[];
+const ASSET_CATS=["Furniture","Machinery/Equipment","Electronics","Fixtures/Fittings","Vehicle","Building/Property","Other"];
 // ── Hoisted early to prevent undefined errors ──
 let returnEntries=[];
 let purchaseReturns=[];
@@ -1470,14 +1689,15 @@ function nepaliMatch(name,q){
 // ══════════════════════════════════════════════════
 // DATA SAVE/LOAD — localStorage (instant/offline) + Supabase (cloud sync)
 // ══════════════════════════════════════════════════
-const DB_KEYS={products:"nabin_products",customers:"nabin_customers",ledger:"nabin_ledger",suppliers:"nabin_suppliers",purchases:"nabin_purchases",expenses:"nabin_expenses",salesHistory:"nabin_sales",stockMovements:"nabin_stockmov",damageEntries:"nabin_damage",cashRegister:"nabin_cashregister"};
+const DB_KEYS={products:"nabin_products",customers:"nabin_customers",ledger:"nabin_ledger",suppliers:"nabin_suppliers",purchases:"nabin_purchases",expenses:"nabin_expenses",salesHistory:"nabin_sales",stockMovements:"nabin_stockmov",damageEntries:"nabin_damage",cashRegister:"nabin_cashregister",fixedAssets:"nabin_fixedassets",assetLossLog:"nabin_assetloss"};
 
 // Supabase table name ↔ app array name mapping
 const SB_TABLES={
   products:"products",customers:"customers",ledger:"ledger",suppliers:"suppliers",
   purchases:"purchases",expenses:"expenses",salesHistory:"sales",stockMovements:"stock_movements",
   damageEntries:"damage_entries",cashRegisterEntries:"cash_register",returnEntries:"returns",
-  purchaseReturns:"purchase_returns",monthEndCounts:"month_end_counts"
+  purchaseReturns:"purchase_returns",monthEndCounts:"month_end_counts",
+  fixedAssets:"fixed_assets",assetLossLog:"asset_loss_log"
 };
 
 function saveDB(){
@@ -1497,6 +1717,8 @@ function saveDBLocal(){
     localStorage.setItem(DB_KEYS.stockMovements,JSON.stringify(stockMovements));
     localStorage.setItem(DB_KEYS.damageEntries, JSON.stringify(damageEntries));
     localStorage.setItem(DB_KEYS.cashRegister,  JSON.stringify(cashRegisterEntries||[]));
+    localStorage.setItem(DB_KEYS.fixedAssets,   JSON.stringify(fixedAssets||[]));
+    localStorage.setItem(DB_KEYS.assetLossLog,  JSON.stringify(assetLossLog||[]));
     localStorage.setItem("nabin_returns",        JSON.stringify(returnEntries||[]));
     localStorage.setItem("nabin_purchreturns",   JSON.stringify(purchaseReturns||[]));
     localStorage.setItem("nabin_monthend",       JSON.stringify(monthEndCounts||[]));
@@ -1511,7 +1733,8 @@ function syncToSupabase(){
     try{
       const arrays={products,customers,ledger,suppliers,purchases,expenses,salesHistory,
         stockMovements,damageEntries,cashRegisterEntries:cashRegisterEntries||[],
-        returnEntries:returnEntries||[],purchaseReturns:purchaseReturns||[],monthEndCounts:monthEndCounts||[]};
+        returnEntries:returnEntries||[],purchaseReturns:purchaseReturns||[],monthEndCounts:monthEndCounts||[],
+        fixedAssets:fixedAssets||[],assetLossLog:assetLossLog||[]};
       await Promise.all(Object.entries(SB_TABLES).map(([arrKey,tbl])=>pushTable(tbl,arrays[arrKey])));
       console.log("☁️ Supabase synced");
     }catch(e){console.error("Supabase sync failed:",e);}
@@ -1534,6 +1757,44 @@ async function pushTable(tableName,arr){
   const{error}=await sb.from(tableName).upsert(rows);
   if(error){console.error("Supabase upsert["+tableName+"]:",error.message);return;}
   changed.forEach(o=>{snap[o.id]=JSON.stringify(o);});
+}
+
+// ── Staff/User accounts — यो अलग राखिएको छ (SB_TABLES generic loop बाट बाहिर)
+// किनकि USERS मा hardcoded default account हरू छन्, जसलाई cloud pull ले
+// wholesale replace गर्नुभन्दा merge गर्नु सुरक्षित छ (नत्र खाली/नयाँ cloud table ले
+// default admin/staff account नै मेटाइदिन सक्छ)।
+async function pushUsersToCloud(){
+  try{
+    await migrateLegacyPasswords(); // cloud मा plaintext password कहिल्यै नजाओस्
+    const rows=USERS.map(u=>({id:u.id,data:u}));
+    const{error}=await sb.from("app_users").upsert(rows);
+    if(error)console.error("Supabase users sync failed:",error.message);
+  }catch(e){console.error("Supabase users sync error:",e);}
+}
+async function deleteUserFromCloud(uid){
+  try{const{error}=await sb.from("app_users").delete().eq("id",uid);
+    if(error)console.error("Supabase user delete failed:",error.message);
+  }catch(e){console.error("Supabase user delete error:",e);}
+}
+async function pullUsersFromCloud(){
+  try{
+    const{data,error}=await sb.from("app_users").select("*");
+    if(error){console.error("Supabase users pull failed:",error.message);return;}
+    if(!data)return;
+    data.forEach(r=>{
+      const u=r.data;if(!u)return;
+      const ex=USERS.find(x=>x.id===u.id);
+      if(ex){
+        if(u.salt&&u.pwHash){ex.salt=u.salt;ex.pwHash=u.pwHash;delete ex.pw;}
+        if(u.name)ex.name=u.name;if(u.role)ex.role=u.role;
+        if(u.av)ex.av=u.av;if(u.c)ex.c=u.c;if(u.email)ex.email=u.email;
+        if(u.pwChangedByUser)ex.pwChangedByUser=true;
+      }else{
+        USERS.push(u);
+      }
+    });
+    localStorage.setItem("nabin_users",JSON.stringify(USERS));
+  }catch(e){console.warn("Cloud users pull error:",e);}
 }
 
 async function manualSync(){
@@ -1566,6 +1827,8 @@ async function loadDB(){
     const rt=localStorage.getItem("nabin_returns");       if(rt)returnEntries=JSON.parse(rt);
     const pr=localStorage.getItem("nabin_purchreturns");  if(pr)purchaseReturns=JSON.parse(pr);
     const me=localStorage.getItem("nabin_monthend");if(me)monthEndCounts=JSON.parse(me);
+    const fa=localStorage.getItem(DB_KEYS.fixedAssets); if(fa)fixedAssets=JSON.parse(fa);
+    const al=localStorage.getItem(DB_KEYS.assetLossLog);if(al)assetLossLog=JSON.parse(al);
   }catch(e){console.warn("Local load error:",e);}
 
   // 2) Supabase बाट ताजा data ल्याएर overwrite गर्ने (सबै device मा साझा data)
@@ -1594,12 +1857,15 @@ async function loadDB(){
         else if(arrKey==="returnEntries")returnEntries=mapped;
         else if(arrKey==="purchaseReturns")purchaseReturns=mapped;
         else if(arrKey==="monthEndCounts")monthEndCounts=mapped;
+        else if(arrKey==="fixedAssets")fixedAssets=mapped;
+        else if(arrKey==="assetLossLog")assetLossLog=mapped;
         // ताजा pull भएको data लाई नै "last synced" मान्ने — अनावश्यक re-push रोक्न
         const snap=_lastSyncedSnapshot[tbl]||(_lastSyncedSnapshot[tbl]={});
         for(const k in snap)delete snap[k];
         mapped.forEach(o=>{snap[o.id]=JSON.stringify(o);});
       }
     });
+    await pullUsersFromCloud(); // staff/admin password लगायत हरेक device मा ताजा राख्ने
     saveDBLocal(); // ताजा cloud data लाई local cache मा पनि राख्ने
     console.log("✅ Supabase data loaded —",products.length,"products,",customers.length,"customers");
     checkDataIntegrity();
@@ -2027,7 +2293,7 @@ function goScreen(s){
   // stop tickers when leaving POS
   if(s!=="pos"&&typeof _tickerRAF!=="undefined"&&_tickerRAF){cancelAnimationFrame(_tickerRAF);_tickerRAF=null;}
   if(s!=="pos"&&typeof _expiryRAF!=="undefined"&&_expiryRAF){cancelAnimationFrame(_expiryRAF);_expiryRAF=null;}
-  if(s==="dashboard")renderDashboard();else if(s==="pos")initPOS();else if(s==="saleslog")renderSalesLog();else if(s==="customers")renderCustomers();else if(s==="purchase")renderPurchase();else if(s==="purchnew")initPurchNew();else if(s==="suppliers")renderSuppliers();else if(s==="inventory")renderInventory("",invCatF);else if(s==="stocklog")renderStockLog();else if(s==="damage")renderDamage();else if(s==="returns")renderReturns();else if(s==="reports")renderReports();else if(s==="expenses")renderExpenses();else if(s==="actlog")renderActLog();else if(s==="settings")renderSettings();
+  if(s==="dashboard")renderDashboard();else if(s==="pos")initPOS();else if(s==="saleslog")renderSalesLog();else if(s==="customers")renderCustomers();else if(s==="purchase")renderPurchase();else if(s==="purchnew")initPurchNew();else if(s==="suppliers")renderSuppliers();else if(s==="inventory")renderInventory("",invCatF);else if(s==="stocklog")renderStockLog();else if(s==="damage")renderDamage();else if(s==="assets")renderAssets();else if(s==="returns")renderReturns();else if(s==="reports")renderReports();else if(s==="expenses")renderExpenses();else if(s==="actlog")renderActLog();else if(s==="settings")renderSettings();
 }
 
 // ══════════════════════════════════════════════════
@@ -4773,6 +5039,7 @@ async function saveMyPassword(){
   const creds=JSON.parse(localStorage.getItem("nabin_bio_creds")||"{}");
   if(creds[currentUser.un]){creds[currentUser.un].pw=await encryptSecret(new1);localStorage.setItem("nabin_bio_creds",JSON.stringify(creds));}
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
+  await pushUsersToCloud();
   addLog("Password Change",currentUser.name+" ले आफ्नो password बदले");
   // Fix: password बदलिएपछि अरू सबै पुरानो session (अन्य device/browser) invalidate गर्ने
   try{await sb.auth.signOut({scope:"others"});}catch(e){}
@@ -5112,6 +5379,7 @@ function renderReports(){
     {id:"purchase",label:"🛒 Purchase"},
     {id:"expense", label:"💸 Expenses"},
     {id:"damage",  label:"💔 Damage"},
+    {id:"assets",  label:"🏢 Fixed Assets"},
     {id:"vat",     label:"🧾 VAT"},
     {id:"stock",   label:"📦 Stock"},
     {id:"credit",  label:"📒 Credit"},
@@ -5441,6 +5709,60 @@ function renderRepContent(){
             <td style="color:var(--text4);font-size:11px;">${d.user}</td>
           </tr>`).join("")}
           ${filtDmg.length>0?`<tr style="background:var(--bg4);"><td colspan="4" style="font-weight:700;color:var(--text3);">Total Loss</td><td style="color:var(--red);font-weight:900;font-size:15px;" colspan="2">रु ${fmtN(totalDmgLoss)}</td></tr>`:""}
+        </table>
+      </div>`;
+  }
+  else if(repTab==="assets"){
+    const totalPurchase=fixedAssets.reduce((s,a)=>s+parseFloat(a.purchaseValue||0),0);
+    const totalCurrent=fixedAssets.reduce((s,a)=>s+assetBookValue(a),0);
+    const totalDep=totalPurchase-totalCurrent-fixedAssets.reduce((s,a)=>s+parseFloat(a.lossWrittenOff||0),0);
+    const totalLossAll=assetLossLog.reduce((s,l)=>s+parseFloat(l.lossAmt||0),0);
+    const filtAssetLoss=assetLossLog.filter(l=>inRange(l.date));
+    const rangeLossVal=filtAssetLoss.reduce((s,l)=>s+parseFloat(l.lossAmt||0),0);
+    const newAssetsInRange=fixedAssets.filter(a=>inRange(a.purchaseDate));
+    el.innerHTML=`
+      ${repLineBlock("Fixed Asset Value — All Time",[
+        ["🏢","Total Assets",fixedAssets.length,"var(--blue)"],
+        ["💰","Total Purchase Value","रु "+fmtN(totalPurchase),"var(--text2)"],
+        ["📉","Depreciation Written-off","रु "+fmtN(Math.max(0,totalDep)),"var(--warn)"],
+        ["💔","Loss/Damage Written-off (all time)","रु "+fmtN(totalLossAll),"var(--red)"],
+        ["✅","Current Book Value","रु "+fmtN(totalCurrent),"var(--green)"],
+      ])}
+      ${repLineBlock("यस अवधिमा ("+rangeLabel+")",[
+        ["➕","नयाँ Assets थपियो",newAssetsInRange.length,"var(--blue)"],
+        ["💔","Loss/Damage Entries",filtAssetLoss.length,"var(--warn)"],
+        ["💰","Loss/Damage Value","रु "+fmtN(rangeLossVal),"var(--red)"],
+      ])}
+      <div class="card" style="overflow:auto;margin-top:10px;">
+        <div class="card-title" style="color:var(--blue);">🏢 Fixed Assets — Current Value</div>
+        <table class="tbl">
+          <tr><th>Name</th><th>Category</th><th>खरिद मिति</th><th>Purchase रु</th><th>Current रु</th><th>Status</th></tr>
+          ${fixedAssets.length===0?`<tr><td colspan="6" style="text-align:center;color:var(--text4);padding:24px;">कुनै fixed asset छैन</td></tr>`:
+          fixedAssets.map((a,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"var(--bg4)"};">
+            <td style="color:var(--text2);font-weight:600;">${esc(a.name)}</td>
+            <td style="color:var(--text3);font-size:11px;">${esc(a.category)}</td>
+            <td style="color:var(--text4);font-size:11px;font-family:monospace;">${esc(a.purchaseDate||"—")}</td>
+            <td style="color:var(--text3);">रु ${fmtN(a.purchaseValue)}</td>
+            <td style="color:var(--green);font-weight:800;">रु ${fmtN(assetBookValue(a))}</td>
+            <td style="color:${a.status==="disposed"?"var(--red)":"var(--green)"};font-weight:700;font-size:11px;">${a.status==="disposed"?"Disposed":"Active"}</td>
+          </tr>`).join("")}
+          ${fixedAssets.length>0?`<tr style="background:var(--bg4);"><td colspan="3" style="font-weight:700;color:var(--text3);">Total</td><td style="font-weight:800;">रु ${fmtN(totalPurchase)}</td><td style="color:var(--green);font-weight:900;">रु ${fmtN(totalCurrent)}</td><td></td></tr>`:""}
+        </table>
+      </div>
+      <div class="card" style="overflow:auto;margin-top:10px;">
+        <div class="card-title" style="color:var(--red);">💔 Loss / Damage / Disposal — ${rangeLabel}</div>
+        <table class="tbl">
+          <tr><th>मिति</th><th>Asset</th><th>Type</th><th>Qty</th><th>Loss</th><th>Reason</th></tr>
+          ${filtAssetLoss.length===0?`<tr><td colspan="6" style="text-align:center;color:var(--text4);padding:24px;">यस अवधिमा कुनै entry छैन</td></tr>`:
+          filtAssetLoss.map((l,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"var(--bg4)"};">
+            <td style="color:var(--text4);font-size:11px;font-family:monospace;">${l.date}</td>
+            <td style="color:var(--text2);font-weight:600;">${esc(l.assetName)}</td>
+            <td style="color:var(--warn);font-weight:700;font-size:11px;">${esc(l.type)}</td>
+            <td style="color:var(--text3);">${l.qty}</td>
+            <td style="color:var(--red);font-weight:800;">रु ${fmtN(l.lossAmt)}</td>
+            <td style="color:var(--text3);font-size:11px;">${esc(l.reason||"")}</td>
+          </tr>`).join("")}
+          ${filtAssetLoss.length>0?`<tr style="background:var(--bg4);"><td colspan="4" style="font-weight:700;color:var(--text3);">Total Loss</td><td style="color:var(--red);font-weight:900;font-size:15px;" colspan="2">रु ${fmtN(rangeLossVal)}</td></tr>`:""}
         </table>
       </div>`;
   }
@@ -6407,6 +6729,163 @@ function saveDamage(){
 }
 
 // ══════════════════════════════════════════════════
+// FIXED ASSETS — Entry, Value Tracking, Loss/Damage/Disposal
+// ══════════════════════════════════════════════════
+
+// Straight-line depreciated current book value of one asset
+function assetBookValue(a){
+  const purchaseVal=parseFloat(a.purchaseValue||0);
+  const rate=parseFloat(a.depRate||0);
+  let val=purchaseVal;
+  if(rate>0&&a.purchaseDate){
+    const yrs=(Date.now()-new Date(a.purchaseDate).getTime())/(365*24*60*60*1000);
+    val=purchaseVal-(purchaseVal*(rate/100)*Math.max(0,yrs));
+  }
+  val-=parseFloat(a.lossWrittenOff||0);
+  return Math.max(0,+val.toFixed(2));
+}
+
+function renderAssets(){
+  const totalPurchase=fixedAssets.reduce((s,a)=>s+parseFloat(a.purchaseValue||0),0);
+  const totalCurrent=fixedAssets.reduce((s,a)=>s+assetBookValue(a),0);
+  const totalLoss=assetLossLog.reduce((s,l)=>s+parseFloat(l.lossAmt||0),0);
+  document.getElementById("assetsSub").textContent=`${fixedAssets.length} assets · Purchase Value: रु ${fmtN(totalPurchase)} · Current Value: रु ${fmtN(totalCurrent)}`;
+  document.getElementById("assetsTable").innerHTML=`
+    <tr><th>Name</th><th>Category</th><th>खरिद मिति</th><th>Qty</th><th>Purchase रु</th><th>Current रु</th><th>Status</th><th></th></tr>
+    ${fixedAssets.length===0?`<tr><td colspan="8" style="text-align:center;color:var(--text4);padding:30px;">कुनै fixed asset entry छैन</td></tr>`:
+    fixedAssets.map((a,i)=>{
+      const cv=assetBookValue(a);
+      const statusColor=a.status==="disposed"?"var(--red)":(cv<parseFloat(a.purchaseValue||0)*0.5?"var(--warn)":"var(--green)");
+      const statusLabel=a.status==="disposed"?"Disposed":(a.qty<=0?"Written-off":"Active");
+      return `<tr style="background:${i%2===0?"var(--bg2)":"var(--bg4)"};">
+        <td style="color:var(--text2);font-weight:600;">${esc(a.name)}</td>
+        <td style="color:var(--text3);font-size:11px;">${esc(a.category)}</td>
+        <td style="color:var(--text4);font-family:monospace;font-size:11px;">${esc(a.purchaseDate||"—")}</td>
+        <td style="color:var(--text3);">${a.qty}</td>
+        <td style="color:var(--text3);">रु ${fmtN(a.purchaseValue)}</td>
+        <td style="color:var(--green);font-weight:800;">रु ${fmtN(cv)}</td>
+        <td style="color:${statusColor};font-weight:700;font-size:11px;">${statusLabel}</td>
+        <td style="white-space:nowrap;">
+          <button onclick="showAssetForm(${a.id})" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;margin-right:4px;">✏️</button>
+          <button onclick="showAssetLossForm(${a.id})" style="background:#fee2e2;border:1px solid #fca5a5;color:var(--red);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">💔</button>
+        </td>
+      </tr>`;}).join("")}
+    ${fixedAssets.length>0?`<tr style="background:var(--bg4);"><td colspan="4" style="font-weight:700;color:var(--text3);">Total</td><td style="font-weight:800;">रु ${fmtN(totalPurchase)}</td><td style="color:var(--green);font-weight:900;">रु ${fmtN(totalCurrent)}</td><td colspan="2"></td></tr>`:""}`;
+
+  document.getElementById("assetLossTable").innerHTML=`
+    <tr><th>मिति</th><th>Asset</th><th>Type</th><th>Qty</th><th>Loss रु</th><th>Reason</th><th>By</th></tr>
+    ${assetLossLog.length===0?`<tr><td colspan="7" style="text-align:center;color:var(--text4);padding:24px;">कुनै entry छैन</td></tr>`:
+    assetLossLog.map((l,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"var(--bg4)"};">
+      <td style="color:var(--text4);font-family:monospace;font-size:11px;">${l.date}</td>
+      <td style="color:var(--text2);font-weight:600;">${esc(l.assetName)}</td>
+      <td style="color:var(--warn);font-weight:700;font-size:11px;">${esc(l.type)}</td>
+      <td style="color:var(--text3);">${l.qty}</td>
+      <td style="color:var(--red);font-weight:800;">रु ${fmtN(l.lossAmt)}</td>
+      <td style="color:var(--text3);font-size:11px;">${esc(l.reason||"")}</td>
+      <td style="color:var(--text4);font-size:11px;">${esc(l.user)}</td>
+    </tr>`).join("")}
+    ${assetLossLog.length>0?`<tr style="background:var(--bg4);"><td colspan="4" style="font-weight:700;color:var(--text3);">Total Loss</td><td style="color:var(--red);font-weight:900;font-size:15px;" colspan="3">रु ${fmtN(totalLoss)}</td></tr>`:""}`;
+}
+
+function showAssetForm(id){
+  const a=id?fixedAssets.find(x=>x.id===id):null;
+  openModal(`
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+      <h3 style="margin:0;color:var(--text);">🏢 ${a?"Asset Edit":"नयाँ Fixed Asset"}</h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div class="field"><label>Asset Name *</label><input id="faName" value="${a?esc(a.name):""}" placeholder="जस्तै: Weighing Scale, Fridge, Chair..."/></div>
+    <div class="g2">
+      <div class="field"><label>Category *</label>
+        <select id="faCat" style="width:100%;padding:9px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);outline:none;">
+          ${ASSET_CATS.map(c=>`<option ${a&&a.category===c?"selected":""}>${c}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field"><label>Quantity *</label><input type="number" step="any" id="faQty" value="${a?a.qty:1}" min="1"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>खरिद मिति *</label><input type="date" id="faDate" value="${a?a.purchaseDate:localYMD(new Date())}"/></div>
+      <div class="field"><label>Purchase Value (रु) *</label><input type="number" step="any" id="faVal" value="${a?a.purchaseValue:""}" placeholder="0"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Depreciation दर (%/वर्ष)</label><input type="number" step="any" id="faDep" value="${a&&a.depRate?a.depRate:0}" placeholder="0"/></div>
+      <div class="field"><label>Location</label><input id="faLoc" value="${a&&a.location?esc(a.location):""}" placeholder="जस्तै: काउन्टर, स्टोर"/></div>
+    </div>
+    <div class="field"><label>Vendor / Supplier</label><input id="faVendor" value="${a&&a.vendor?esc(a.vendor):""}" placeholder="किनेको ठाउँ (optional)"/></div>
+    <div class="field"><label>Note</label><input id="faNote" value="${a&&a.note?esc(a.note):""}" placeholder="थप विवरण..."/></div>
+    <button class="btn btn-blue" style="width:100%;padding:12px;font-size:14px;" onclick="saveAsset(${a?a.id:"null"})">✅ Asset Save गर्नुस्</button>`,460);
+}
+
+function saveAsset(id){
+  const name=(document.getElementById("faName").value||"").trim();
+  const category=document.getElementById("faCat").value;
+  const qty=parseFloat(document.getElementById("faQty").value||0);
+  const purchaseDate=document.getElementById("faDate").value;
+  const purchaseValue=parseFloat(document.getElementById("faVal").value||0);
+  const depRate=parseFloat(document.getElementById("faDep").value||0);
+  const location=(document.getElementById("faLoc").value||"").trim();
+  const vendor=(document.getElementById("faVendor").value||"").trim();
+  const note=(document.getElementById("faNote").value||"").trim();
+  if(!name||!qty||!purchaseDate||!purchaseValue){toast$("Name, Qty, मिति र Value भर्नुस्!","error");return;}
+  if(id){
+    const a=fixedAssets.find(x=>x.id===id);
+    if(!a){toast$("Asset भेटिएन!","error");return;}
+    Object.assign(a,{name,category,qty,purchaseDate,purchaseValue,depRate,location,vendor,note});
+    addLog("Asset Edit",name);
+  }else{
+    fixedAssets.unshift({id:Date.now(),name,category,qty,purchaseDate,purchaseValue,depRate,location,vendor,note,lossWrittenOff:0,status:"active",addedBy:currentUser.name});
+    addLog("Asset Add",name+" — रु "+purchaseValue);
+  }
+  saveDB();closeModal();toast$("Fixed Asset save ✅");
+  renderAssets();
+}
+
+function showAssetLossForm(assetId){
+  const a=fixedAssets.find(x=>x.id===assetId);
+  if(!a){toast$("Asset भेटिएन!","error");return;}
+  const cv=assetBookValue(a);
+  openModal(`
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+      <h3 style="margin:0;color:var(--text);">💔 ${esc(a.name)} — Loss/Damage</h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="background:#f5faff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--text3);">Current Book Value: <b>रु ${fmtN(cv)}</b> · Qty: <b>${a.qty}</b></div>
+    <div class="field"><label>Type *</label>
+      <select id="alType" style="width:100%;padding:9px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);outline:none;">
+        <option value="Damage">💔 Damage (आंशिक क्षति)</option>
+        <option value="Lost">❓ Lost (हराएको)</option>
+        <option value="Stolen">🚨 Stolen (चोरी)</option>
+        <option value="Disposed">🗑️ Disposed/Sold (खारेज)</option>
+      </select>
+    </div>
+    <div class="g2">
+      <div class="field"><label>मिति *</label><input type="date" id="alDate" value="${localYMD(new Date())}"/></div>
+      <div class="field"><label>Qty Affected *</label><input type="number" step="any" id="alQty" value="${a.qty}" min="1" max="${a.qty}"/></div>
+    </div>
+    <div class="field"><label>Value Written Off (रु) *</label><input type="number" step="any" id="alLoss" value="${cv}" placeholder="0"/></div>
+    <div class="field"><label>Reason / Note</label><input id="alReason" placeholder="जस्तै: दुर्घटनावश भाँचियो, चोरी भयो..."/></div>
+    <button class="btn btn-red" style="width:100%;padding:12px;font-size:14px;" onclick="saveAssetLoss(${a.id})">✅ Save गर्नुस्</button>`,460);
+}
+
+function saveAssetLoss(assetId){
+  const a=fixedAssets.find(x=>x.id===assetId);
+  if(!a){toast$("Asset भेटिएन!","error");return;}
+  const type=document.getElementById("alType").value;
+  const date=document.getElementById("alDate").value;
+  const qty=parseFloat(document.getElementById("alQty").value||0);
+  const lossAmt=parseFloat(document.getElementById("alLoss").value||0);
+  const reason=(document.getElementById("alReason").value||"").trim();
+  if(!qty||lossAmt<0){toast$("Qty र Value ठीकसँग भर्नुस्!","error");return;}
+  assetLossLog.unshift({id:Date.now(),assetId:a.id,assetName:a.name,type,date,qty,lossAmt,reason,user:currentUser.name});
+  a.qty=Math.max(0,a.qty-qty);
+  a.lossWrittenOff=parseFloat(a.lossWrittenOff||0)+lossAmt;
+  if(type==="Disposed"||a.qty<=0)a.status="disposed";
+  addLog("Asset "+type,a.name+" — रु "+lossAmt);
+  saveDB();closeModal();toast$(type+" record save ✅ — रु "+fmtN(lossAmt)+" written off","warn");
+  renderAssets();
+}
+
+// ══════════════════════════════════════════════════
 // RETURN / REFUND
 // ══════════════════════════════════════════════════
 
@@ -6991,27 +7470,31 @@ async function saveNewStaff(){
   USERS.push(newUser);
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
   addLog("Settings","Staff added: "+name);closeModal();
+  await pushUsersToCloud();
   toast$("✅ "+name+" added as "+role+"!");renderSettings();
 }
 
-function removeStaff(uid){
+async function removeStaff(uid){
   const u=USERS.find(x=>x.id===uid);if(!u)return;
   if(!confirm("'"+u.name+"' remove गर्ने?"))return;
   const idx=USERS.findIndex(x=>x.id===uid);
   USERS.splice(idx,1);
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
   addLog("Settings","Staff removed: "+u.name);
+  await deleteUserFromCloud(uid);
   toast$(u.name+" removed","warn");renderSettings();
 }
 
 async function changeStaffPW(uid){
   const u=USERS.find(x=>x.id===uid);if(!u)return;
-  const np=prompt("@"+u.un+" को नयाँ Password:\n\n⚠️ याद राख्नुस्: यसले local device मा मात्र password बदल्छ। Cloud (Supabase) मा login गर्न, "+u.name+" ले आफै Login गरेर 'मेरो Account' बाट password बदल्नुपर्छ — नत्र cloud sync काम नगर्न सक्छ।");
+  const np=prompt("@"+u.un+" को नयाँ Password:");
   if(!np||!isStrongPassword(np)){if(np)toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}
   const{salt,hash}=await hashPassword(np);
   u.salt=salt;u.pwHash=hash;delete u.pw;
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
-  addLog("Settings",u.name+" password changed");toast$("✅ Local password updated! (Cloud password चाहिन्छ भने "+u.name+" आफै बदल्नुपर्छ)");
+  addLog("Settings",u.name+" password changed");
+  await pushUsersToCloud();
+  toast$("✅ Password बदलियो — अब सबै device/downloaded copy मा काम गर्छ!");
 }
 
 
@@ -7842,7 +8325,7 @@ function openStaffManager(){
 }
 function renderStaffList(){const el=document.getElementById("staffList");if(!el)return;const RC={admin:"#f0b429",staff:"#4ade80",cashier:"#60b4ff"};el.innerHTML=USERS.map(u=>`<div style="background:#fff;border:1.5px solid ${u.id===currentUser.id?"var(--blue)":"var(--border)"};border-radius:12px;padding:14px;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:36px;height:36px;border-radius:50%;background:${RC[u.role]}18;border:2px solid ${RC[u.role]};color:${RC[u.role]};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">${u.av}</div><div style="flex:1;"><div style="font-weight:700;color:var(--text);">${esc(u.name)}</div><div style="font-size:11px;color:var(--text4);">@${u.un} · <span style="color:${RC[u.role]};font-weight:700;">${u.role}</span></div></div><button onclick="editStaffPW(${u.id})" style="background:#fef3c7;border:1.5px solid var(--gold);color:var(--gold);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">🔑 Password</button></div>${u.role!=="admin"?`<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;">Access:</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${Object.keys(PERMS.staff).map(mod=>`<label style="display:flex;align-items:center;gap:4px;background:${PERMS[u.role]?.[mod]?"#dcfce7":"#fee2e2"};border:1px solid ${PERMS[u.role]?.[mod]?"#86efac":"#fca5a5"};padding:4px 9px;border-radius:18px;cursor:pointer;font-size:10px;font-weight:600;"><input type="checkbox" ${PERMS[u.role]?.[mod]?"checked":""} onchange="togglePerm('${u.role}','${mod}',this.checked)" style="accent-color:var(--green);cursor:pointer;"/>${mod}</label>`).join("")}</div>`:"<div style='font-size:11px;color:var(--text4);'>Admin — Full Access</div>"}</div>`).join("");}
 function editStaffPW(uid){const u=USERS.find(x=>x.id===uid);if(!u)return;openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔑 ${esc(u.name)} Password</h3><button onclick="closeModal();openStaffManager();" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">←</button></div><div style="background:#f0f7ff;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text3);">Username: <strong>@${u.un}</strong></div><div class="field"><label>New Password *</label><input type="password" id="npw1" placeholder="New password..."/></div><div class="field"><label>Confirm *</label><input type="password" id="npw2" placeholder="Repeat..."/></div><button onclick="saveStaffPW(${uid})" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Update</button>`,420);}
-async function saveStaffPW(uid){const pw1=document.getElementById("npw1")?.value||"",pw2=document.getElementById("npw2")?.value||"";if(!isStrongPassword(pw1)){toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}if(pw1!==pw2){toast$("Match भएन!","error");return;}const u=USERS.find(x=>x.id===uid);if(!u)return;const{salt,hash}=await hashPassword(pw1);u.salt=salt;u.pwHash=hash;delete u.pw;localStorage.setItem("nabin_users",JSON.stringify(USERS));addLog("Settings",u.name+" password changed");toast$("✅ Local password updated! Cloud password चाहिन्छ भने "+u.name+" आफै Login गरेर बदल्नुपर्छ।");closeModal();openStaffManager();}
+async function saveStaffPW(uid){const pw1=document.getElementById("npw1")?.value||"",pw2=document.getElementById("npw2")?.value||"";if(!isStrongPassword(pw1)){toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}if(pw1!==pw2){toast$("Match भएन!","error");return;}const u=USERS.find(x=>x.id===uid);if(!u)return;const{salt,hash}=await hashPassword(pw1);u.salt=salt;u.pwHash=hash;delete u.pw;localStorage.setItem("nabin_users",JSON.stringify(USERS));addLog("Settings",u.name+" password changed");toast$("Password update हुँदैछ...","warn");await pushUsersToCloud();toast$("✅ Password बदलियो — अब सबै device/downloaded copy मा काम गर्छ!");closeModal();openStaffManager();}
 function togglePerm(role,mod,val){if(!PERMS[role])return;PERMS[role][mod]=val?1:0;localStorage.setItem("nabin_perms",JSON.stringify(PERMS));toast$("✅ Permission updated");}
 // USERS/PERMS loads moved to top of script — see hoisted section above
 
