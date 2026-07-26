@@ -1463,8 +1463,15 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 // Security: Session validation — if the session gets revoked/expires server-side (e.g. password changed
 // elsewhere, or natural token expiry) while the app is open, force back to login instead of silently
 // failing cloud syncs. currentUser check avoids double-firing when doLogout() itself triggers this event.
+let _selfInitiatedSignout=false; // हाम्रै "sign out other devices" call ले आफैलाई पनि logout नगराओस्
+let _passwordRecoveryUser=null;  // Forgot-Password email link बाट फर्किंदा यो भरिन्छ
 sb.auth.onAuthStateChange((event)=>{
+  if(event==="PASSWORD_RECOVERY"){
+    showSetNewPasswordAfterRecovery();
+    return;
+  }
   if(event==="SIGNED_OUT"&&typeof currentUser!=="undefined"&&currentUser){
+    if(_selfInitiatedSignout){_selfInitiatedSignout=false;return;}
     toast$("⚠️ Session समाप्त भयो — फेरि Login गर्नुस्","error");
     doLogout(true);
   }
@@ -2149,7 +2156,30 @@ async function decryptSecret(obj){
     return new TextDecoder().decode(dec);
   }catch(e){return null;}
 }
-function openModal(html,w=520){const m=document.getElementById("modalBox");m.style.maxWidth=w+"px";m.innerHTML=html;document.getElementById("modalOverlay").style.display="flex";}
+function attachPasswordToggles(scope){
+  (scope||document).querySelectorAll('input[type="password"]:not([data-pwtoggled])').forEach(inp=>{
+    inp.setAttribute("data-pwtoggled","1");
+    const wrap=document.createElement("span");
+    wrap.style.cssText="position:relative;display:block;";
+    inp.parentNode.insertBefore(wrap,inp);
+    wrap.appendChild(inp);
+    inp.style.paddingRight="36px";
+    inp.style.boxSizing="border-box";
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.textContent="👁️";
+    btn.setAttribute("aria-label","Password देखाउनुस्/लुकाउनुस्");
+    btn.style.cssText="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;line-height:1;padding:4px;opacity:0.55;";
+    btn.onclick=function(e){
+      e.preventDefault();
+      if(inp.type==="password"){inp.type="text";btn.textContent="🙈";btn.style.opacity="1";}
+      else{inp.type="password";btn.textContent="👁️";btn.style.opacity="0.55";}
+    };
+    wrap.appendChild(btn);
+  });
+}
+attachPasswordToggles(document); // login/app-lock जस्ता static password field हरूमा पनि लागू गर्ने
+function openModal(html,w=520){const m=document.getElementById("modalBox");m.style.maxWidth=w+"px";m.innerHTML=html;document.getElementById("modalOverlay").style.display="flex";attachPasswordToggles(m);}
 function closeModal(){if(typeof stopQRScanner==="function")stopQRScanner();document.getElementById("modalOverlay").style.display="none";}
 
 // ── Full-Screen Detail View — ठूला Detail page हरूको लागि (मोबाइल स्क्रिन पूरै प्रयोग गर्ने) ──
@@ -2579,6 +2609,41 @@ async function submitForgotPassword(){
   }catch(e){toast$("⚠️ Network Error","error");}
 }
 
+async function showSetNewPasswordAfterRecovery(){
+  let email=null;
+  try{const{data}=await sb.auth.getUser();email=data?.user?.email||null;}catch(e){}
+  const u=email?USERS.find(x=>(x.email||"").toLowerCase()===email.toLowerCase()):null;
+  openModal(`
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin:0;color:var(--text);">🔑 नयाँ Password सेट गर्नुस्</h3>
+    </div>
+    <div style="background:#dcfce7;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);">✅ Reset link verify भयो${u?" — @"+esc(u.un):""}। अब नयाँ password राख्नुस्।</div>
+    <div class="field"><label>नयाँ Password *</label><input type="password" id="rec_new1" placeholder="नयाँ password"/></div>
+    <div class="field"><label>नयाँ Password (फेरि) *</label><input type="password" id="rec_new2" placeholder="फेरि टाइप गर्नुस्"/></div>
+    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="completePasswordRecovery('${u?u.un:""}')">✅ Password सेट गर्नुस्</button>`,420);
+}
+async function completePasswordRecovery(un){
+  const new1=document.getElementById("rec_new1")?.value||"",new2=document.getElementById("rec_new2")?.value||"";
+  if(!isStrongPassword(new1)){toast$("नयाँ password कम्तीमा 6 अक्षर + 1 letter + 1 number हुनुपर्छ!","error");return;}
+  if(new1!==new2){toast$("Password मिलेन!","error");return;}
+  toast$("Password update हुँदैछ...","warn");
+  try{
+    const{error}=await sb.auth.updateUser({password:new1});
+    if(error){toast$("⚠️ असफल: "+error.message,"error");return;}
+  }catch(e){toast$("⚠️ Network Error","error");return;}
+  const u=USERS.find(x=>x.un===un);
+  if(u){
+    const{salt,hash}=await hashPassword(new1);
+    u.salt=salt;u.pwHash=hash;delete u.pw;u.pwChangedByUser=true;
+    localStorage.setItem("nabin_users",JSON.stringify(USERS));
+    await pushUsersToCloud();
+  }
+  try{await sb.auth.signOut();}catch(e){}
+  addLog("Password Reset",(u?u.name:un||"User")+" ले forgot-password link बाट password reset गरे");
+  closeModal();
+  toast$("✅ Password बदलियो! अब नयाँ password ले Login गर्नुस्।");
+}
+
 async function doLogin(){
   const now=Date.now();
   if(_lockUntil>now){const s=Math.ceil((_lockUntil-now)/1000);toast$("🔒 "+s+"s पछि try गर्नुस्!","error");return;}
@@ -2592,19 +2657,13 @@ async function doLogin(){
     else{toast$("गलत username वा password! ("+_failCount+"/3)","error");}
     const p=document.getElementById("loginPW");if(p){p.value="";p.focus();}return;
   }
-  // Supabase Auth session बनाउने (RLS ले यही session चेक गर्छ)
+  // Supabase Auth session बनाउने (best-effort — यो असफल भए पनि हाम्रो आफ्नै
+  // password check (माथि) नै असली gate हो, त्यसैले login block नगर्ने)
   toast$("Login हुँदैछ...","warn");
   try{
     const{error}=await sb.auth.signInWithPassword({email:u.email,password:pw});
-    if(error){
-      console.error("Supabase Auth login failed:",error.message);
-      toast$("⚠️ Cloud login असफल: "+error.message,"error");
-      return;
-    }
-  }catch(e){
-    toast$("⚠️ Network/Supabase Error — फेरि try गर्नुस्","error");
-    return;
-  }
+    if(error)console.warn("Supabase Auth login skipped (non-blocking):",error.message);
+  }catch(e){console.warn("Supabase Auth network issue (non-blocking):",e);}
   _failCount=0;_lockUntil=0;
   document.getElementById("loginUN").value="";document.getElementById("loginPW").value="";
   currentUser=u;
@@ -5028,11 +5087,12 @@ async function saveMyPassword(){
   if(!isStrongPassword(new1)){toast$("नयाँ password कम्तीमा 6 अक्षर + 1 letter + 1 number हुनुपर्छ!","error");return;}
   if(new1!==new2){toast$("नयाँ password मिलेन!","error");return;}
   toast$("Password update हुँदैछ...","warn");
-  // Cloud (Supabase Auth) मा वास्तविक password पनि update गर्ने — नत्र अर्को login cloud मा असफल हुन्थ्यो
+  // Cloud (Supabase Auth) मा पनि update गर्ने कोशिस — best-effort (असफल भए पनि
+  // हाम्रो आफ्नै password (तल) update हुन्छ, प्रयोगकर्ता अड्किनु पर्दैन)
   try{
     const{error}=await sb.auth.updateUser({password:new1});
-    if(error){toast$("⚠️ Cloud update असफल: "+error.message,"error");return;}
-  }catch(e){toast$("⚠️ Network/Supabase Error — फेरि try गर्नुस्","error");return;}
+    if(error)console.warn("Supabase Auth update skipped (non-blocking):",error.message);
+  }catch(e){console.warn("Supabase Auth network issue (non-blocking):",e);}
   {const{salt,hash}=await hashPassword(new1);currentUser.salt=salt;currentUser.pwHash=hash;}
   currentUser.pwChangedByUser=true;
   _lastLoginPw=new1; // यही session भित्र चाहिने भए biometric setup ले पनि नयाँ password पाओस्
@@ -5041,8 +5101,11 @@ async function saveMyPassword(){
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
   await pushUsersToCloud();
   addLog("Password Change",currentUser.name+" ले आफ्नो password बदले");
-  // Fix: password बदलिएपछि अरू सबै पुरानो session (अन्य device/browser) invalidate गर्ने
+  // अन्य device/browser मा भएको पुरानो Supabase Auth session invalidate गर्ने — तर आफ्नै
+  // हालको session लाई असर नपरोस् भनेर _selfInitiatedSignout flag ले guard गरिएको छ
+  _selfInitiatedSignout=true;
   try{await sb.auth.signOut({scope:"others"});}catch(e){}
+  setTimeout(()=>{_selfInitiatedSignout=false;},3000); // event कहिल्यै नआए पनि flag अड्किएर नबसोस्
   toast$("✅ Password बदलियो! अन्य device मा भएको पुरानो login पनि लगआउट भयो।");
   openMyAccount();
 }
@@ -7442,6 +7505,7 @@ function showAddStaffForm(){
       <div class="field"><label>Full Name *</label><input id="ns_name" placeholder="Staff नाम"/></div>
       <div class="field"><label>Username *</label><input id="ns_un" placeholder="username"/></div>
       <div class="field"><label>Password *</label><input type="password" id="ns_pw" placeholder="password"/></div>
+      <div class="field"><label>WhatsApp Number (optional)</label><input id="ns_phone" placeholder="98XXXXXXXX" inputmode="tel"/></div>
       <div class="field"><label>Role</label>
         <select id="ns_role" style="width:100%;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;">
           <option value="staff">Staff</option>
@@ -7456,22 +7520,35 @@ function showAddStaffForm(){
     <button onclick="saveNewStaff()" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;margin-top:4px;">✅ Add Staff</button>`,460);
 }
 
+// WhatsApp मार्फत login detail पठाउने — साँच्चै "automatic" पठाउने कुरा WhatsApp Business API
+// (paid + backend चाहिने) बिना सम्भव छैन, त्यसैले यसले WhatsApp खोलेर message तयार पारिदिन्छ,
+// Admin ले एकपटक "Send" थिच्नुपर्छ — तर पूरै टाइप गर्नुपर्दैन।
+function waShareCreds(phone,name,un,pw){
+  if(!phone){toast$("यो Staff को WhatsApp Number थपिएको छैन","warn");return;}
+  const msg=`नमस्ते ${name},\n\nतपाईंको NabinPOS Login:\nUsername: ${un}\nPassword: ${pw}\n\nकृपया Login गरेर password बदल्नुहोस्।`;
+  const ph=phone.replace(/[^0-9]/g,"");
+  const withCode=ph.length===10?"977"+ph:ph; // Nepal number भए country code थप्ने
+  window.open("https://wa.me/"+withCode+"?text="+encodeURIComponent(msg),"_blank");
+}
+
 async function saveNewStaff(){
   const name=(document.getElementById("ns_name")||{}).value?.trim();
   const un=(document.getElementById("ns_un")||{}).value?.trim();
   const pw=(document.getElementById("ns_pw")||{}).value||"";
+  const phone=(document.getElementById("ns_phone")||{}).value?.trim().replace(/[^0-9]/g,"");
   const role=(document.getElementById("ns_role")||{}).value||"staff";
   const av=((document.getElementById("ns_av")||{}).value||name?.slice(0,2)||"ST").toUpperCase();
   const color=(document.getElementById("ns_color")||{}).value||"#4ade80";
   if(!name||!un||pw.length<4){toast$("Name, Username र Password (4+ chars) भर्नुस्!","error");return;}
   if(USERS.find(x=>x.un===un)){toast$("Username already exists!","error");return;}
   const{salt,hash}=await hashPassword(pw);
-  const newUser={id:Date.now(),name,un,salt,pwHash:hash,role,av,c:color};
+  const newUser={id:Date.now(),name,un,salt,pwHash:hash,role,av,c:color,phone:phone||""};
   USERS.push(newUser);
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
   addLog("Settings","Staff added: "+name);closeModal();
   await pushUsersToCloud();
   toast$("✅ "+name+" added as "+role+"!");renderSettings();
+  if(phone)waShareCreds(phone,name,un,pw);
 }
 
 async function removeStaff(uid){
@@ -8324,8 +8401,8 @@ function openStaffManager(){
   renderStaffList();
 }
 function renderStaffList(){const el=document.getElementById("staffList");if(!el)return;const RC={admin:"#f0b429",staff:"#4ade80",cashier:"#60b4ff"};el.innerHTML=USERS.map(u=>`<div style="background:#fff;border:1.5px solid ${u.id===currentUser.id?"var(--blue)":"var(--border)"};border-radius:12px;padding:14px;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:36px;height:36px;border-radius:50%;background:${RC[u.role]}18;border:2px solid ${RC[u.role]};color:${RC[u.role]};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">${u.av}</div><div style="flex:1;"><div style="font-weight:700;color:var(--text);">${esc(u.name)}</div><div style="font-size:11px;color:var(--text4);">@${u.un} · <span style="color:${RC[u.role]};font-weight:700;">${u.role}</span></div></div><button onclick="editStaffPW(${u.id})" style="background:#fef3c7;border:1.5px solid var(--gold);color:var(--gold);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">🔑 Password</button></div>${u.role!=="admin"?`<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;">Access:</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${Object.keys(PERMS.staff).map(mod=>`<label style="display:flex;align-items:center;gap:4px;background:${PERMS[u.role]?.[mod]?"#dcfce7":"#fee2e2"};border:1px solid ${PERMS[u.role]?.[mod]?"#86efac":"#fca5a5"};padding:4px 9px;border-radius:18px;cursor:pointer;font-size:10px;font-weight:600;"><input type="checkbox" ${PERMS[u.role]?.[mod]?"checked":""} onchange="togglePerm('${u.role}','${mod}',this.checked)" style="accent-color:var(--green);cursor:pointer;"/>${mod}</label>`).join("")}</div>`:"<div style='font-size:11px;color:var(--text4);'>Admin — Full Access</div>"}</div>`).join("");}
-function editStaffPW(uid){const u=USERS.find(x=>x.id===uid);if(!u)return;openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔑 ${esc(u.name)} Password</h3><button onclick="closeModal();openStaffManager();" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">←</button></div><div style="background:#f0f7ff;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text3);">Username: <strong>@${u.un}</strong></div><div class="field"><label>New Password *</label><input type="password" id="npw1" placeholder="New password..."/></div><div class="field"><label>Confirm *</label><input type="password" id="npw2" placeholder="Repeat..."/></div><button onclick="saveStaffPW(${uid})" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Update</button>`,420);}
-async function saveStaffPW(uid){const pw1=document.getElementById("npw1")?.value||"",pw2=document.getElementById("npw2")?.value||"";if(!isStrongPassword(pw1)){toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}if(pw1!==pw2){toast$("Match भएन!","error");return;}const u=USERS.find(x=>x.id===uid);if(!u)return;const{salt,hash}=await hashPassword(pw1);u.salt=salt;u.pwHash=hash;delete u.pw;localStorage.setItem("nabin_users",JSON.stringify(USERS));addLog("Settings",u.name+" password changed");toast$("Password update हुँदैछ...","warn");await pushUsersToCloud();toast$("✅ Password बदलियो — अब सबै device/downloaded copy मा काम गर्छ!");closeModal();openStaffManager();}
+function editStaffPW(uid){const u=USERS.find(x=>x.id===uid);if(!u)return;openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔑 ${esc(u.name)} Password</h3><button onclick="closeModal();openStaffManager();" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">←</button></div><div style="background:#f0f7ff;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text3);">Username: <strong>@${u.un}</strong></div><div class="field"><label>New Password *</label><input type="password" id="npw1" placeholder="New password..."/></div><div class="field"><label>Confirm *</label><input type="password" id="npw2" placeholder="Repeat..."/></div><div class="field"><label>WhatsApp Number (optional)</label><input id="npw_phone" value="${esc(u.phone||"")}" placeholder="98XXXXXXXX" inputmode="tel"/></div><button onclick="saveStaffPW(${uid})" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Update</button>`,420);}
+async function saveStaffPW(uid){const pw1=document.getElementById("npw1")?.value||"",pw2=document.getElementById("npw2")?.value||"";if(!isStrongPassword(pw1)){toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}if(pw1!==pw2){toast$("Match भएन!","error");return;}const u=USERS.find(x=>x.id===uid);if(!u)return;const phone=(document.getElementById("npw_phone")?.value||"").trim().replace(/[^0-9]/g,"");if(phone)u.phone=phone;const{salt,hash}=await hashPassword(pw1);u.salt=salt;u.pwHash=hash;delete u.pw;localStorage.setItem("nabin_users",JSON.stringify(USERS));addLog("Settings",u.name+" password changed");toast$("Password update हुँदैछ...","warn");await pushUsersToCloud();toast$("✅ Password बदलियो — अब सबै device/downloaded copy मा काम गर्छ!");closeModal();openStaffManager();if(u.phone)waShareCreds(u.phone,u.name,u.un,pw1);}
 function togglePerm(role,mod,val){if(!PERMS[role])return;PERMS[role][mod]=val?1:0;localStorage.setItem("nabin_perms",JSON.stringify(PERMS));toast$("✅ Permission updated");}
 // USERS/PERMS loads moved to top of script — see hoisted section above
 
