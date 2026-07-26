@@ -4,7 +4,7 @@
      sha256 hash for the actual inline script/style blocks below instead of blanket 'unsafe-inline', and
      (b) fills in the real Supabase host from env vars. This exact tag is also a safe fallback if you
      ever open this file directly without running the build step. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cqepdjgaigwhxilxhnzs.supabase.co wss://cqepdjgaigwhxilxhnzs.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Wcuy4DdnAPJ1Z+EwSzBNW0fsWQMRDGzBmgoWE1ziNlM=' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'sha256-877Ix8tMRC8VfwEqrAGoeXqcO7+vZvs7Py7aVRt7gmI=' 'sha256-mTx7VXy5VuTwFzJzbWkPRhNPtu1P9G0zCWGldg/mtzo=' 'sha256-kqfl9cfT7XMSAqzQyLpIRYfLjW3LeVrJePDNzobDO6k=' 'sha256-qnMaAGWU+pktJAvotj1mwrZQQmu+1a2tE/C9+vPPUeI=' 'sha256-f9hx8hjvVUIGFT19AKhL+z3HGL8G8F0mbpYjwGgWmJc=' 'sha256-UnyGzXDuqOEc03h8FbEKjAv6nm3YXDVTISp1zf7hzwc=' 'sha256-nkbd7d3kxGlYJ/tk3UZ7ksntvBvAw2VHMA+zDwlbXtc=' 'sha256-Tb/dcRoIfTA0znnkUSgP8AeLIG5Y/mmwMxkuF/UTwVs=' 'sha256-jzchur0EhL90OK7f7FL9vY0H7RTF5vohNjzhG6E+hqo=' 'sha256-8EOaEH/ikpj6JR4JUvU5sVDdXzyX8N6xgDxGcMbLFSU=' 'sha256-F//vA7GMPG0n4Rcfviha8/7olJHk8XZqsQqvOnwKx20=' 'sha256-2nnhPL+jSPNb2Pp4dkLh/3rjHnFGd5VPBtH22I4k36k=' 'sha256-WJlgIEwXOURa1yNhZCg0DhKh7h4h4K3D3xqDqT3N3Ko='; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cqepdjgaigwhxilxhnzs.supabase.co wss://cqepdjgaigwhxilxhnzs.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>⚡ NabinPOS — Complete POS System</title>
 <!-- PWA / Mobile App Meta -->
@@ -445,7 +445,7 @@
 </head>
 <body>
 
-<div id="toast" style="display: none; background: rgb(14, 165, 233);">✅ नमस्ते Nabin Regmi! 🙏</div>
+<div id="toast" style="display: none;">❌ पहिले Login गर्नुस्</div>
 
 <!-- ════════════════════════════════════════════════════════════
      LOGIN PAGE
@@ -460,9 +460,9 @@
     </div>
     <div class="login-box">
       <div class="field"><label>Username</label><input id="loginUN" name="npos_field_a1" placeholder="username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" onfocus="this.removeAttribute('readonly')"></div>
-      <div class="field"><label>Password</label><input id="loginPW" name="npos_field_b2" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()" onfocus="this.removeAttribute('readonly')" aria-autocomplete="list"></div>
+      <div class="field"><label>Password</label><span style="position: relative; display: block;"><input id="loginPW" name="npos_field_b2" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()" onfocus="this.removeAttribute('readonly')" aria-autocomplete="list" data-pwtoggled="1" style="padding-right: 36px; box-sizing: border-box;"><button type="button" aria-label="Password देखाउनुस्/लुकाउनुस्" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; cursor: pointer; font-size: 15px; line-height: 1; padding: 4px; opacity: 0.55;">👁️</button></span></div>
       <button class="btn btn-gold" style="width:100%;padding:12px;font-size:15px;margin-top:4px;" onclick="doLogin()">🔐 Login</button>
-      <div id="biometricBtn" style="display: block; margin-top: 10px;">
+      <div id="biometricBtn" style="display: none; margin-top: 10px;">
         <button onclick="doBiometricLogin()" style="width:100%;padding:11px;background:#1e293b;border:1.5px solid #475569;color:#e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🪪 Biometric / Fingerprint Login</button>
       </div>
       <div style="text-align:center;margin-top:10px;"><a href="javascript:void(0)" onclick="openForgotPassword()" style="font-size:11px;color:var(--blue);text-decoration:none;">Password बिर्सनुभयो?</a></div>
@@ -1390,7 +1390,7 @@
 
 <!-- ════════════════════ MODALS ════════════════════ -->
 <datalist id="unitOptions"><option value="pcs"></option><option value="kg"></option><option value="g"></option><option value="ltr"></option><option value="ml"></option><option value="dozen"></option><option value="packet"></option><option value="box"></option><option value="bag"></option><option value="bottle"></option><option value="plate"></option></datalist>
-<div id="fsDetailOverlay" style="display: flex; position: fixed; inset: 0px; background: var(--bg); z-index: 10000; flex-direction: column;">
+<div id="fsDetailOverlay" style="display: none; position: fixed; inset: 0px; background: var(--bg); z-index: 10000; flex-direction: column;">
   <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;">
     <button onclick="closeFullScreenDetail()" style="background:none;border:none;font-size:24px;color:var(--text);cursor:pointer;padding:0 4px;">←</button>
     <div id="fsDetailTitle" style="flex:1;font-weight:800;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">💾 Backup &amp; Export</div>
@@ -1422,7 +1422,7 @@
   <div style="color:#fff;font-size:16px;font-weight:800;margin-bottom:4px;" id="lockUserName">Locked</div>
   <div style="color:#94a3b8;font-size:11px;margin-bottom:20px;text-align:center;">App पछाडि गएको थियो — सुरक्षाको लागि फेरि Password/Fingerprint चाहिन्छ</div>
   <div style="width:100%;max-width:280px;">
-    <input id="lockPW" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doUnlockApp()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #334155;background:#1e293b;color:#fff;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:10px;">
+    <span style="position: relative; display: block;"><input id="lockPW" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')doUnlockApp()" style="width: 100%; padding: 12px 36px 12px 12px; border-radius: 10px; border: 1.5px solid rgb(51, 65, 85); background: rgb(30, 41, 59); color: rgb(255, 255, 255); font-size: 14px; outline: none; box-sizing: border-box; margin-bottom: 10px;" data-pwtoggled="1"><button type="button" aria-label="Password देखाउनुस्/लुकाउनुस्" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; cursor: pointer; font-size: 15px; line-height: 1; padding: 4px; opacity: 0.55;">👁️</button></span>
     <button onclick="doUnlockApp()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px;">🔓 Unlock</button>
     <button id="lockBioBtn" onclick="doUnlockBiometric()" style="display:none;width:100%;padding:11px;border-radius:10px;border:1.5px solid #475569;background:#1e293b;color:#e2e8f0;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:8px;">🪪 Fingerprint</button>
     <button onclick="doLogout()" style="width:100%;padding:9px;border-radius:10px;border:none;background:none;color:#94a3b8;font-size:11px;cursor:pointer;">⏏ अर्को Account बाट Login गर्ने</button>
@@ -2215,6 +2215,14 @@ function _hideFsDetailOverlay(){
 // पहिले: Back थिच्दा App तुरुन्तै बन्द हुन्थ्यो, कुनै confirm थिएन
 // अब: Back थिच्दा पहिले पुष्टि सोध्छ, "Yes" भनेपछि मात्र बाहिर निस्किन्छ
 // ══════════════════════════════════════════════
+// BOOT-TIME SAFETY NET — ताजा page load मा fsDetail/modal overlay कहिल्यै खुला हुनु हुँदैन।
+// (पुरानो "Download App + Data" ले कहिलेकाहीँ खुला screen नै HTML भित्र baked गरिदिन्थ्यो, जसले
+// login page लाई नै ढाकिदिन्थ्यो। यसले त्यस्तो पुरानो export file पनि खोल्दा auto-fix गर्छ।)
+(function bootCleanupOverlays(){
+  const ids=["fsDetailOverlay","modalOverlay","bcModalOverlay","payModalEl","receiptModal","toast"];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el&&el.style.display!=="none")el.style.display="none";});
+  const sb=document.querySelector(".sidebar");if(sb)sb.classList.remove("mobile-open");
+})();
 let _exitConfirmed=false;
 function armBackGuard(){
   try{history.pushState({appGuard:true,t:Date.now()},"",location.href);}catch(e){}
@@ -7619,9 +7627,49 @@ function exportCSV(type){
 // ══════════════════════════════════════════════════
 function downloadAppFile(){
   const lp=document.getElementById("loginPage"),ma=document.getElementById("mainApp"),rc=document.getElementById("roleCards");
+  // Export हुनु अघि सबै transient overlay/modal हरू (fsDetail, modal, lock-screen, sidebar) बन्द गर्ने,
+  // नत्र export गर्दा जुन screen खुला थियो त्यही (जस्तै Backup & Export) login page माथि baked भएर बस्छ
+  // र फेरि File खोल्दा login भन्दा पहिले नै त्यो screen देखिन्छ (z-index 10000 भएकोले login लाई ढाकिदिन्छ)।
+  const fsOv=document.getElementById("fsDetailOverlay");
+  const fsWasOpen=fsOv&&fsOv.style.display==="flex";
+  if(fsWasOpen)_hideFsDetailOverlay();
+  const moOv=document.getElementById("modalOverlay");
+  const moWasOpen=moOv&&moOv.style.display==="flex";
+  if(moWasOpen)moOv.style.display="none";
+  const bcOv=document.getElementById("bcModalOverlay");
+  const bcWasOpen=bcOv&&bcOv.style.display==="flex";
+  if(bcWasOpen)bcOv.style.display="none";
+  const payOv=document.getElementById("payModalEl");
+  const payWasOpen=payOv&&payOv.style.display==="flex";
+  if(payWasOpen)payOv.style.display="none";
+  const rcpOv=document.getElementById("receiptModal");
+  const rcpWasOpen=rcpOv&&rcpOv.style.display==="flex";
+  if(rcpWasOpen)rcpOv.style.display="none";
+  const lockOv=document.getElementById("appLockOverlay");
+  const lockWasOpen=lockOv&&lockOv.style.display==="flex";
+  if(lockWasOpen)lockOv.style.display="none";
+  const sb=document.querySelector(".sidebar");
+  const sbWasOpen=sb&&sb.classList.contains("mobile-open");
+  if(sbWasOpen)sb.classList.remove("mobile-open");
+  // Toast पनि export हुने बेला जे देखिइरहेको थियो (जस्तै अघिल्लो error) त्यही baked भएर बस्थ्यो —
+  // export गरेको file खोल्ना साथ त्यो पुरानो toast (जस्तै "पहिले Login गर्नुस्") फेरि देखिन्थ्यो।
+  const toastEl=document.getElementById("toast");
+  const toastWasOn=toastEl&&toastEl.style.display==="block";
+  const toastText=toastEl?toastEl.textContent:"";
+  const toastBg=toastEl?toastEl.style.background:"";
+  if(toastWasOn){clearTimeout(toastEl._t);toastEl.style.display="none";}
   if(lp)lp.style.display="";if(ma)ma.style.display="none";if(rc)rc.innerHTML="";
   const html='<!DOCTYPE html>'+document.documentElement.outerHTML;
   if(currentUser&&ma)ma.style.display="flex";
+  // माथि बन्द गरेका overlay हरू फेरि पहिलेकै अवस्थामा फर्काउने (user को हालको screen नबिग्रियोस्)
+  if(fsWasOpen)fsOv.style.display="flex";
+  if(moWasOpen)moOv.style.display="flex";
+  if(bcWasOpen)bcOv.style.display="flex";
+  if(payWasOpen)payOv.style.display="flex";
+  if(rcpWasOpen)rcpOv.style.display="flex";
+  if(lockWasOpen)lockOv.style.display="flex";
+  if(sbWasOpen)sb.classList.add("mobile-open");
+  if(toastWasOn){toastEl.textContent=toastText;toastEl.style.background=toastBg;toastEl.style.display="block";clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.style.display="none",2800);}
   const blob=new Blob([html],{type:"text/html;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`NabinPOS-${new Date().toISOString().slice(0,10)}.html`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);addLog("Download","App downloaded");toast$("💾 Download भयो!");
