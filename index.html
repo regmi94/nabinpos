@@ -441,7 +441,9 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/nepali-date-converter/dist/nepali-date-converter.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nepali-date-converter@3.4.0/dist/nepali-date-converter.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -525,7 +527,7 @@
     <div id="s-dashboard" class="screen">
       <div class="screen-inner">
         <div class="page-header">
-          <div><div class="page-title">📊 Dashboard</div><div class="page-sub" id="dashDateSub">२०८१ माघ १५ — आजको अवलोकन</div></div>
+          <div><div class="page-title">📊 Dashboard</div><div class="page-sub" id="dashDateSub">आजको अवलोकन</div></div>
           <div style="display:flex;gap:8px;">
             <button class="btn" id="syncBtn" onclick="manualSync()" style="background:#f0f7ff;border:1px solid var(--blue);color:var(--blue);">🔄 Sync</button>
             <button class="btn" onclick="openMyAccount()" style="background:#f0fdf4;border:1px solid var(--green);color:var(--green);">🔐 मेरो Account</button>
@@ -550,43 +552,29 @@
       </div>
       <div style="font-size:9px;color:var(--text4);margin-top:4px;">👆 छुनुस्</div>
     </div></div>
-        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-bottom:12px;">
-          <div class="card">
-            <div class="card-title">📈 ७ दिनको बिक्री</div>
-            <div class="bar-wrap" id="salesChart"><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु60k</div>
-      <div class="bar" style="height:100%;background:linear-gradient(180deg,#1a3060,#0d1a40);"></div>
-      <div style="font-size:8px;color:var(--text4);">माघ ८</div>
-    </div><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु36k</div>
-      <div class="bar" style="height:59%;background:linear-gradient(180deg,#1a3060,#0d1a40);"></div>
-      <div style="font-size:8px;color:var(--text4);">माघ ९</div>
-    </div><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु49k</div>
-      <div class="bar" style="height:81%;background:linear-gradient(180deg,#1a3060,#0d1a40);"></div>
-      <div style="font-size:8px;color:var(--text4);">माघ १०</div>
-    </div><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु42k</div>
-      <div class="bar" style="height:69%;background:linear-gradient(180deg,#1a3060,#0d1a40);"></div>
-      <div style="font-size:8px;color:var(--text4);">माघ ११</div>
-    </div><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु52k</div>
-      <div class="bar" style="height:87%;background:linear-gradient(180deg,#1a3060,#0d1a40);"></div>
-      <div style="font-size:8px;color:var(--text4);">माघ १२</div>
-    </div><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु39k</div>
-      <div class="bar" style="height:64%;background:linear-gradient(180deg,#1a3060,#0d1a40);"></div>
-      <div style="font-size:8px;color:var(--text4);">माघ १३</div>
-    </div><div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु49k</div>
-      <div class="bar" style="height:81%;background:linear-gradient(180deg,var(--gold),var(--gold2));"></div>
-      <div style="font-size:8px;color:var(--gold);">माघ १४</div>
-    </div></div>
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+            <div class="card-title" style="margin:0;">📈 Sales Trend</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <select id="trendMode" onchange="renderSalesTrend()" style="font-size:11px;padding:5px 6px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--text);">
+                <option value="month">यो महिना vs अघिल्लो महिना</option>
+                <option value="year">यो वर्ष vs गत वर्ष</option>
+              </select>
+              <select id="trendChartType" onchange="renderSalesTrend()" style="font-size:11px;padding:5px 6px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--text);">
+                <option value="bar">📊 Bar</option>
+                <option value="line">📈 Line</option>
+                <option value="pie">🥧 Pie</option>
+              </select>
+              <button onclick="openTrendFullscreen()" style="font-size:11px;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);cursor:pointer;">⛶ Full</button>
+              <button onclick="exportBillCustomerExcel()" style="font-size:11px;padding:5px 8px;border-radius:7px;border:1px solid var(--gold);background:#fef3c7;color:var(--gold);cursor:pointer;font-weight:700;">📥 Excel</button>
+            </div>
           </div>
-          <div class="card">
+          <div id="trendNote" style="font-size:10px;color:var(--text4);margin-bottom:4px;"></div>
+          <div style="position:relative;height:220px;"><canvas id="trendCanvas"></canvas></div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
             <div class="card-title" style="color:var(--red);">🔴 Low Stock Alert</div>
             <div id="lowStockList"><div style="display:flex;justify-content:space-between;padding:5px 8px;background:#fff0f0;border-radius:6px;margin-bottom:4px;"><span style="font-size:11px;color:#e0b0b0;">Bigboss</span><span style="font-size:11px;font-weight:700;color:var(--warn);">1 pcs</span></div></div>
-          </div>
         </div>
         <div class="card">
           <div class="card-title">⚡ Quick Access</div>
@@ -1604,59 +1592,18 @@ const CATS=["किराना","तरकारी","डेरी","पेय 
 let SUBCATS={"किराना":["चामल/दाल","तेल/घ्यू","मसला","आटा/पीठो","बिस्कुट/नास्ता"]};
 const CICON={"किराना":"🌾","तरकारी":"🥬","डेरी":"🥛","पेय पदार्थ":"🥤","सफाई":"🧴","फास्टफुड":"🍜","स्टेशनरी":"📄"};
 
-let products=[
-  {id:1, name:"बासमती चामल",  cat:"किराना",     price:180,buy:140,stock:120,unit:"kg",   bc:"1001",vat:0,low:20,suppId:1},
-  {id:2, name:"मसुरको दाल",   cat:"किराना",     price:160,buy:120,stock:85, unit:"kg",   bc:"1002",vat:0,low:15,suppId:1},
-  {id:3, name:"सूर्यमुखी तेल",cat:"किराना",    price:320,buy:270,stock:40, unit:"ltr",  bc:"1003",vat:1,low:10,suppId:1},
-  {id:4, name:"आलु",          cat:"तरकारी",    price:45, buy:30, stock:200,unit:"kg",   bc:"2001",vat:0,low:30,suppId:0},
-  {id:5, name:"टमाटर",        cat:"तरकारी",    price:60, buy:40, stock:8,  unit:"kg",   bc:"2002",vat:0,low:10,suppId:0},
-  {id:6, name:"प्याज",        cat:"तरकारी",    price:55, buy:38, stock:150,unit:"kg",   bc:"2003",vat:0,low:20,suppId:0},
-  {id:7, name:"दूध",          cat:"डेरी",      price:95, buy:75, stock:50, unit:"ltr",  bc:"3001",vat:0,low:15,suppId:2},
-  {id:8, name:"दही",          cat:"डेरी",      price:120,buy:90, stock:25, unit:"kg",   bc:"3002",vat:0,low:8, suppId:2},
-  {id:9, name:"Coca Cola",    cat:"पेय पदार्थ",price:65, buy:48, stock:144,unit:"pcs",  bc:"4001",vat:1,low:24,suppId:3},
-  {id:10,name:"Mineral Water",cat:"पेय पदार्थ",price:25, buy:18, stock:200,unit:"pcs",  bc:"4002",vat:0,low:48,suppId:3},
-  {id:11,name:"Surf Excel",   cat:"सफाई",      price:280,buy:220,stock:60, unit:"pcs",  bc:"5001",vat:1,low:10,suppId:1},
-  {id:12,name:"Momo (Veg)",   cat:"फास्टफुड",  price:150,buy:60, stock:999,unit:"plate",bc:"6001",vat:1,low:0, suppId:0},
-  {id:13,name:"Chowmein",     cat:"फास्टफुड",  price:130,buy:50, stock:999,unit:"plate",bc:"6002",vat:1,low:0, suppId:0},
-  {id:14,name:"Biscuit Pack", cat:"किराना",     price:35, buy:25, stock:300,unit:"pcs",  bc:"1004",vat:1,low:50,suppId:1},
-  {id:15,name:"A4 Paper",     cat:"स्टेशनरी",  price:650,buy:520,stock:5,  unit:"ream", bc:"7001",vat:1,low:5, suppId:0},
-];
-let customers=[
-  {id:1,name:"राम प्रसाद श्रेष्ठ",phone:"9857001111",addr:"बुटवल-५", limit:10000,bal:-4500,total:38000,join:"2080-06-01"},
-  {id:2,name:"सुमित्रा देवी",      phone:"9867002222",addr:"बुटवल-३", limit:5000, bal:0,    total:21000,join:"2080-08-15"},
-  {id:3,name:"कमल बहादुर थापा",   phone:"9807003333",addr:"बुटवल-११",limit:15000,bal:-8200,total:62000,join:"2080-04-20"},
-  {id:4,name:"Sushila Karki",      phone:"9841004444",addr:"बुटवल-७", limit:8000, bal:-1200,total:15000,join:"2081-01-05"},
-];
-let ledger=[
-  {id:1,cid:1,type:"sale",   amt:4500,note:"Bill #1001",date:"2081-01-10",bal:-4500},
-  {id:2,cid:3,type:"sale",   amt:5000,note:"Bill #1002",date:"2081-01-11",bal:-5000},
-  {id:3,cid:3,type:"payment",amt:2000,note:"Cash payment",date:"2081-01-12",bal:-3000},
-  {id:4,cid:3,type:"sale",   amt:5200,note:"Bill #1010",date:"2081-01-13",bal:-8200},
-  {id:5,cid:4,type:"sale",   amt:1200,note:"Bill #1015",date:"2081-01-14",bal:-1200},
-];
-let suppliers=[
-  {id:1,name:"श्री राम ट्रेडर्स",contact:"9857012345",addr:"बुटवल-११",cat:"किराना",   due:12500,total:145000},
-  {id:2,name:"हिमाल डेरी",       contact:"9867023456",addr:"बुटवल-७", cat:"डेरी",    due:0,    total:58000},
-  {id:3,name:"Coca Cola Nepal",   contact:"9841034567",addr:"काठमाडौं",cat:"पेय पदार्थ",due:8200,total:92000},
-];
-let purchases=[
-  {id:1,sid:1,sname:"श्री राम ट्रेडर्स",inv:"INV-001",date:"2081-01-10",items:[{name:"बासमती चामल",qty:100,unit:"kg",rate:140,tot:14000}],grand:19500,paid:10000,due:9500,status:"partial"},
-  {id:2,sid:3,sname:"Coca Cola Nepal",  inv:"INV-002",date:"2081-01-12",items:[{name:"Coca Cola",qty:144,unit:"pcs",rate:48,tot:6912}],   grand:11553,paid:11553,due:0,   status:"paid"},
-];
-let expenses=[
-  {id:1,name:"भाडा",       amt:15000,cat:"Rent",   date:"2081-01-01"},
-  {id:2,name:"बिजुली बिल", amt:3200, cat:"Utility",date:"2081-01-15"},
-  {id:3,name:"Staff तलब", amt:25000,cat:"Salary", date:"2081-01-30"},
-];
-const SALES7=[
-  {d:"माघ ८", t:60200,p:17500,b:55},
-  {d:"माघ ९", t:35600,p:9800, b:29},
-  {d:"माघ १०",t:48900,p:13700,b:42},
-  {d:"माघ ११",t:41500,p:11300,b:36},
-  {d:"माघ १२",t:52100,p:14800,b:45},
-  {d:"माघ १३",t:38700,p:10200,b:31},
-  {d:"माघ १४",t:48750,p:13200,b:42},
-];
+// नोट: पहिले यहाँ demo/trial data (baasmati chamal, Ram Prasad Shrestha, Shree Ram Traders, आदि)
+// hardcoded थियो। यसैले गर्दा localStorage खाली भएको बेला (नयाँ device, cache clear, private
+// browsing) यो demo data फेरि देखा पर्थ्यो, र त्यसपछि Supabase sync guard ले यसलाई "real local
+// data जुन cloud ले हरायो" ठानेर cloud को साँच्चै खाली (delete भइसकेको) state ले overwrite हुन
+// दिँदैनथ्यो — जसले गर्दा पूर्ण delete गरेको trial data फेरि "reappear" हुन्थ्यो। अब खाली array
+// बाट सुरु हुन्छ, त्यसैले यो समस्या फेरि आउँदैन।
+let products=[];
+let customers=[];
+let ledger=[];
+let suppliers=[];
+let purchases=[];
+let expenses=[];
 
 let currentUser=null,currentScreen="dashboard",cart=[],held=[],vatOn=false,selCustId="",invCatF="All",actLogs=[{id:1,u:"System",r:"system",a:"Boot",d:"NabinPOS started",t:"—"}],pnItems=[{name:"",qty:"",unit:"kg",rate:"",tot:0}],pnPayM="cash",activeCustId=null,purchFilter="all",purchSupFilter="all",purchFromDate="",purchToDate="",repTab="pl",pnVat=false,pnDisc=0;
 // Security: holds the plaintext password only transiently in memory for the current session
@@ -2837,13 +2784,20 @@ async function doLogin(){
   buildSidebar();startClock();initBarcodeListener();applyCashierMode(u);updateMobileTitle(currentScreen||"dashboard");
   resetIdleTimer();
   loadDB(); // Login भइसकेपछि session बन्छ — अब authenticated data ताजा तान्ने
-  if(u.role!=="cashier"){goScreen(localStorage.getItem("nabin_last_screen")||"dashboard");}runStartupChecks();toast$("नमस्ते "+u.name+"! 🙏");
+  if(u.role!=="cashier"){
+    // Auto-idle logout भएर बीचमै (जस्तै Supplier/Customer settlement गर्दागर्दै) session बिच्किएको भए,
+    // १ घण्टा भित्रै फर्केर लगिन गरे उही page मा फर्किने। १ घण्टा नाघिसकेको (वा भोलिपल्ट) भए
+    // जहाँसुकैको बासी screen नदेखाई सिधै POS Billing (default work screen) खुल्ने।
+    const _lastScreenTime=parseInt(localStorage.getItem("nabin_last_screen_time")||"0",10);
+    const _withinHour=_lastScreenTime>0&&(Date.now()-_lastScreenTime)<=60*60*1000;
+    goScreen(_withinHour?(localStorage.getItem("nabin_last_screen")||"pos"):"pos");
+  }runStartupChecks();toast$("नमस्ते "+u.name+"! 🙏");
   checkBiometricSupport();
 }
 function doLogout(auto=false){
   if(!auto&&!confirm("Logout गर्ने?"))return;
   clearIdleTimer();
-  addLog("Logout",(currentUser?.name||"")+(auto?" (auto-idle)":" out"));localStorage.setItem("nabin_last_screen",currentScreen||"dashboard");currentUser=null;_lastLoginPw=null;
+  addLog("Logout",(currentUser?.name||"")+(auto?" (auto-idle)":" out"));localStorage.setItem("nabin_last_screen",currentScreen||"dashboard");localStorage.setItem("nabin_last_screen_time",String(Date.now()));currentUser=null;_lastLoginPw=null;
   try{sb.auth.signOut();}catch(e){}
   document.getElementById("mainApp").classList.remove("cashier-mode");
   document.getElementById("mainApp").style.display="none";document.getElementById("loginPage").style.display="flex";
@@ -3106,14 +3060,25 @@ function toggleStatBox(key){
 }
 function renderDashboard(){
   renderExpiryWidget();
-  // आजको सही नेपाली मिति देखाउने
-  try{
-    if(window.NepaliDate){
-      const nd=new window.NepaliDate();
-      const sub=document.getElementById("dashDateSub");
-      if(sub)sub.textContent=nd.format("YYYY MMMM DD","np")+" — आजको अवलोकन";
+  // आजको सही नेपाली मिति देखाउने — पहिले library (CDN) बाट कोशिस, त्यो fail भए
+  // AD मिति नै देखाउने (कहिल्यै बासी/गलत BS मिति नदेखाउने — पहिले "२०८१ माघ १५" जस्तो
+  // हार्डकोड placeholder सधैं अड्किएर बस्ने bug थियो, जुन अब हटाइयो)
+  (function renderDashDate(){
+    const sub=document.getElementById("dashDateSub");
+    if(!sub)return;
+    const NP=window.NepaliDate||(window.NepaliDate&&window.NepaliDate.default);
+    try{
+      if(typeof NP==="function"){
+        const nd=new NP();
+        sub.textContent=nd.format("YYYY MMMM DD","np")+" — आजको अवलोकन";
+        return;
+      }
+      throw new Error("NepaliDate library load भएन");
+    }catch(e){
+      console.error("Nepali date conversion failed:",e);
+      sub.textContent=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"})+" — आजको अवलोकन";
     }
-  }catch(e){}
+  })();
   const lowS=products.filter(p=>p.stock<=p.low&&p.low>0);
   const custDue=customers.reduce((s,c)=>s+Math.abs(Math.min(0,c.bal)),0);
   const today=new Date().toLocaleDateString("en-GB");
@@ -3124,6 +3089,12 @@ function renderDashboard(){
   const todayCreditBills=todaySales.filter(b=>(b.creditAmt||0)>0);
   const todayCreditSaleAmt=todayCreditBills.reduce((s,b)=>s+(b.creditAmt||0),0);
   const todayCreditReceived=ledger.filter(l=>l.date===today&&l.type==="payment").reduce((s,l)=>s+(l.amt||0),0);
+  // आजको Purchase — purchases.date ISO (YYYY-MM-DD) format मा सेभ हुन्छ (salesHistory भन्दा फरक)
+  const todayISO=localYMD(new Date());
+  const todayPurch=purchases.filter(p=>p.date===todayISO);
+  const todayPurchTotal=todayPurch.reduce((s,p)=>s+(p.grand||0),0);
+  const todayPurchCash=todayPurch.reduce((s,p)=>s+(p.paid||0),0);
+  const todayPurchCredit=todayPurch.reduce((s,p)=>s+(p.due||0),0);
 
   document.getElementById("dashStats").innerHTML=`
     <div class="statBox" onclick="toggleStatBox('sales')" style="background:var(--bg2);border:1.5px solid #f0b42940;border-radius:12px;padding:14px;cursor:pointer;text-align:center;">
@@ -3141,20 +3112,143 @@ function renderDashboard(){
         <div style="font-size:10px;color:var(--text4);margin-top:2px;">Sale: रु ${fmtN(todayCreditSaleAmt)} · Received: रु ${fmtN(todayCreditReceived)}</div>
       </div>
       <div style="font-size:9px;color:var(--text4);margin-top:4px;">👆 छुनुस्</div>
+    </div>
+    <div class="statBox" onclick="toggleStatBox('purch')" style="background:var(--bg2);border:1.5px solid #16a34a40;border-radius:12px;padding:14px;cursor:pointer;text-align:center;grid-column:1/-1;">
+      <div style="font-size:13px;font-weight:800;color:var(--text);">🛒 आजको Purchase</div>
+      <div id="statDetail_purch" style="display:none;margin-top:8px;">
+        <div style="font-size:17px;font-weight:900;color:#16a34a;">रु ${fmtN(todayPurchTotal)}</div>
+        <div style="font-size:10px;color:var(--text4);margin-top:2px;">${todayPurch.length} invoice · 💵 Cash: रु ${fmtN(todayPurchCash)} · 📒 Credit: रु ${fmtN(todayPurchCredit)}</div>
+      </div>
+      <div style="font-size:9px;color:var(--text4);margin-top:4px;">👆 छुनुस्</div>
     </div>`;
-  const maxT=Math.max(...SALES7.map(d=>d.t));
-  document.getElementById("salesChart").innerHTML=SALES7.map((d,i)=>{
-    const h=Math.round((d.t/maxT)*100);const isL=i===SALES7.length-1;
-    return`<div class="bar-col">
-      <div style="font-size:8px;color:var(--text4);">रु${Math.round(d.t/1000)}k</div>
-      <div class="bar" style="height:${h}%;background:${isL?"linear-gradient(180deg,var(--gold),var(--gold2))":"linear-gradient(180deg,#1a3060,#0d1a40)"};"></div>
-      <div style="font-size:8px;color:${isL?"var(--gold)":"var(--text4)"};">${d.d}</div>
-    </div>`;}).join("");
+  renderSalesTrend();
   const ll=document.getElementById("lowStockList");
   if(lowS.length===0)ll.innerHTML='<div style="color:var(--green);font-size:12px;">✅ सबै stock ठीक छ</div>';
   else ll.innerHTML=lowS.slice(0,6).map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:#fff0f0;border-radius:6px;margin-bottom:4px;"><span style="font-size:11px;color:#e0b0b0;">${esc(p.name)}</span><span style="font-size:11px;font-weight:700;color:${p.stock===0?"var(--red)":"var(--warn)"};">${p.stock} ${esc(p.unit)}</span></div>`).join("");
   const qa=[["🧾","New Bill","pos"],["👥","Customers","customers"],["🛒","Purchase","purchase"],["📦","Inventory","inventory"],["📊","Reports","reports"]];
   document.getElementById("quickAccess").innerHTML=qa.map(([ic,lb,sc])=>`<button onclick="goScreen('${sc}')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:12px 8px;cursor:pointer;text-align:center;"><div style="font-size:20px;">${ic}</div><div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;">${lb}</div></button>`).join("");
+}
+
+// ══════════════════════════════════════════════════
+// DASHBOARD — SALES TREND CHART (real data — Month vs Month / Year vs Year)
+// नोट: BS/Nepali मिति होइन, बिल मा सेभ भएको AD (अंग्रेजी) मितिमा आधारित — किनकि सबै
+// bill/salesHistory record AD date मै सेभ हुन्छन्, र यसैले सधैं सही/भरपर्दो हुन्छ।
+// ══════════════════════════════════════════════════
+let _trendChart=null,_trendChartFS=null;
+function _salesByDateMap(){
+  const m={};
+  (salesHistory||[]).filter(s=>s.status!=="voided").forEach(s=>{m[s.date]=(m[s.date]||0)+(s.total||0);});
+  return m;
+}
+function _daysInMonthAD(y,m){return new Date(y,m+1,0).getDate();} // m: 0-11
+function _buildTrendChart(canvasId,mode,ctype){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas||typeof Chart==="undefined")return null;
+  const salesMap=_salesByDateMap();
+  const today=new Date();
+  let labels=[],curData=[],prevData=[],curLabel="",prevLabel="",hasPrev=false;
+
+  if(mode==="year"){
+    const curYear=today.getFullYear(),prevYear=curYear-1;
+    labels=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    curLabel="यो वर्ष ("+curYear+")";prevLabel="गत वर्ष ("+prevYear+")";
+    curData=new Array(12).fill(0);prevData=new Array(12).fill(0);
+    Object.keys(salesMap).forEach(ds=>{
+      const p=ds.split("/");if(p.length!==3)return;
+      const dd=+p[0],mm=+p[1],yy=+p[2];if(!dd||!mm||!yy)return;
+      if(yy===curYear)curData[mm-1]+=salesMap[ds];
+      else if(yy===prevYear){prevData[mm-1]+=salesMap[ds];hasPrev=true;}
+    });
+  } else {
+    const curY=today.getFullYear(),curM=today.getMonth();
+    const pd=new Date(curY,curM-1,1);const prevY=pd.getFullYear(),prevM=pd.getMonth();
+    const maxDays=Math.max(_daysInMonthAD(curY,curM),_daysInMonthAD(prevY,prevM));
+    labels=Array.from({length:maxDays},(_,i)=>String(i+1));
+    curLabel="यो महिना";prevLabel="अघिल्लो महिना";
+    curData=new Array(maxDays).fill(0);prevData=new Array(maxDays).fill(0);
+    Object.keys(salesMap).forEach(ds=>{
+      const p=ds.split("/");if(p.length!==3)return;
+      const dd=+p[0],mm=+p[1],yy=+p[2];if(!dd||!mm||!yy)return;
+      if(yy===curY&&mm-1===curM)curData[dd-1]+=salesMap[ds];
+      else if(yy===prevY&&mm-1===prevM){prevData[dd-1]+=salesMap[ds];hasPrev=true;}
+    });
+  }
+
+  const note=document.getElementById("trendNote");
+  if(note)note.textContent=hasPrev?"":"⚠️ "+(mode==="year"?"गत वर्षको":"अघिल्लो महिनाको")+" data भेटिएन (नयाँ पसल भएर हुन सक्छ) — हालको मात्र देखाइएको छ।";
+
+  const ctx=canvas.getContext("2d");
+  if(ctype==="pie"){
+    const catTotals={};
+    const startDate=mode==="year"?new Date(today.getFullYear(),0,1):new Date(today.getFullYear(),today.getMonth(),1);
+    (salesHistory||[]).filter(s=>s.status!=="voided").forEach(s=>{
+      const p=(s.date||"").split("/");if(p.length!==3)return;
+      const dd=+p[0],mm=+p[1],yy=+p[2];if(!dd||!mm||!yy)return;
+      const sd=new Date(yy,mm-1,dd);
+      if(sd<startDate||sd>today)return;
+      (s.items||[]).forEach(it=>{
+        const prod=products.find(x=>x.id===it.id);
+        const cat=(prod&&prod.cat)||"अन्य";
+        catTotals[cat]=(catTotals[cat]||0)+((it.price||0)*(it.qty||0)*(it.pricingQty||1));
+      });
+    });
+    const catLabels=Object.keys(catTotals);
+    const palette=["#f0b429","#1a3060","#16a34a","#dc2626","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#4338ca"];
+    return new Chart(ctx,{type:"pie",data:{labels:catLabels.length?catLabels:["Data छैन"],datasets:[{data:catLabels.length?catLabels.map(k=>catTotals[k]):[1],backgroundColor:palette}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:9}}}}}});
+  }
+  return new Chart(ctx,{
+    type:ctype,
+    data:{labels,datasets:[
+      {label:curLabel,data:curData,backgroundColor:"#f0b429",borderColor:"#f0b429",tension:.3,fill:ctype!=="line"},
+      ...(hasPrev?[{label:prevLabel,data:prevData,backgroundColor:"#1a3060cc",borderColor:"#1a3060",tension:.3,fill:ctype!=="line"}]:[])
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:10,font:{size:9}}}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8},callback:v=>"रु"+(v>=1000?Math.round(v/1000)+"k":v)}}}}
+  });
+}
+function renderSalesTrend(){
+  const mode=(document.getElementById("trendMode")||{}).value||"month";
+  const ctype=(document.getElementById("trendChartType")||{}).value||"bar";
+  if(_trendChart){_trendChart.destroy();_trendChart=null;}
+  if(typeof Chart==="undefined"){
+    const note=document.getElementById("trendNote");
+    if(note)note.textContent="⚠️ Chart library load हुन सकेन — Internet जाँच्नुस् र फेरि खोल्नुस्।";
+    return;
+  }
+  _trendChart=_buildTrendChart("trendCanvas",mode,ctype);
+}
+function openTrendFullscreen(){
+  const mode=(document.getElementById("trendMode")||{}).value||"month";
+  const ctype=(document.getElementById("trendChartType")||{}).value||"bar";
+  openModal(`
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+      <h3 style="margin:0;color:var(--text);">📈 Sales Trend — Full Screen</h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="position:relative;height:65vh;"><canvas id="trendCanvasFS"></canvas></div>`,940);
+  setTimeout(()=>{
+    if(_trendChartFS){_trendChartFS.destroy();_trendChartFS=null;}
+    _trendChartFS=_buildTrendChart("trendCanvasFS",mode,ctype);
+  },60);
+}
+
+// ══════════════════════════════════════════════════
+// EXCEL EXPORT — Bills + Customers (multi-sheet .xlsx)
+// ══════════════════════════════════════════════════
+function exportBillCustomerExcel(){
+  if(typeof XLSX==="undefined"){toast$("⚠️ Excel library load हुन सकेन — Internet जाँच्नुस्","error");return;}
+  const wb=XLSX.utils.book_new();
+  const billRows=[["Bill No","Date","Time","Customer","Items","Total","Cash Received","Credit Amount","Payment Method","Status","Cashier"]];
+  salesHistory.forEach(b=>billRows.push([b.billNo,b.date,b.time,b.custName,b.items.length,b.total,b.cashRec||0,b.creditAmt||0,b.payM,b.status||"completed",b.cashier]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(billRows),"Bills");
+
+  const custRows=[["Name","Phone","Address","Credit Limit","Current Balance","Total Purchase","Join Date"]];
+  customers.forEach(c=>custRows.push([c.name,c.phone,c.addr,c.limit,c.bal,c.total,c.join]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(custRows),"Customers");
+
+  const fname="NabinPOS_Bills_Customers_"+new Date().toLocaleDateString("en-GB").replace(/\//g,"-")+".xlsx";
+  XLSX.writeFile(wb,fname);
+  addLog("Export","Excel (Bills+Customers): "+fname);
+  toast$("📥 "+fname+" download भयो ✅");
 }
 
 // ══════════════════════════════════════════════════
@@ -5723,9 +5817,13 @@ function renderRepContent(){
   const filtDmg=damageEntries.filter(d=>inRange(d.date));
   // Fix: Returns must actually reduce Sales/COGS/Profit — previously returnEntries were never applied here,
   // so a returned bill still counted at its full original amount.
-  const filtReturns=(returnEntries||[]).filter(r=>inRange(r.origDate||r.date)); // Revenue/COGS impact — ORIGINAL sale को मितिमा गनिने
+  const filtReturns=(returnEntries||[]).filter(r=>r.kind!=="exchange_add"&&inRange(r.origDate||r.date)); // Revenue/COGS impact — ORIGINAL sale को मितिमा गनिने
   const totalReturnRefund=filtReturns.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
   const totalReturnCost=filtReturns.reduce((s,r)=>{if(typeof r.buyCost==="number")return s+r.buyCost;const p=products.find(x=>x.id===r.productId);return s+(p?p.buy*r.qty:0);},0);
+  // Exchange मा ग्राहकलाई थप/साटेर दिइएको item — यो नयाँ बिक्री जस्तै हो (त्यही दिन भएको, date मै गनिने)
+  const filtExchangeAdds=(returnEntries||[]).filter(r=>r.kind==="exchange_add"&&inRange(r.date));
+  const totalExchangeRevenue=filtExchangeAdds.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const totalExchangeCost=filtExchangeAdds.reduce((s,r)=>s+(parseFloat(r.buyCost)||0),0);
   const returnBillsCountPL=new Set(filtReturns.map(r=>r.billRef)).size;
   const returnItemsCountPL=filtReturns.length;
   const filtVoided=salesHistory.filter(s=>inRange(s.date)&&s.status==="voided"); // Void पहिल्यै bill.date (original) प्रयोग गर्छ — यहाँ ठीकै छ
@@ -5733,19 +5831,20 @@ function renderRepContent(){
   const totalVoidAmtPL=filtVoided.reduce((s,b)=>s+(b.total||0),0);
   // Cash impact — जुन दिन साँच्चै refund/void प्रक्रिया भयो (processing date), original sale date होइन।
   // यसले आजको Cash-in-Hand मा मात्र असर पार्छ, Sales revenue मा होइन।
-  const filtReturnsByActionDate=(returnEntries||[]).filter(r=>inRange(r.date));
+  const filtReturnsByActionDate=(returnEntries||[]).filter(r=>r.kind!=="exchange_add"&&inRange(r.date));
   const cashRefundedToday=filtReturnsByActionDate.filter(r=>(r.method||"").toLowerCase().includes("cash")).reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const cashFromExchangeToday=(cashRegisterEntries||[]).filter(e=>inRange(e.date)&&e.type==="exchange_extra_cash").reduce((s,e)=>s+(e.amt||0),0);
   const filtVoidedByActionDate=salesHistory.filter(s=>inRange(s.voidedAt||s.date)&&s.status==="voided");
   // Back-dated transparency — आजै process भएको तर अर्कै (पुरानो) दिनको सामान भएका return/void
   const backDatedReturns=filtReturnsByActionDate.filter(r=>(r.origDate||r.date)!==r.date);
   const backDatedVoids=filtVoidedByActionDate.filter(b=>b.voidedAt&&b.voidedAt!==b.date);
 
   const grossSales=filtSales.reduce((s,b)=>s+b.total,0);
-  const totalSales=grossSales-totalReturnRefund; // Net Sales after returns
+  const totalSales=grossSales-totalReturnRefund+totalExchangeRevenue; // Net Sales after returns + exchange-adds
     const totalCreditGiven=filtSales.reduce((s,b)=>s+(b.creditAmt||0),0);
     const totalCreditRec=(cashRegisterEntries||[]).filter(e=>inRange(e.date)&&e.type==="credit_received").reduce((s,e)=>s+e.amt,0);
   const grossBuyCost=filtSales.reduce((s,b)=>s+b.items.reduce((ss,it)=>{const pcs=(it.qty||0)*(it.pricingQty||1);const rate=(typeof it.buy==="number")?it.buy:(products.find(x=>x.id===it.id)?.buy||0);return ss+rate*pcs;},0),0);
-  const totalBuyCost=grossBuyCost-totalReturnCost; // returned stock's cost is no longer "sold" cost
+  const totalBuyCost=grossBuyCost-totalReturnCost+totalExchangeCost; // returned stock's cost no longer "sold"; exchange-add cost newly "sold"
   const grossProfit=totalSales-totalBuyCost;
   const totalExp=filtExp.reduce((s,e)=>s+e.amt,0);
   const netProfit=grossProfit-totalExp;
@@ -5762,7 +5861,7 @@ function renderRepContent(){
   const cashFromSalesPL=filtSales.filter(b=>b.payM==="cash"||b.payM==="Cash").reduce((s,b)=>s+b.total,0);
   const cashFromCreditRecPL=filtCreditRecEntries.filter(e=>(e.payMethod||"").toLowerCase().includes("cash")).reduce((s,e)=>s+e.amt,0);
   const cashExpensesPL=totalExp; // assume expenses paid in cash (small retail default)
-  const cashInHand=cashFromSalesPL+cashFromCreditRecPL-cashExpensesPL-cashRefundedToday;
+  const cashInHand=cashFromSalesPL+cashFromCreditRecPL+cashFromExchangeToday-cashExpensesPL-cashRefundedToday;
 
   const rangeLabel=repFromDate&&repToDate?`${repFromDate} — ${repToDate}`:"सबै";
 
@@ -5861,6 +5960,12 @@ function renderRepContent(){
       grouped[bucketDate].total-=(parseFloat(r.refundAmt)||0);
       grouped[bucketDate].profit-=((parseFloat(r.refundAmt)||0)-costOfReturn);
     });
+    filtExchangeAdds.forEach(r=>{
+      const bucketDate=r.date;
+      if(!grouped[bucketDate])grouped[bucketDate]={date:bucketDate,bills:0,total:0,profit:0};
+      grouped[bucketDate].total+=(parseFloat(r.refundAmt)||0);
+      grouped[bucketDate].profit+=((parseFloat(r.refundAmt)||0)-(parseFloat(r.buyCost)||0));
+    });
     const rows=Object.values(grouped).sort((a,b)=>b.date.localeCompare(a.date));
     const daySumTotal=rows.reduce((s,d)=>s+d.total,0);
     const daySumProfit=rows.reduce((s,d)=>s+d.profit,0);
@@ -5931,10 +6036,23 @@ function renderRepContent(){
         </table>
       </div>
       <div class="card" style="overflow:auto;">
-        <div class="card-title">🤝 Supplier-wise Purchase</div>
+        <div class="card-title">🤝 Supplier-wise Purchase (Cash vs Credit)</div>
         <table class="tbl">
-          <tr><th>Supplier</th><th>Invoices</th><th>Total</th><th>Due</th></tr>
-          ${suppliers.map(s=>{const sp=filtPurch.filter(p=>p.sid===s.id);if(!sp.length)return"";const tot=sp.reduce((x,p)=>x+p.grand,0);const due=sp.reduce((x,p)=>x+p.due,0);return`<tr><td style="color:var(--text2);font-weight:600;">${esc(s.name)}</td><td style="color:var(--blue);">${sp.length}</td><td style="color:var(--gold);font-weight:700;">रु ${fmtN(tot)}</td><td style="color:${due>0?"var(--red)":"var(--green)"};font-weight:700;">रु ${fmtN(due)}</td></tr>`;}).join("")||`<tr><td colspan="4" style="text-align:center;color:var(--text4);padding:20px;">कुनै purchase छैन</td></tr>`}
+          <tr><th>Supplier</th><th>Invoices</th><th>Total</th><th>💵 Cash</th><th>📒 Credit/Due</th></tr>
+          ${(()=>{
+            const supRows=suppliers.map(s=>{
+              const sp=filtPurch.filter(p=>p.sid===s.id);
+              if(!sp.length)return null;
+              const tot=sp.reduce((x,p)=>x+p.grand,0);
+              const due=sp.reduce((x,p)=>x+p.due,0);
+              const cash=sp.reduce((x,p)=>x+(p.paid||0),0);
+              return{name:s.name,count:sp.length,tot,cash,due};
+            }).filter(Boolean);
+            if(!supRows.length)return`<tr><td colspan="5" style="text-align:center;color:var(--text4);padding:20px;">कुनै purchase छैन</td></tr>`;
+            const gTot=supRows.reduce((s,r)=>s+r.tot,0),gCash=supRows.reduce((s,r)=>s+r.cash,0),gDue=supRows.reduce((s,r)=>s+r.due,0),gCount=supRows.reduce((s,r)=>s+r.count,0);
+            return supRows.map(r=>`<tr><td style="color:var(--text2);font-weight:600;">${esc(r.name)}</td><td style="color:var(--blue);">${r.count}</td><td style="color:var(--gold);font-weight:700;">रु ${fmtN(r.tot)}</td><td style="color:var(--green);font-weight:700;">रु ${fmtN(r.cash)}</td><td style="color:${r.due>0?"var(--red)":"var(--green)"};font-weight:700;">रु ${fmtN(r.due)}</td></tr>`).join("")
+              +`<tr style="background:var(--bg4);border-top:2px solid var(--border2);"><td style="font-weight:800;color:var(--text);">जम्मा (Grand Total)</td><td style="color:var(--blue);font-weight:800;">${gCount}</td><td style="color:var(--gold);font-weight:900;font-size:14px;">रु ${fmtN(gTot)}</td><td style="color:var(--green);font-weight:900;font-size:14px;">रु ${fmtN(gCash)}</td><td style="color:${gDue>0?"var(--red)":"var(--green)"};font-weight:900;font-size:14px;">रु ${fmtN(gDue)}</td></tr>`;
+          })()}
         </table>
       </div>`;
   }
@@ -6707,8 +6825,13 @@ function viewBillDetail(id){
   const isReturn=b.status==="returned";
   const isTodayBillDetail=b.date===new Date().toLocaleDateString("en-GB");
 
-  // Find related returns for this bill
-  const relatedReturns=(returnEntries||[]).filter(r=>r.billRef===b.billNo);
+  // Find related returns/exchanges for this bill
+  const relatedReturns=(returnEntries||[]).filter(r=>r.billRef===b.billNo&&r.kind!=="exchange_add");
+  const relatedExchanges=(returnEntries||[]).filter(r=>r.billRef===b.billNo&&r.kind==="exchange_add");
+  const totalReturnedAmt=relatedReturns.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const totalExchangedAmt=relatedExchanges.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const adjustedTotal=b.total-totalReturnedAmt+totalExchangedAmt;
+  const hasAdjustment=(totalReturnedAmt>0||totalExchangedAmt>0)&&!isVoid;
 
   // Status banner
   const statusBanner=isVoid
@@ -6779,11 +6902,26 @@ function viewBillDetail(id){
       ${(b.vatAmt||0)>0?`<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:11px;color:var(--text4);">VAT (13%)</span><span style="font-size:11px;color:var(--purple);">रु ${fmt(b.vatAmt)}</span></div>`:""}
       ${(b.discount||0)>0?`<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:11px;color:var(--text4);">Discount</span><span style="font-size:11px;color:var(--green);">-रु ${fmt(b.discount)}</span></div>`:""}
       <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1.5px solid var(--border2);">
-        <span style="font-weight:800;font-size:14px;${isVoid?"color:var(--red);text-decoration:line-through;":""}">TOTAL</span>
-        <span style="font-weight:900;font-size:17px;color:${isVoid?"var(--red)":"var(--gold)"};${isVoid?"text-decoration:line-through;":""}">रु ${fmt(b.total)}</span>
+        <span style="font-weight:800;font-size:14px;${isVoid?"color:var(--red);text-decoration:line-through;":""}">TOTAL${hasAdjustment?" (Original)":""}</span>
+        <span style="font-weight:900;font-size:17px;color:${isVoid?"var(--red)":"var(--gold)"};${isVoid?"text-decoration:line-through;":hasAdjustment?"text-decoration:line-through;color:var(--text4);":""}">रु ${fmt(b.total)}</span>
       </div>
+      ${hasAdjustment?`<div style="display:flex;justify-content:space-between;padding:6px 0;background:#fef3c7;border-radius:7px;padding-left:8px;padding-right:8px;">
+        <span style="font-weight:800;font-size:13px;color:var(--warn);">✅ Adjusted Total (अहिलेको)</span>
+        <span style="font-weight:900;font-size:16px;color:var(--warn);">रु ${fmt(adjustedTotal)}</span>
+      </div>`:""}
       <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--text4);">Payment</span><span style="background:#dbeafe;color:var(--blue);padding:2px 8px;border-radius:18px;font-size:10px;font-weight:700;">${b.payM}</span></div>
     </div>
+
+    <!-- Exchange history -->
+    ${relatedExchanges.length>0?`
+    <div style="background:#eef2ff;border:1.5px solid var(--purple);border-radius:9px;padding:10px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:6px;">🔄 Exchange — थप/साटेर दिइएको:</div>
+      ${relatedExchanges.map(r=>`
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:11px;">
+          <span style="color:var(--text2);">${esc(r.productName)} × ${r.qty}</span>
+          <span style="color:var(--purple);font-weight:700;">+रु ${fmt(r.refundAmt)}</span>
+        </div>`).join("")}
+    </div>`:""}
 
     <!-- Return history -->
     ${relatedReturns.length>0?`
@@ -6806,7 +6944,10 @@ function viewBillDetail(id){
 
 function reprintBill(id){
   const bill=salesHistory.find(x=>x.id===id);if(!bill)return;
-  const doRP=()=>{showReceipt({billNo:bill.billNo,items:bill.items,total:bill.total,payM:bill.payM,cashRec:bill.cashRec||0,change:bill.change||0,cust:bill.custName,creditAmt:bill.creditAmt||0,discount:bill.discount||0,subtotal:bill.subtotal||0,vatAmt:bill.vatAmt||0,date:bill.date,time:bill.time,cashier:bill.cashier});addLog("Reprint",bill.billNo);};
+  const doRP=()=>{
+    if(bill.status==="returned")toast$("ℹ️ यो receipt ORIGINAL रकम देखाउँछ — Return/Exchange पछिको adjusted total हेर्न 👁 View खोल्नुस्","warn");
+    showReceipt({billNo:bill.billNo,items:bill.items,total:bill.total,payM:bill.payM,cashRec:bill.cashRec||0,change:bill.change||0,cust:bill.custName,creditAmt:bill.creditAmt||0,discount:bill.discount||0,subtotal:bill.subtotal||0,vatAmt:bill.vatAmt||0,date:bill.date,time:bill.time,cashier:bill.cashier});addLog("Reprint",bill.billNo);
+  };
   if(currentUser?.role==="admin"){doRP();return;}
   requireAdminPW(doRP,"Reprint: "+bill.billNo);
 }
@@ -7517,9 +7658,12 @@ function _applyBillAction(){
         stockMovements.unshift({id:Date.now()+Math.floor(Math.random()*1000),productId:p.id,productName:p.name,type:"void",qty:+baseQty,before:b,after:p.stock,ref:origBill.billNo,date:dateStr,attribDate:origBill.date,time:timeStr,user:currentUser.name});
       }
     });
-    if(origBill.creditAmt>0&&origBill.custId){
+    if(origBill.custId){
       const cu=customers.find(x=>x.id===origBill.custId);
-      if(cu){cu.bal+=origBill.creditAmt;ledger.unshift({id:Date.now(),cid:cu.id,type:"void",amt:origBill.creditAmt,note:"Void:"+origBill.billNo,date:dateStr,bal:cu.bal});}
+      if(cu){
+        cu.total=Math.max(0,(cu.total||0)-(origBill.total||0)); // Void भएको बिल "कुल खरिद" मा गनिनु हुँदैन
+        if(origBill.creditAmt>0){cu.bal+=origBill.creditAmt;ledger.unshift({id:Date.now(),cid:cu.id,type:"void",amt:origBill.creditAmt,note:"Void:"+origBill.billNo,date:dateStr,bal:cu.bal});}
+      }
     }
     origBill.status="voided";origBill.voidedAt=dateStr;
     saveDB();closeModal();
@@ -7548,7 +7692,11 @@ function _applyBillAction(){
       // date = आज (जुन बेला physically stock फेरियो — Stock Log/Audit को लागि real-time accurate)
       // attribDate = original sale को मिति — P&L/Sales Report मा त्यही दिनको हिसाबमा गनिन्छ
       stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+qty,before,after:p.stock,ref:origBillNo||"RTN",date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name});
-      returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo||"—",custName,productId:p.id,productName:p.name,unit:p.unit,qty,refundAmt:amt,buyCost:(p.buy||0)*qty,method,reason,date:dateStr,origDate,user:currentUser.name});
+      // Buy cost: बिक्री भएकै बेलाको buy rate (origBill.items मा साथसाथै सेभ भएको) प्रयोग गर्ने,
+      // होइन भने आजको लाइभ p.buy (जुन बेला-बेला बदलिन सक्छ, त्यसले P&L मा Returns को cost गलत देखाउँथ्यो)।
+      const _histBuy=origBill?(origBill.items.find(x=>x.id===p.id)||{}).buy:undefined;
+      const buyCost=+(((typeof _histBuy==="number"?_histBuy:(p.buy||0)))*qty).toFixed(2);
+      returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo||"—",custName,productId:p.id,productName:p.name,unit:p.unit,qty,refundAmt:amt,buyCost,method,reason,date:dateStr,origDate,user:currentUser.name});
     }else{
       // Product delete भइसकेको — stock adjust गर्न सकिँदैन, तर refund/audit trail चाहिँ हराउनु हुँदैन
       deletedProdCount++;
@@ -7560,6 +7708,8 @@ function _applyBillAction(){
   });
 
   // Exchange/extra items — ग्राहकलाई थप/साटेर दिइयो, stock घट्छ (नयाँ sale जस्तै)
+  // kind:"exchange_add" ले यसलाई normal return बाट छुट्याउँछ — P&L/Bill view मा यसले
+  // Revenue/COGS घटाउने होइन, बरु थप्ने (नयाँ बिक्री जस्तै) गरी गनिन्छ।
   let totalExtra=0,extraCount=0;
   extraIds.forEach(pidStr=>{
     const ex=extra[pidStr];
@@ -7571,6 +7721,7 @@ function _applyBillAction(){
     const amt=+(qty*ex.price).toFixed(2);
     const before=p.stock;p.stock-=qty;
     stockMovements.unshift({id:Date.now()+1000+extraCount,productId:p.id,productName:p.name,type:"sale",qty:-qty,before,after:p.stock,ref:(origBillNo||"RTN")+"-EX",date:dateStr,time:timeStr,user:currentUser.name});
+    returnEntries.unshift({id:Date.now()+2000+extraCount,billRef:origBillNo||"—",custName,productId:p.id,productName:p.name,unit:p.unit,qty,refundAmt:amt,buyCost:(p.buy||0)*qty,method,reason:"Exchange",date:dateStr,origDate:dateStr,user:currentUser.name,kind:"exchange_add"});
     totalExtra+=amt;
     extraCount++;
   });
@@ -7579,11 +7730,15 @@ function _applyBillAction(){
 
   const net=+(totalExtra-totalRefund).toFixed(2); // +ve = ग्राहकबाट थप लिने, -ve = ग्राहकलाई फिर्ता दिने
 
-  if(net!==0&&custName){
+  if((net!==0||totalRefund>0)&&custName){
     const _rtCu=customers.find(x=>x.name===custName||String(x.id)===custName);
     if(_rtCu){
-      _rtCu.bal-=net; // net>0 भए customer ले तिर्नुपर्ने (bal घट्छ), net<0 भए फिर्ता (bal बढ्छ)
-      ledger.unshift({id:Date.now(),cid:_rtCu.id,type:net>0?"exchange_extra":"return_refund",amt:Math.abs(net),note:(net>0?"Exchange Extra: ":"Return Refund: ")+(origBillNo||"RTN")+(extraCount?" ("+itemCount+" return + "+extraCount+" exchange)":" ("+itemCount+" items)"),date:dateStr,bal:_rtCu.bal});
+      if(net!==0){
+        _rtCu.bal-=net; // net>0 भए customer ले तिर्नुपर्ने (bal घट्छ), net<0 भए फिर्ता (bal बढ्छ)
+        ledger.unshift({id:Date.now(),cid:_rtCu.id,type:net>0?"exchange_extra":"return_refund",amt:Math.abs(net),note:(net>0?"Exchange Extra: ":"Return Refund: ")+(origBillNo||"RTN")+(extraCount?" ("+itemCount+" return + "+extraCount+" exchange)":" ("+itemCount+" items)"),date:dateStr,bal:_rtCu.bal});
+      }
+      // "कुल खरिद" (total) लाई return/exchange पछिको net figure मै राख्ने — नत्र फर्काएको सामान पनि खरिदमा गनिइरहन्छ
+      _rtCu.total=Math.max(0,(_rtCu.total||0)-totalRefund+totalExtra);
     }else if(net>0){
       toast$("⚠️ Walk-in ग्राहकबाट रु "+fmt(net)+" थप असुल्नुस् (नगद)","warn");
     }
@@ -7789,9 +7944,10 @@ function renameCatInline(i,old){
 
 function deleteCatInline(i,cat){
   const count=products.filter(p=>p.cat===cat).length;
-  if(count>0&&!confirm(`'${cat}' मा ${count} products छन्। Delete गर्ने?`))return;
-  CATS.splice(i,1);saveCats();renderSettingsCats();
-  toast$("'"+cat+"' deleted","warn");
+  if(count>0&&!confirm(`'${cat}' मा ${count} products छन्। Delete गर्दा ती सबै 'Uncategorized' मा सारिनेछन्। जारी राख्ने?`))return;
+  if(count>0){products.forEach(p=>{if(p.cat===cat)p.cat="Uncategorized";});if(!CATS.includes("Uncategorized"))CATS.push("Uncategorized");}
+  CATS.splice(i,1);saveCats();saveDB();renderSettingsCats();
+  toast$("'"+cat+"' deleted"+(count>0?" — "+count+" products Uncategorized मा सारियो":""),"warn");
 }
 
 function renderSettingsStaff(){
