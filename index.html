@@ -4,7 +4,7 @@
      sha256 hash for the actual inline script/style blocks below instead of blanket 'unsafe-inline', and
      (b) fills in the real Supabase host from env vars. This exact tag is also a safe fallback if you
      ever open this file directly without running the build step. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ODAb8QVc04CZW+b+s7IGezXFZ111KfXLk0oemwJfRBk=' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'sha256-877Ix8tMRC8VfwEqrAGoeXqcO7+vZvs7Py7aVRt7gmI=' 'sha256-mTx7VXy5VuTwFzJzbWkPRhNPtu1P9G0zCWGldg/mtzo=' 'sha256-kqfl9cfT7XMSAqzQyLpIRYfLjW3LeVrJePDNzobDO6k=' 'sha256-qnMaAGWU+pktJAvotj1mwrZQQmu+1a2tE/C9+vPPUeI=' 'sha256-f9hx8hjvVUIGFT19AKhL+z3HGL8G8F0mbpYjwGgWmJc=' 'sha256-UnyGzXDuqOEc03h8FbEKjAv6nm3YXDVTISp1zf7hzwc=' 'sha256-nkbd7d3kxGlYJ/tk3UZ7ksntvBvAw2VHMA+zDwlbXtc=' 'sha256-Tb/dcRoIfTA0znnkUSgP8AeLIG5Y/mmwMxkuF/UTwVs=' 'sha256-jzchur0EhL90OK7f7FL9vY0H7RTF5vohNjzhG6E+hqo=' 'sha256-8EOaEH/ikpj6JR4JUvU5sVDdXzyX8N6xgDxGcMbLFSU=' 'sha256-F//vA7GMPG0n4Rcfviha8/7olJHk8XZqsQqvOnwKx20=' 'sha256-2nnhPL+jSPNb2Pp4dkLh/3rjHnFGd5VPBtH22I4k36k=' 'sha256-WJlgIEwXOURa1yNhZCg0DhKh7h4h4K3D3xqDqT3N3Ko='; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cqepdjgaigwhxilxhnzs.supabase.co wss://cqepdjgaigwhxilxhnzs.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ODAb8QVc04CZW+b+s7IGezXFZ111KfXLk0oemwJfRBk=' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'sha256-877Ix8tMRC8VfwEqrAGoeXqcO7+vZvs7Py7aVRt7gmI=' 'sha256-mTx7VXy5VuTwFzJzbWkPRhNPtu1P9G0zCWGldg/mtzo=' 'sha256-kqfl9cfT7XMSAqzQyLpIRYfLjW3LeVrJePDNzobDO6k=' 'sha256-qnMaAGWU+pktJAvotj1mwrZQQmu+1a2tE/C9+vPPUeI=' 'sha256-f9hx8hjvVUIGFT19AKhL+z3HGL8G8F0mbpYjwGgWmJc=' 'sha256-UnyGzXDuqOEc03h8FbEKjAv6nm3YXDVTISp1zf7hzwc=' 'sha256-nkbd7d3kxGlYJ/tk3UZ7ksntvBvAw2VHMA+zDwlbXtc=' 'sha256-Tb/dcRoIfTA0znnkUSgP8AeLIG5Y/mmwMxkuF/UTwVs=' 'sha256-jzchur0EhL90OK7f7FL9vY0H7RTF5vohNjzhG6E+hqo=' 'sha256-8EOaEH/ikpj6JR4JUvU5sVDdXzyX8N6xgDxGcMbLFSU=' 'sha256-F//vA7GMPG0n4Rcfviha8/7olJHk8XZqsQqvOnwKx20=' 'sha256-2nnhPL+jSPNb2Pp4dkLh/3rjHnFGd5VPBtH22I4k36k=' 'sha256-WJlgIEwXOURa1yNhZCg0DhKh7h4h4K3D3xqDqT3N3Ko='; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cqepdjgaigwhxilxhnzs.supabase.co wss://cqepdjgaigwhxilxhnzs.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>⚡ NabinPOS — Complete POS System</title>
 <!-- PWA / Mobile App Meta -->
@@ -461,6 +461,7 @@
     <div class="login-box">
       <div class="field"><label>Username</label><input id="loginUN" name="npos_field_a1" placeholder="username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" onfocus="this.removeAttribute('readonly')"></div>
       <div class="field"><label>Password</label><input id="loginPW" name="npos_field_b2" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()" onfocus="this.removeAttribute('readonly')" aria-autocomplete="list"></div>
+      <div id="loginResult" style="margin-bottom:8px;"></div>
       <button class="btn btn-gold" style="width:100%;padding:12px;font-size:15px;margin-top:4px;" onclick="doLogin()">🔐 Login</button>
       <div id="biometricBtn" style="display: block; margin-top: 10px;">
         <button onclick="doBiometricLogin()" style="width:100%;padding:11px;background:#1e293b;border:1.5px solid #475569;color:#e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🪪 Biometric / Fingerprint Login</button>
@@ -1714,12 +1715,25 @@ const _nMap=[
   ["b","ब"],["m","म"],["y","य"],["r","र"],["l","ल"],["v","व"],["w","व"],
   ["s","स"],["h","ह"],["f","फ"],["z","ज"],["x","क्ष"],["q","क"]
 ];
+const _rmCons=["ksh","gya","chh","shr","tra","kh","gh","ch","jh","th","dh","ph","bh","sh","ny","k","g","c","j","t","d","n","p","b","m","y","r","l","v","w","s","h","f","z","x","q"];
+const _rmConsMap={ksh:"क्ष",gya:"ज्ञ",chh:"छ",shr:"श्र",tra:"त्र",kh:"ख",gh:"घ",ch:"च",jh:"झ",th:"थ",dh:"ध",ph:"फ",bh:"भ",sh:"श",ny:"ञ",k:"क",g:"ग",c:"क",j:"ज",t:"त",d:"द",n:"न",p:"प",b:"ब",m:"म",y:"य",r:"र",l:"ल",v:"व",w:"व",s:"स",h:"ह",f:"फ",z:"ज",x:"क्ष",q:"क"};
+const _rmVow=["aa","ai","au","ii","ee","uu","oo","a","i","u","e","o"];
+const _rmVowIndep={aa:"आ",ai:"ऐ",au:"औ",ii:"ई",ee:"ई",uu:"ऊ",oo:"ऊ",a:"अ",i:"इ",u:"उ",e:"ए",o:"ओ"};
+const _rmVowMatra={aa:"ा",ai:"ै",au:"ौ",ii:"ी",ee:"ी",uu:"ू",oo:"ू",i:"ि",u:"ु",e:"े",o:"ो",a:""}; // consonant पछि plain "a" inherent हुन्छ, अलग matra चाहिँदैन
 function _romanToNepali(roman){
-  let r=roman.toLowerCase(),out="",i=0;
+  const r=(roman||"").toLowerCase();
+  let out="",i=0,prevConsonant=false;
   while(i<r.length){
-    let matched=false;
-    for(const[en,ne] of _nMap){if(r.startsWith(en,i)){out+=ne;i+=en.length;matched=true;break;}}
-    if(!matched){out+=r[i];i++;}
+    let vTok=null;
+    for(const v of _rmVow){if(r.startsWith(v,i)){vTok=v;break;}}
+    if(vTok){
+      out+=prevConsonant?_rmVowMatra[vTok]:_rmVowIndep[vTok];
+      i+=vTok.length;prevConsonant=false;continue;
+    }
+    let cTok=null;
+    for(const c of _rmCons){if(r.startsWith(c,i)){cTok=c;break;}}
+    if(cTok){out+=_rmConsMap[cTok];i+=cTok.length;prevConsonant=true;continue;}
+    out+=r[i];i++;prevConsonant=false;
   }
   return out;
 }
@@ -1925,37 +1939,61 @@ async function loadDB(){
       if(!data)return; // fetch error already handled above; data itself can validly be []
       {
         const mapped=data.map(r=>({...r.data,id:r.id}));
-        // ⚠️ SAFETY GUARD — यो सबैभन्दा जरुरी check हो: Supabase ले "error" नदिई सीधै empty array
-        // फर्काउन सक्छ (जस्तै RLS policy ले block गर्दा, वा query silently 0 rows दिँदा)। यस्तो बेला
-        // त्यो empty result लाई "ताजा data" ठानेर local (राम्रोसँग भरिएको) data मेटाउनु ठूलो खतरा हो —
-        // त्यसैले local मा पहिल्यै data भएको table लाई कहिल्यै empty ले overwrite नगर्ने।
+        // ⚠️ SAFETY GUARD #1 — Supabase ले "error" नदिई सीधै empty array फर्काउन सक्छ (जस्तै RLS
+        // policy ले block गर्दा)। यस्तो बेला त्यो empty result लाई "ताजा data" ठानेर local (राम्रोसँग
+        // भरिएको) data मेटाउनु ठूलो खतरा हो — त्यसैले local मा पहिल्यै data भएको table लाई कहिल्यै
+        // पूर्ण empty ले overwrite नगर्ने।
         const currentArr={products,customers,ledger,suppliers,purchases,expenses,salesHistory,
           stockMovements,damageEntries,cashRegisterEntries,returnEntries,purchaseReturns,
-          monthEndCounts,fixedAssets,assetLossLog}[arrKey];
+          monthEndCounts,fixedAssets,assetLossLog}[arrKey]||[];
         if(mapped.length===0&&Array.isArray(currentArr)&&currentArr.length>0){
           console.error(`⚠️ SAFETY GUARD: "${tbl}" cloud बाट खाली आयो तर local मा ${currentArr.length} records थिए — overwrite SKIP गरियो, local data सुरक्षित राखियो। सम्भावित कारण: Supabase RLS policy ले access block गर्यो।`);
           _suspiciousEmpty.push(tbl);
           return; // यो table को लागि overwrite नगरी अर्को table मा जाने
         }
-        if(arrKey==="products")products=mapped;
-        else if(arrKey==="customers")customers=mapped;
-        else if(arrKey==="ledger")ledger=mapped;
-        else if(arrKey==="suppliers")suppliers=mapped;
-        else if(arrKey==="purchases")purchases=mapped;
-        else if(arrKey==="expenses")expenses=mapped;
-        else if(arrKey==="salesHistory")salesHistory=mapped;
-        else if(arrKey==="stockMovements")stockMovements=mapped;
-        else if(arrKey==="damageEntries")damageEntries=mapped;
-        else if(arrKey==="cashRegisterEntries")cashRegisterEntries=mapped;
-        else if(arrKey==="returnEntries")returnEntries=mapped;
-        else if(arrKey==="purchaseReturns")purchaseReturns=mapped;
-        else if(arrKey==="monthEndCounts")monthEndCounts=mapped;
-        else if(arrKey==="fixedAssets")fixedAssets=mapped;
-        else if(arrKey==="assetLossLog")assetLossLog=mapped;
-        // ताजा pull भएको data लाई नै "last synced" मान्ने — अनावश्यक re-push रोक्न
+        // ⚠️ SAFETY GUARD #2 (सबैभन्दा जरुरी — "आजको sale हराउने" bug यहीँबाट आउँथ्यो):
+        // Cloud ले पूर्ण empty नभई आंशिक/पुरानो data फर्कायो भने पनि — जस्तै भर्खरै भएको बिक्री अझै
+        // Supabase मा पूरा push नभई (800ms debounce/network delay) यहीँ pull भइदियो भने — त्यो
+        // "cloud मा नभएको" local record लाई कहिल्यै मेटाउने होइन। हरेक record लाई id ले मिलाएर merge
+        // गर्ने: local मा भएको तर अझै cloud मा confirm-sync नभएको (last-synced snapshot सँग नमिलेको)
+        // record जोगाउने, बाँकी सबैमा cloud को ताजा version प्रयोग गर्ने।
         const snap=_lastSyncedSnapshot[tbl]||(_lastSyncedSnapshot[tbl]={});
+        const mergedById=new Map(mapped.map(o=>[o.id,o]));
+        let preserved=0;
+        currentArr.forEach(localObj=>{
+          if(localObj==null||localObj.id==null)return;
+          const localJson=JSON.stringify(localObj);
+          const cloudObj=mergedById.get(localObj.id);
+          const cloudJson=cloudObj?JSON.stringify(cloudObj):undefined;
+          const lastSyncedJson=snap[localObj.id];
+          if(localJson!==cloudJson&&localJson!==lastSyncedJson){
+            // local मा unsynced बदलाव छ (cloud सँग पनि मिलेन, अघि confirm-sync भएको snapshot सँग पनि मिलेन)
+            mergedById.set(localObj.id,localObj);
+            preserved++;
+          }
+        });
+        if(preserved>0)console.warn(`🛡️ "${tbl}" — ${preserved} local record(s) cloud सँग मिलेनन् (अझै sync हुँदै/pending) — local version जोगाइयो`);
+        const merged=Array.from(mergedById.values());
+        if(arrKey==="products")products=merged;
+        else if(arrKey==="customers")customers=merged;
+        else if(arrKey==="ledger")ledger=merged;
+        else if(arrKey==="suppliers")suppliers=merged;
+        else if(arrKey==="purchases")purchases=merged;
+        else if(arrKey==="expenses")expenses=merged;
+        else if(arrKey==="salesHistory")salesHistory=merged;
+        else if(arrKey==="stockMovements")stockMovements=merged;
+        else if(arrKey==="damageEntries")damageEntries=merged;
+        else if(arrKey==="cashRegisterEntries")cashRegisterEntries=merged;
+        else if(arrKey==="returnEntries")returnEntries=merged;
+        else if(arrKey==="purchaseReturns")purchaseReturns=merged;
+        else if(arrKey==="monthEndCounts")monthEndCounts=merged;
+        else if(arrKey==="fixedAssets")fixedAssets=merged;
+        else if(arrKey==="assetLossLog")assetLossLog=merged;
+        // cloud-confirmed भागलाई मात्र "last synced" मान्ने — preserved (unsynced) record हरूलाई
+        // snapshot मा नथप्ने, ताकि तिनको लागि आफ्नै pending push फेरि सही तरिकाले चल्न पाओस्
         for(const k in snap)delete snap[k];
         mapped.forEach(o=>{snap[o.id]=JSON.stringify(o);});
+        if(preserved>0)syncToSupabase(); // जोगिएका unsynced record हरू फेरि push गर्ने कोशिस गर्ने
       }
     });
     await pullUsersFromCloud(); // staff/admin password लगायत हरेक device मा ताजा राख्ने
@@ -2094,7 +2132,7 @@ checkBiometricSupport(); // Page खुल्नासाथ नै login screen
 
 // कुनैपनि text field मा पहिलो अक्षर auto-capital हुने (username/barcode/search बाहेक)
 (function(){
-  const EXCLUDE_IDS=["loginUN","loginPW","bcLiveInput","ibc","ep_bc","resetPWInput"];
+  const EXCLUDE_IDS=["loginUN","loginPW","bcLiveInput","ibc","ep_bc","resetPWInput","fpUn","ns_un","ns_email","esi_email"];
   document.addEventListener("input",function(e){
     const el=e.target;
     if(el.tagName!=="INPUT"||(el.type&&el.type!=="text"))return;
@@ -2747,9 +2785,10 @@ async function completePasswordRecovery(un){
 
 async function doLogin(){
   const now=Date.now();
-  if(_lockUntil>now){const s=Math.ceil((_lockUntil-now)/1000);toast$("🔒 "+s+"s पछि try गर्नुस्!","error");return;}
+  if(_lockUntil>now){const s=Math.ceil((_lockUntil-now)/1000);_showInlineErr("loginResult","🔒 "+s+"s पछि try गर्नुस्!");return;}
   const un=(document.getElementById("loginUN")?.value||"").trim(),pw=document.getElementById("loginPW")?.value||"";
-  if(!un){toast$("Username भर्नुस्!","error");return;}if(!pw){toast$("Password भर्नुस्!","error");return;}
+  const re=document.getElementById("loginResult");if(re)re.innerHTML="";
+  if(!un){_showInlineErr("loginResult","Username भर्नुस्!");return;}if(!pw){_showInlineErr("loginResult","Password भर्नुस्!");return;}
   // नयाँ/अर्को device मा पहिलो पटक खोल्दा cloud बाट staff/admin data अझै नआइसकेको हुन सक्छ —
   // त्यसैले "गलत password" भनी गलत रूपमा block नगरी, पहिले cloud sync पूरा हुने कुर्ने (max 8s)
   if(window._initialLoadPromise){
@@ -2765,13 +2804,17 @@ async function doLogin(){
   const u=(uCand&&await verifyPassword(pw,uCand.salt,uCand.pwHash))?uCand:null;
   if(!u){
     _failCount++;
-    if(_failCount>=3){_lockUntil=Date.now()+30000;_failCount=0;toast$("❌ 3 पटक गलत! 30 sec lock 🔒","error");}
-    else{toast$("गलत username वा password! ("+_failCount+"/3)","error");}
+    if(_failCount>=3){_lockUntil=Date.now()+30000;_failCount=0;_showInlineErr("loginResult","❌ 3 पटक गलत! 30 sec lock 🔒");}
+    else{_showInlineErr("loginResult","गलत username वा password! ("+_failCount+"/3)");}
     const p=document.getElementById("loginPW");if(p){p.value="";p.focus();}return;
   }
   // Supabase Auth session बनाउने (best-effort — नेटवर्क slow भए login नअड्कोस् भनेर
   // await नगरी background मा पठाइएको छ, त्यसैले login तुरुन्तै हुन्छ)
   toast$("Login हुँदैछ...","warn");
+  // हरेक सफल login मा आफ्नो local user data cloud मा पनि (background मा) फेरि push गर्ने —
+  // यसले cloud table खाली भएको/भर्खरै बनेको (जस्तै table recreate भएको) अवस्थामा पनि
+  // आफैं फेरि भरिन्छ, अर्को device ले फेरि पूरा data पाउँछ।
+  pushUsersToCloud().catch(e=>console.warn("Background users push failed (non-blocking):",e));
   sb.auth.signInWithPassword({email:u.email,password:pw}).then(({error})=>{
     if(error)console.warn("Supabase Auth login skipped (non-blocking):",error.message);
   }).catch(e=>console.warn("Supabase Auth network issue (non-blocking):",e));
@@ -2805,6 +2848,7 @@ function doLogout(auto=false){
   document.getElementById("mainApp").classList.remove("cashier-mode");
   document.getElementById("mainApp").style.display="none";document.getElementById("loginPage").style.display="flex";
   const un=document.getElementById("loginUN"),pw=document.getElementById("loginPW");if(un)un.value="";if(pw)pw.value="";
+  const re=document.getElementById("loginResult");if(re)re.innerHTML="";
   if(typeof stopQRScanner==="function")stopQRScanner();
   checkBiometricSupport();
 }
@@ -3205,7 +3249,17 @@ function renderCart(){
     </div>`).join("");
   renderCartTotals();
 }
-function updCart(id,d){const c=cart.find(x=>x.id===id);if(!c)return;c.qty+=d;if(c.qty<=0)cart=cart.filter(x=>x.id!==id);renderCart();}
+function updCart(id,d){
+  const c=cart.find(x=>x.id===id);if(!c)return;
+  if(d>0){
+    const p=products.find(x=>x.id===id);
+    const pricingQty=parseFloat(c._pricingQty)||1;
+    if(p&&p.cat!=="फास्टफुड"&&cartReservedQty(id,c)+((c.qty+d)*pricingQty)>p.stock){
+      toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध)","error");return;
+    }
+  }
+  c.qty+=d;if(c.qty<=0)cart=cart.filter(x=>x.id!==id);renderCart();
+}
 function clearCart(){cart=[];renderCart();}
 
 // ── Customize (Bulk) — Qty ↔ Rate ↔ Amount लिंक गरिएको, Purchase Rate भन्दा तल जान नदिने ──
@@ -3303,6 +3357,14 @@ function applyCustomize(){
   const qty=parseFloat(document.getElementById("cz_qty").value)||0;
   const finalAmt=parseFloat(document.getElementById("cz_final").value)||0;
   if(qty<=0||finalAmt<0){toast$("सही Quantity/Amount भर्नुस्!","error");return;}
+  const p=products.find(x=>x.id===c.id);
+  if(p&&p.cat!=="फास्टफुड"){
+    const pricingQty=parseFloat(c._pricingQty)||1;
+    const otherReserved=cartReservedQty(c.id,c);
+    if(otherReserved+(qty*pricingQty)>p.stock){
+      toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध)","error");return;
+    }
+  }
   const rate=+(finalAmt/qty).toFixed(2);
   // Discount threshold: applies only when using "कुल रकममा" (full bill) discount mode — staff/cashier
   // can discount up to रु 20 that way freely, above needs Admin approval. "प्रति Rate मा" mode is exempt.
@@ -3369,6 +3431,11 @@ function syncNewDefaultPricing(){
   if(l0&&!l0.value)l0.value="1 "+un;
 }
 
+// कुनै product को हाल cart मा (सबै pricing/combo line जोडेर, piece-level मा) कति qty राखिसकियो भनेर हेर्ने —
+// stock भन्दा बढी cart मा थपिन नदिनको लागि प्रयोग हुन्छ (नत्र stock सकिइसके पनि थप्दै जान मिल्थ्यो)
+function cartReservedQty(id,excludeLine){
+  return cart.filter(c=>c.id===id&&c!==excludeLine).reduce((s,c)=>s+((parseFloat(c.qty)||0)*(parseFloat(c._pricingQty)||1)),0);
+}
 // ── addToCart — shows unit picker if multiple pricing ──
 function addToCart(id){
   const p=products.find(x=>x.id===id);if(!p)return;
@@ -3393,12 +3460,14 @@ function addToCart(id){
     return;
   }
   // Single pricing — direct add
+  if(p.cat!=="फास्टफुड"&&cartReservedQty(id)+1>p.stock){toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध, cart मा पहिल्यै "+cartReservedQty(id)+" थपिसकियो)","error");return;}
   const ex=cart.find(c=>c.id===id&&!c._pricingLabel);
   if(ex)ex.qty++;else cart.push({...p,qty:1,_unitPrice:p.price,_cartUnit:p.unit||"pcs"});
   renderCart();toast$(p.name+" थपियो ✅");
 }
 function addToCartWithPricing(id,label,qty,price,unit){
   const p=products.find(x=>x.id===id);if(!p)return;
+  if(p.cat!=="फास्टफुड"&&cartReservedQty(id)+qty>p.stock){toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध, यो "+label+" थप्दा "+(cartReservedQty(id)+qty)+" "+p.unit+" चाहिन्छ)","error");return;}
   // Each pricing option is a separate cart line (keyed by id+label)
   const ex=cart.find(c=>c.id===id&&c._pricingLabel===label);
   if(ex){ex.qty+=1;}
@@ -3535,7 +3604,7 @@ function openPayModal(){
   const oldDue=combined?window._oldDueAmt:0;
   const payTotal=combined?total+oldDue:total;
   window._billOnlyTotal=total;
-  const payMethods=combined?[{id:"cash",l:"💵 Cash"},{id:"eSewa",l:"🟢 eSewa"},{id:"Khalti",l:"🟣 Khalti"},{id:"QR",l:"📱 QR"},{id:"Fonepay",l:"🔵 Fonepay"}]:[{id:"cash",l:"💵 Cash"},{id:"eSewa",l:"🟢 eSewa"},{id:"Khalti",l:"🟣 Khalti"},{id:"QR",l:"📱 QR"},{id:"Fonepay",l:"🔵 Fonepay"},{id:"Credit",l:"📒 Credit"}];
+  const payMethods=[{id:"cash",l:"💵 Cash"},{id:"eSewa",l:"🟢 eSewa"},{id:"Khalti",l:"🟣 Khalti"},{id:"QR",l:"📱 QR"},{id:"Fonepay",l:"🔵 Fonepay"},{id:"Credit",l:"📒 Credit"}];
   document.getElementById("payModalBox").innerHTML=`
     <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
       <h3 style="margin:0;color:var(--text);font-size:16px;">💳 Payment${combined?" (Bill + Old Due)":""}</h3>
@@ -3570,7 +3639,7 @@ function openPayModal(){
         <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:10px;">✂️ Split — Total: रु ${fmt(payTotal)}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;width:80px;">💵 Cash</span><input type="number" step="any" id="sp_cash" placeholder="0.00" oninput="calcSplitRemain(${payTotal})" style="flex:1;padding:7px;background:#fef3c7;border:1.5px solid #d97706;border-radius:8px;color:var(--text);font-size:13px;font-weight:700;outline:none;"/></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;width:80px;">📱 QR/eSewa</span><input type="number" step="any" id="sp_qr" placeholder="0.00" oninput="calcSplitRemain(${payTotal})" style="flex:1;padding:7px;background:#dcfce7;border:1.5px solid #16a34a;border-radius:8px;color:var(--text);font-size:13px;font-weight:700;outline:none;"/></div>
-        ${combined?"":`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;width:80px;">📒 Credit</span><input type="number" step="any" id="sp_credit" placeholder="0.00" oninput="calcSplitRemain(${payTotal})" style="flex:1;padding:7px;background:#fee2e2;border:1.5px solid #dc2626;border-radius:8px;color:var(--text);font-size:13px;font-weight:700;outline:none;"/></div>`}
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;width:80px;">📒 Credit</span><input type="number" step="any" id="sp_credit" placeholder="0.00" oninput="calcSplitRemain(${payTotal})" style="flex:1;padding:7px;background:#fee2e2;border:1.5px solid #dc2626;border-radius:8px;color:var(--text);font-size:13px;font-weight:700;outline:none;"/></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);"><span style="font-size:11px;color:var(--text3);">Remaining:</span><span id="splitRemain" style="font-size:14px;font-weight:900;color:var(--red);">रु ${fmt(payTotal)}</span></div>
       </div>
     </div>
@@ -3669,10 +3738,20 @@ function resetPOSDiscount(){
   renderCartTotals();
 }
 function completeSale(total,creditCustId){
-  // Unique bill number: prefix + counter (never collision)
-  const _bSeq=(parseInt(localStorage.getItem("nabin_billseq")||"0")+1);
-  localStorage.setItem("nabin_billseq",String(_bSeq));
-  const billNo="BILL-"+String(_bSeq).padStart(4,"0");
+  // Bill number: daily counter that resets each day (BILL-YYMMDD-0001, 0002...) —
+  // date-coded so numbers restart at 0001 every day (जस्तो चाहिएको थियो) while still
+  // staying globally unique (plain BILL-0001 हरेक दिन दोहोरिँदा return/lookup लाई अलमल्याउँछ,
+  // त्यसैले मितिको code नम्बरमै जोडिएको छ)।
+  const _bNow=new Date();
+  const _bDayKey=_bNow.getFullYear()+"-"+String(_bNow.getMonth()+1).padStart(2,"0")+"-"+String(_bNow.getDate()).padStart(2,"0");
+  let _bSeqData;
+  try{_bSeqData=JSON.parse(localStorage.getItem("nabin_billseq")||"null");}catch(e){_bSeqData=null;}
+  if(!_bSeqData||_bSeqData.day!==_bDayKey)_bSeqData={day:_bDayKey,seq:0};
+  _bSeqData.seq=(_bSeqData.seq||0)+1;
+  localStorage.setItem("nabin_billseq",JSON.stringify(_bSeqData));
+  const _bSeq=_bSeqData.seq;
+  const _bDayCode=_bDayKey.slice(2).replace(/-/g,"");
+  const billNo="BILL-"+_bDayCode+"-"+String(_bSeq).padStart(4,"0");
   const mode=window._payMode||"single",m=window._selPayM||"cash";
   const now=new Date(),d=now.toLocaleDateString("en-GB"),t=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
   let ca=0,sc=0,sq=0,scr=0;
@@ -3686,6 +3765,15 @@ function completeSale(total,creditCustId){
     const baseQty=(parseFloat(ci.qty)||0)*(parseFloat(ci._pricingQty)||1);
     _saleQtyByProduct[ci.id]=(_saleQtyByProduct[ci.id]||0)+baseQty;
   });
+  // ⚠️ Final safety check — held bill केही बेर पर्खिएर resume भएको वा अर्को device ले बीचमा stock
+  // घटाइसकेको अवस्थामा पनि, stock भन्दा बढी बेच्न नदिने (silently 0 मा clamp गर्नुको सट्टा बिल्कुलै रोक्ने)
+  for(const pidKey in _saleQtyByProduct){
+    const p=products.find(x=>String(x.id)===pidKey);
+    if(p&&_saleQtyByProduct[pidKey]>p.stock){
+      toast$("❌ "+p.name+" — Stock मा "+p.stock+" "+p.unit+" मात्र बाँकी छ, बिल मा "+_saleQtyByProduct[pidKey]+" छ! कृपया cart मिलाउनुस्।","error");
+      return;
+    }
+  }
   let _smIdx=0;
   Object.keys(_saleQtyByProduct).forEach(pidKey=>{
     const p=products.find(x=>String(x.id)===pidKey);
@@ -3949,7 +4037,7 @@ function viewLedgerBill(billNo){
 }
 
 function renderCustLedger(id){
-  const cl=ledger.filter(l=>l.cid===id);
+  const cl=ledger.filter(l=>l.cid===id).sort((a,b)=>(b.id||0)-(a.id||0)); // नयाँ माथि, पुरानो तल
   const el=document.getElementById("cdLedger");if(!el)return;
   if(!cl.length){el.innerHTML='<div style="color:var(--text4);text-align:center;padding:20px;font-size:12px;">कुनै transaction छैन</div>';return;}
   el.innerHTML=`<table class="tbl" style="font-size:11px;">
@@ -5371,23 +5459,18 @@ function computeItemLedger(productId,fromYMD,toYMD){
   const days=enumerateDatesDMY(fromYMD,toYMD);
   let runningBeg=stockAtStart,cummUsage=0;
   const rows=days.map((dateStr,dIdx)=>{
+    // सबै movement type (Return/Void/Unvoid समेत) यहाँ तिनीहरू भौतिक रूपमा भएको दिन (m.date) मा मात्र गनिन्छ —
+    // त्यो दिन साँच्चै return/void नभई अर्को दिन (जस्तै पुरानो बिलको attribDate) मा टाँसिने bug (sticky रहने) हटाइयो।
+    // attribDate चाहिँ P&L/Sales Report मा मात्र प्रयोग हुन्छ (revenue कुन दिनको हो भनेर), स्टक ledger यहाँ भौतिक मितिमै ठीक हुन्छ।
     const dayMovesActual=moves.filter(m=>sameDayDMY(m.date,dateStr));
-    // Return/Void/Unvoid लाई तिनको ORIGINAL sale-date (attribDate) मा गनिन्छ — फिर्ता/void भौतिक रूपमा भएको दिनमा होइन।
-    // Range भन्दा अघिको attribDate भए (पुरानो बिल आजै return भएको), हराउन नदिन report को पहिलो देखिने दिनमा जोडिन्छ।
-    const dayMovesAttrib=moves.filter(m=>{
-      if(!["return","void","unvoid"].includes(m.type))return false;
-      const ad=m.attribDate||m.date;
-      if(dIdx===0&&parseDMY(ad)<fromDateObj)return true;
-      return sameDayDMY(ad,dateStr);
-    });
     const purchaseGross=dayMovesActual.filter(m=>m.type==="purchase").reduce((s,m)=>s+(m.qty||0),0);
-    const sRtn=Math.abs(dayMovesAttrib.filter(m=>m.type==="return").reduce((s,m)=>s+(m.qty||0),0)); // Sales Return — customer ले फिर्ता, stock मा +
+    const sRtn=Math.abs(dayMovesActual.filter(m=>m.type==="return").reduce((s,m)=>s+(m.qty||0),0)); // Sales Return — customer ले फिर्ता, stock मा +
     const pRtn=Math.abs(dayMovesActual.filter(m=>m.type==="purchase_return").reduce((s,m)=>s+(m.qty||0),0)); // Purchase Return — supplier लाई फिर्ता, stock मा −
     const wastage=Math.abs(dayMovesActual.filter(m=>m.type==="damage").reduce((s,m)=>s+(m.qty||0),0));
     const usageGross=Math.abs(dayMovesActual.filter(m=>m.type==="sale").reduce((s,m)=>s+(m.qty||0),0));
     const purchase=purchaseGross; // Gross Purchase — Purchase Return अब यहाँ घटाइदैन, छुट्टै column मा देखिन्छ
     const usage=usageGross-sRtn; // Net Usage — Sales Return यहीँ घटाइयो
-    const voidAdj=dayMovesAttrib.filter(m=>["void","unvoid"].includes(m.type)).reduce((s,m)=>s+(m.qty||0),0); // Void ले stock +फिर्ता, Unvoid ले -घटाउँछ
+    const voidAdj=dayMovesActual.filter(m=>["void","unvoid"].includes(m.type)).reduce((s,m)=>s+(m.qty||0),0); // Void ले stock +फिर्ता, Unvoid ले -घटाउँछ
     const manualAdj=dayMovesActual.filter(m=>m.type==="adjustment").reduce((s,m)=>s+(m.qty||0),0);
     const endInv=runningBeg+purchase-pRtn-wastage-usage+voidAdj+manualAdj;
     cummUsage+=usage;
@@ -6548,6 +6631,7 @@ function renderSalesLog(){
     const md=(!fromD||billYMD>=fromD)&&(!toD||billYMD<=toD);
     return mq&&mc&&ms&&md;
   });
+  list.sort((a,b)=>(b.id||0)-(a.id||0)); // नयाँ बिल माथि, पुरानो तल — cloud sync ले row order बिगार्न सक्छ
 
   // Summary of filtered list
   const filtActive=list.filter(b=>b.status!=="voided");
@@ -6609,8 +6693,8 @@ function renderSalesLog(){
         <td>
           <div style="display:flex;gap:3px;flex-wrap:nowrap;">
             <button onclick="viewBillDetail(${b.id})" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:3px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;">👁 View</button>
-            ${!isVoid&&!isReturn?`<button onclick="openReturnFromBill(${b.id})" style="background:#fef3c7;border:1px solid var(--gold);color:var(--gold);padding:3px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;">↩️ Rtn</button>`:""}
-            ${!isVoid?(isTodayBill?`<button onclick="voidBill(${b.id})" style="background:#fee2e2;border:1px solid #fca5a5;color:var(--red);padding:3px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;">🚫 Void</button>`:""):`<button onclick="unvoidBill(${b.id})" style="background:#dcfce7;border:1px solid #86efac;color:var(--green);padding:3px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;">♻️ Restore</button>`}
+            ${!isVoid&&!isReturn?`<button onclick="openBillActionGate(${b.id})" style="background:#fef3c7;border:1px solid var(--gold);color:var(--gold);padding:3px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;">↩️/🚫 Return</button>`:""}
+            ${isVoid?`<button onclick="unvoidBill(${b.id})" style="background:#dcfce7;border:1px solid #86efac;color:var(--green);padding:3px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;">♻️ Restore</button>`:""}
           </div>
         </td>
       </tr>`;
@@ -6713,12 +6797,10 @@ function viewBillDetail(id){
     </div>`:""}
 
     <!-- Action Buttons -->
-    <div style="display:grid;grid-template-columns:${isVoid?"1fr 1fr":isTodayBillDetail?"repeat(3,1fr)":"1fr 1fr"};gap:8px;">
+    <div style="display:grid;grid-template-columns:${isVoid||isReturn?"1fr 1fr":"1fr 1fr"};gap:8px;">
       <button onclick="reprintBill(${b.id})" style="padding:10px;background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">🖨️ Reprint</button>
-      ${!isVoid?`<button onclick="openReturnFromBill(${b.id});closeModal();" style="padding:10px;background:#fef3c7;border:1.5px solid var(--gold);color:var(--gold);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">↩️ Return</button>`:""}
-      ${!isVoid
-        ?(isTodayBillDetail?`<button onclick="voidBill(${b.id});closeModal();" style="padding:10px;background:#fee2e2;border:1.5px solid var(--red);color:var(--red);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">🚫 Void</button>`:"")
-        :`<button onclick="unvoidBill(${b.id});closeModal();" style="padding:10px;background:#dcfce7;border:1.5px solid var(--green);color:var(--green);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">♻️ Restore</button>`}
+      ${!isVoid&&!isReturn?`<button onclick="openBillActionGate(${b.id});closeModal();" style="padding:10px;background:#fef3c7;border:1.5px solid var(--gold);color:var(--gold);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">↩️/🚫 Return/Void</button>`:""}
+      ${isVoid?`<button onclick="unvoidBill(${b.id});closeModal();" style="padding:10px;background:#dcfce7;border:1.5px solid var(--green);color:var(--green);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">♻️ Restore</button>`:""}
     </div>`,560);
 }
 
@@ -7119,7 +7201,16 @@ function renderReturns(){
   </table>`;
 }
 
-function showReturnForm(){openReturnFromBill(null);}
+function showReturnForm(){requireAdminPW(()=>openReturnFromBill(null),"नयाँ Return");}
+
+// Single admin-gated entry point for both Return and Void — password पहिले सोध्ने,
+// त्यसपछि मात्र सोही बिल reopen भएर items देखिने (छुट्टै "wizard" होइन)।
+function openBillActionGate(billId){
+  const bill=salesHistory.find(x=>x.id===billId);if(!bill)return;
+  if(bill.status==="voided"){toast$("Already voided!","warn");return;}
+  const isClosedDay=closedDays.includes(bill.date);
+  requireAdminPW(()=>openReturnFromBill(billId),"Bill Return/Void: "+bill.billNo+(isClosedDay?" ⚠️ आजको Day Close भइसक्यो!":""));
+}
 
 function openReturnFromBill(billId){
   const bill=billId?salesHistory.find(x=>x.id===billId):null;
@@ -7140,14 +7231,17 @@ function openReturnFromBill(billId){
   window._rtItems=items;
   // Bill-based return = "cart reopen": हरेक item पहिल्यै pre-selected, full remaining qty मा —
   // cashier ले एकै tap मा सबै return गर्न सक्छ, वा stepper ले qty घटाउन सक्छ।
+  // (Admin password यो modal खुल्नु अघि नै — openBillActionGate/showReturnForm मा — भइसक्यो।)
   window._rtSelected={};
+  window._rtExtra={}; // exchange मा थपिने नयाँ/extra items (bill मा नभएका वा extra qty)
   window._rtCartMode=!!bill;
+  window._rtBillObj=bill||null;
   if(bill){
     items.forEach(it=>{window._rtSelected[it.id]={name:it.name,price:it.price,unit:it.unit,qty:it.maxQty,maxQty:it.maxQty};});
   }
   openModal(`
     <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
-      <h3 style="margin:0;color:var(--text);">↩️ ${bill?"Return — Bill Reopen":"Sales Return / Refund"}</h3>
+      <h3 style="margin:0;color:var(--text);">↩️ ${bill?"Return / Void / Exchange":"Sales Return / Refund"}</h3>
       <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
     </div>
     ${bill?`<div style="background:#dbeafe;border:1px solid var(--blue);border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--blue);">📋 <strong>${esc(bill.billNo)}</strong> · ${bill.date} · रु ${fmt(bill.total)} · ${esc(bill.custName)}</div>`:""}
@@ -7156,8 +7250,14 @@ function openReturnFromBill(billId){
       <div class="field"><label>Customer</label><input id="rtCust" value="${bill?bill.custName:"Walk-in"}" placeholder="Customer नाम"/></div>
     </div>
     ${bill?`
-    <div style="font-size:11px;color:var(--text4);margin:8px 0 4px;">🛒 Bill का items — qty घटाउन/बढाउन − + प्रयोग गर्नुस्, नफर्काउने भए 🗑 थिच्नुस्</div>
+    <div style="font-size:11px;color:var(--text4);margin:8px 0 4px;">🛒 सबै item पूरै qty मा tick छन् — यसै रुपमा Confirm गर्नुभयो भने पूरै बिल <b>Void</b> हुन्छ। घटाउन/बढाउन − + प्रयोग गर्नुस् (केही घटाए Return, केही बढाए/थपे Exchange), नफर्काउने भए 🗑 थिच्नुस्।</div>
     <div id="rtProdList" style="max-height:320px;overflow-y:auto;"></div>
+    <button type="button" onclick="toggleRtExtra()" id="rtExtraToggleBtn" style="width:100%;padding:9px;background:#eef2ff;border:1.5px dashed var(--purple);color:var(--purple);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin:8px 0 4px;">➕ साटेर/थप दिने Item छान्नुस् (Exchange)</button>
+    <div id="rtExtraBox" style="display:none;">
+      <input id="rtExtraSearch" placeholder="Item खोज्नुस्..." oninput="renderRtExtraSearchList()" autocomplete="off" style="width:100%;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;box-sizing:border-box;margin-bottom:6px;"/>
+      <div id="rtExtraSearchList" style="max-height:180px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px;margin-bottom:8px;"></div>
+      <div id="rtExtraSelectedList"></div>
+    </div>
     `:`
     <div class="field"><label>Product खोज्नुस् (Roman वा नेपाली) *</label>
       <input id="rtSearch" placeholder="जस्तै: piro वा पिरो..." oninput="renderRtProdList()" autocomplete="off" style="width:100%;padding:9px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;box-sizing:border-box;"/>
@@ -7185,7 +7285,7 @@ function openReturnFromBill(billId){
         <option>🔄 Exchange Only</option>
       </select>
     </div>
-    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="saveReturn()">✅ Return Process गर्नुस् (<span id="rtSelCount">0</span> items)</button>`,520);
+    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="saveReturn()">✅ Confirm गर्नुस्</button>`,520);
   if(bill){renderRtCartList();}else{renderRtProdList();}
   updateRtSummary();
 }
@@ -7233,6 +7333,69 @@ function removeRtItem(pid){
   delete window._rtSelected[pid];
   renderRtCartList();
   updateRtSummary();
+}
+
+// ── Exchange: ग्राहकलाई साटेर/थप दिइने item — bill मा नभएको नयाँ product वा extra qty ──
+function toggleRtExtra(){
+  const box=document.getElementById("rtExtraBox");if(!box)return;
+  const showing=box.style.display!=="none";
+  box.style.display=showing?"none":"block";
+  if(!showing)renderRtExtraSearchList();
+}
+function renderRtExtraSearchList(){
+  const q=(document.getElementById("rtExtraSearch")||{}).value||"";
+  const list=q?products.filter(p=>nepaliMatch(p.name,q)).slice(0,40):[];
+  const el=document.getElementById("rtExtraSearchList");
+  if(!el)return;
+  if(!q){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--text4);font-size:11px;">Item नाम टाइप गर्नुस्...</div>';return;}
+  if(!list.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--text4);font-size:11px;">भेटिएन</div>';return;}
+  el.innerHTML=list.map(p=>`<div onclick="addExtraItem(${p.id})" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border2);cursor:pointer;">
+    <div style="font-size:12px;font-weight:600;color:var(--text);">${esc(p.name)}</div>
+    <div style="font-size:11px;color:var(--text4);">रु ${fmt(p.price)} · स्टक: ${fmtQty(p.stock)}</div>
+  </div>`).join("");
+}
+function addExtraItem(pid){
+  pid=parseInt(pid);
+  const p=products.find(x=>x.id===pid);if(!p)return;
+  if((p.stock||0)<=0){toast$("⚠️ "+p.name+" स्टकमा छैन!","error");return;}
+  const ex=window._rtExtra[pid];
+  if(ex)ex.qty=Math.min((ex.qty||0)+1,p.stock);
+  else window._rtExtra[pid]={name:p.name,price:p.price,unit:p.unit,qty:1,maxQty:p.stock};
+  const se=document.getElementById("rtExtraSearch");if(se)se.value="";
+  renderRtExtraSearchList();
+  renderRtExtraSelectedList();
+  updateRtSummary();
+}
+function extraStep(pid,delta){
+  pid=parseInt(pid);
+  const ex=window._rtExtra[pid];if(!ex)return;
+  let q=+((ex.qty||0)+delta).toFixed(3);
+  q=Math.max(0,Math.min(q,ex.maxQty!=null?ex.maxQty:q));
+  if(q<=0)delete window._rtExtra[pid];else ex.qty=q;
+  renderRtExtraSelectedList();
+  updateRtSummary();
+}
+function removeExtraItem(pid){
+  pid=parseInt(pid);
+  delete window._rtExtra[pid];
+  renderRtExtraSelectedList();
+  updateRtSummary();
+}
+function renderRtExtraSelectedList(){
+  const el=document.getElementById("rtExtraSelectedList");if(!el)return;
+  const ids=Object.keys(window._rtExtra||{});
+  if(!ids.length){el.innerHTML="";return;}
+  el.innerHTML=ids.map(pidStr=>{
+    const pid=parseInt(pidStr),ex=window._rtExtra[pid];
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--border2);background:#eef2ff;">
+      <div style="flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ex.name)}</div>
+      <button onclick="extraStep(${pid},-1)" style="width:24px;height:24px;border-radius:6px;border:1.5px solid var(--purple);background:#fff;color:var(--purple);font-weight:900;cursor:pointer;">−</button>
+      <span style="min-width:26px;text-align:center;font-size:12px;font-weight:700;">${ex.qty}</span>
+      <button onclick="extraStep(${pid},1)" style="width:24px;height:24px;border-radius:6px;border:1.5px solid var(--purple);background:#fff;color:var(--purple);font-weight:900;cursor:pointer;">+</button>
+      <div style="width:60px;text-align:right;font-size:11px;font-weight:800;color:var(--purple);">रु ${fmtN(ex.qty*ex.price)}</div>
+      <button onclick="removeExtraItem(${pid})" style="background:none;border:none;color:var(--text4);font-size:14px;cursor:pointer;">🗑</button>
+    </div>`;
+  }).join("");
 }
 
 function renderRtProdList(){
@@ -7285,31 +7448,45 @@ function updateRtSummary(){
   const sel=window._rtSelected||{};
   const ids=Object.keys(sel);
   const totalAmt=ids.reduce((s,id)=>s+(sel[id].qty*sel[id].price),0);
+  const extra=window._rtExtra||{};
+  const extraIds=Object.keys(extra);
+  const extraAmt=extraIds.reduce((s,id)=>s+(extra[id].qty*extra[id].price),0);
+  const net=extraAmt-totalAmt; // +ve = customer ले थप तिर्नुपर्ने, -ve = फिर्ता दिनुपर्ने
   const countEl=document.getElementById("rtSelCount");if(countEl)countEl.textContent=ids.length;
   const sumEl=document.getElementById("rtSelectedSummary");
   if(!sumEl)return;
-  if(!ids.length){sumEl.innerHTML="";return;}
-  sumEl.innerHTML=`<div style="background:#fff7ed;border:1.5px solid var(--gold);border-radius:9px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:12px;font-weight:700;color:var(--gold);">🛒 ${ids.length} item छानिए</span>
-    <span style="font-size:15px;font-weight:900;color:var(--gold);">रु ${fmt(totalAmt)}</span>
+  if(!ids.length&&!extraIds.length){sumEl.innerHTML="";return;}
+  const bill=window._rtBillObj;
+  const isFullVoidPreview=bill&&!extraIds.length&&bill.items.every(it=>{
+    const s=sel[it.id];const already=(returnEntries||[]).filter(r=>r.billRef===bill.billNo&&r.productId===it.id).reduce((s2,r)=>s2+(parseFloat(r.qty)||0),0);
+    return s&&already<=0.0001&&s.qty>=(it.qty-0.0001);
+  });
+  const todayStr=new Date().toLocaleDateString("en-GB");
+  sumEl.innerHTML=`<div style="background:#fff7ed;border:1.5px solid var(--gold);border-radius:9px;padding:10px 14px;">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--warn);"><span>↩️ Return</span><span>रु ${fmt(totalAmt)}</span></div>
+    ${extraIds.length?`<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--purple);"><span>🔄 Exchange/थप</span><span>रु ${fmt(extraAmt)}</span></div>`:""}
+    <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:${net>0?"var(--red)":"var(--green)"};border-top:1px dashed var(--border2);margin-top:4px;padding-top:4px;">
+      <span>${net>0?"ग्राहकबाट थप लिने":net<0?"ग्राहकलाई फिर्ता दिने":"बराबर (पैसा चलेन)"}</span><span>रु ${fmt(Math.abs(net))}</span>
+    </div>
+    ${isFullVoidPreview?`<div style="margin-top:6px;font-size:11px;font-weight:700;color:var(--red);">🚫 यसरी Confirm गर्दा पूरै बिल VOID हुन्छ${bill.date!==todayStr?" — तर यो आजको बिल नभएकोले पूर्ण Return मात्र हुनेछ, Void होइन।":""}</div>`:""}
   </div>`;
 }
 
 function saveReturn(){
   const sel=window._rtSelected||{};
   const ids=Object.keys(sel);
-  if(!ids.length){toast$("कम्तिमा १ Product tick गर्नुस्!","error");return;}
-  const totalPreview=ids.reduce((s,id)=>s+((sel[id].qty||0)*(sel[id].price||0)),0);
-  const origBillNo=(document.getElementById("rtBill")||{}).value||"";
-  const origBillForCheck=origBillNo?salesHistory.find(x=>x.billNo===origBillNo):null;
-  const isClosedDay=origBillForCheck&&closedDays.includes(origBillForCheck.date);
-  // Security: Return/Refund लाई सधैं Admin Password/Fingerprint चाहिन्छ — Void जस्तै — अहिले login भएको admin नै किन नहोस्।
-  // यसले एउटै item multiple पटक फिर्ता जस्ता गल्ती/misuse लाई रोक्छ।
-  requireAdminPW(_applyReturn,"Refund Approval: "+ids.length+" item(s) — रु "+fmt(totalPreview)+(isClosedDay?" ⚠️ यो Day-Closed date को बिल हो!":""));
+  const extra=window._rtExtra||{};
+  const extraIds=Object.keys(extra);
+  if(!ids.length&&!extraIds.length){toast$("कम्तिमा १ Product tick गर्नुस् वा Exchange item थप्नुस्!","error");return;}
+  // Admin password यो modal खुल्नु अघि नै (openBillActionGate/showReturnForm मा) लिइसकिएको छ —
+  // यहाँ फेरि सोध्दैन, सिधै process गर्छ।
+  _applyBillAction();
 }
-function _applyReturn(){
+function _applyBillAction(){
   const sel=window._rtSelected||{};
   const ids=Object.keys(sel);
+  const extra=window._rtExtra||{};
+  const extraIds=Object.keys(extra);
   const origBillNo=(document.getElementById("rtBill")||{}).value||"";
   const custName=(document.getElementById("rtCust")||{}).value||"Walk-in";
   const reason=(document.getElementById("rtReason")||{}).value;
@@ -7320,7 +7497,40 @@ function _applyReturn(){
   const origBill=origBillNo?salesHistory.find(x=>x.billNo===origBillNo):null;
   const origDate=origBill?origBill.date:dateStr; // सामान कहिले बेचिएको थियो — return गर्ने दिन होइन
 
-  let totalRefund=0,itemCount=0,firstStockMsg="",deletedProdCount=0;
+  // पूरै बिल Void हो कि भनेर पत्ता लगाउने — bill भएको, पहिले कहिल्यै return नभएको, सबै item
+  // पूर्ण qty मा tick गरिएको, कुनै exchange/extra item नभएको, अनि आजकै बिल भएमा मात्र Void गनिन्छ।
+  const isFullVoid=!!origBill&&origBill.date===dateStr&&!extraIds.length&&
+    origBill.items.length===ids.length&&
+    origBill.items.every(it=>{
+      const s=sel[it.id];
+      const already=(returnEntries||[]).filter(r=>r.billRef===origBill.billNo&&r.productId===it.id).reduce((s2,r)=>s2+(parseFloat(r.qty)||0),0);
+      return s&&already<=0.0001&&(s.qty||0)>=(it.qty-0.0001);
+    });
+
+  if(isFullVoid){
+    // पूरै बिल Void — stock/credit पूर्ण रूपमा फर्किन्छ, बिल status "voided" (पुरानो voidBill() जस्तै)
+    origBill.items.forEach(it=>{
+      const p=products.find(x=>x.id===it.id);
+      if(p){
+        const baseQty=(it.qty||0)*(it.pricingQty||1);
+        const b=p.stock;p.stock+=baseQty;
+        stockMovements.unshift({id:Date.now()+Math.floor(Math.random()*1000),productId:p.id,productName:p.name,type:"void",qty:+baseQty,before:b,after:p.stock,ref:origBill.billNo,date:dateStr,attribDate:origBill.date,time:timeStr,user:currentUser.name});
+      }
+    });
+    if(origBill.creditAmt>0&&origBill.custId){
+      const cu=customers.find(x=>x.id===origBill.custId);
+      if(cu){cu.bal+=origBill.creditAmt;ledger.unshift({id:Date.now(),cid:cu.id,type:"void",amt:origBill.creditAmt,note:"Void:"+origBill.billNo,date:dateStr,bal:cu.bal});}
+    }
+    origBill.status="voided";origBill.voidedAt=dateStr;
+    saveDB();closeModal();
+    addLog("Void",origBill.billNo);
+    toast$("🚫 "+origBill.billNo+" voided!","warn");
+    renderSalesLog();renderReturns();
+    return;
+  }
+
+  // Partial Return / Exchange
+  let totalRefund=0,itemCount=0,deletedProdCount=0;
   ids.forEach(pidStr=>{
     const s=sel[pidStr];
     const qty=parseFloat(s.qty)||0;
@@ -7335,9 +7545,8 @@ function _applyReturn(){
     if(p){
       const before=p.stock;
       p.stock+=qty;
-      if(!firstStockMsg)firstStockMsg=p.name+": "+before+"→"+p.stock;
       // date = आज (जुन बेला physically stock फेरियो — Stock Log/Audit को लागि real-time accurate)
-      // attribDate = original sale को मिति — Inventory Sheet/Reports मा त्यही दिनको हिसाबमा गनिन्छ
+      // attribDate = original sale को मिति — P&L/Sales Report मा त्यही दिनको हिसाबमा गनिन्छ
       stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+qty,before,after:p.stock,ref:origBillNo||"RTN",date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name});
       returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo||"—",custName,productId:p.id,productName:p.name,unit:p.unit,qty,refundAmt:amt,buyCost:(p.buy||0)*qty,method,reason,date:dateStr,origDate,user:currentUser.name});
     }else{
@@ -7349,18 +7558,48 @@ function _applyReturn(){
     totalRefund+=amt;
     itemCount++;
   });
-  if(!itemCount){toast$("कुनै valid item भेटिएन!","error");return;}
 
-  // Customer balance मा refund add गर्ने (सबै items को जम्मा एकैचोटि)
-  if(totalRefund>0&&custName){const _rtCu=customers.find(x=>x.name===custName||String(x.id)===custName);if(_rtCu){_rtCu.bal+=totalRefund;ledger.unshift({id:Date.now(),cid:_rtCu.id,type:"return_refund",amt:totalRefund,note:"Return Refund: "+(origBillNo||"RTN")+" ("+itemCount+" items)",date:dateStr,bal:_rtCu.bal});}}
-  // Mark original bill as returned
+  // Exchange/extra items — ग्राहकलाई थप/साटेर दिइयो, stock घट्छ (नयाँ sale जस्तै)
+  let totalExtra=0,extraCount=0;
+  extraIds.forEach(pidStr=>{
+    const ex=extra[pidStr];
+    const qty=parseFloat(ex.qty)||0;
+    if(qty<=0)return;
+    const pid=parseInt(pidStr);
+    const p=products.find(x=>x.id===pid);
+    if(!p||(p.stock||0)<qty){toast$("⚠️ "+(ex.name||"")+" — पर्याप्त स्टक छैन, skip भयो","warn");return;}
+    const amt=+(qty*ex.price).toFixed(2);
+    const before=p.stock;p.stock-=qty;
+    stockMovements.unshift({id:Date.now()+1000+extraCount,productId:p.id,productName:p.name,type:"sale",qty:-qty,before,after:p.stock,ref:(origBillNo||"RTN")+"-EX",date:dateStr,time:timeStr,user:currentUser.name});
+    totalExtra+=amt;
+    extraCount++;
+  });
+
+  if(!itemCount&&!extraCount){toast$("कुनै valid item भेटिएन!","error");return;}
+
+  const net=+(totalExtra-totalRefund).toFixed(2); // +ve = ग्राहकबाट थप लिने, -ve = ग्राहकलाई फिर्ता दिने
+
+  if(net!==0&&custName){
+    const _rtCu=customers.find(x=>x.name===custName||String(x.id)===custName);
+    if(_rtCu){
+      _rtCu.bal-=net; // net>0 भए customer ले तिर्नुपर्ने (bal घट्छ), net<0 भए फिर्ता (bal बढ्छ)
+      ledger.unshift({id:Date.now(),cid:_rtCu.id,type:net>0?"exchange_extra":"return_refund",amt:Math.abs(net),note:(net>0?"Exchange Extra: ":"Return Refund: ")+(origBillNo||"RTN")+(extraCount?" ("+itemCount+" return + "+extraCount+" exchange)":" ("+itemCount+" items)"),date:dateStr,bal:_rtCu.bal});
+    }else if(net>0){
+      toast$("⚠️ Walk-in ग्राहकबाट रु "+fmt(net)+" थप असुल्नुस् (नगद)","warn");
+    }
+  }
+  if(net>0){
+    cashRegisterEntries.unshift({id:Date.now()+2,type:"exchange_extra_cash",billNo:(origBillNo||"RTN")+"-EX",custName,amt:net,payMethod:"Cash",date:dateStr,time:timeStr,cashier:currentUser.name});
+  }
+
+  // Mark original bill as returned (Exchange भए पनि "returned" statusले नै existing reports/filter सँग मिल्छ)
   if(origBill&&origBill.status!=="voided")origBill.status="returned";
-  addLog("Return",itemCount+" items — "+(origBillNo||"RTN")+" — रु "+fmt(totalRefund));
+  addLog(extraCount?"Return/Exchange":"Return",itemCount+" return + "+extraCount+" exchange — "+(origBillNo||"RTN")+" — Net: रु "+fmt(net));
   localStorage.setItem("nabin_returns",JSON.stringify(returnEntries));
   saveDB();closeModal();
-  toast$("↩️ Return processed! "+itemCount+" item(s) | Refund: रु "+fmt(totalRefund));
+  toast$(net>0?"🔄 Exchange processed! ग्राहकबाट थप लिने: रु "+fmt(net):net<0?"↩️ Return processed! फिर्ता: रु "+fmt(-net):"🔄 Exchange processed! (बराबर, पैसा चलेन)");
   if(deletedProdCount>0)toast$("⚠️ "+deletedProdCount+" item(s) को product अगाडि नै delete भइसकेको थियो — refund रेकर्ड भयो तर stock adjust हुन सकेन","warn");
-  renderReturns();
+  renderReturns();renderSalesLog();
 }
 
 // load returns on start
@@ -8592,6 +8831,7 @@ async function requireSettingsAccess(cb){
     <div id="setAccessBody">
     ${bioOk?`<button onclick="verifySettingsBiometric()" style="width:100%;padding:12px;background:#1e293b;border:1.5px solid #475569;color:#e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;">🪪 Fingerprint प्रयोग गर्नुस्</button><div style="text-align:center;font-size:11px;color:var(--text4);margin-bottom:10px;">— वा —</div>`:""}
     <div class="field"><label>Admin Password</label><input type="password" id="setPWInput" placeholder="••••••••" autofocus onkeydown="if(event.key==='Enter')verifySettingsPW()" style="font-size:16px;letter-spacing:3px;"/></div>
+    <div id="setAccessResult" style="margin-bottom:10px;"></div>
     <button onclick="verifySettingsPW()" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Password ले Verify गर्नुस्</button>
     ${!bioOk?`<div style="text-align:center;font-size:11px;color:var(--text4);margin:12px 0;">— वा (यो device मा Fingerprint उपलब्ध छैन) —</div>
     <button onclick="sendSettingsEmailCode()" style="width:100%;padding:11px;background:#f0f7ff;border:1.5px solid var(--blue);color:var(--blue);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">📧 Admin को Gmail मा Verification Code पठाउनुस्</button>`:""}
@@ -8601,7 +8841,7 @@ async function verifySettingsBiometric(){
   try{
     const creds=JSON.parse(localStorage.getItem("nabin_bio_creds")||"{}");
     const adminEntries=USERS.filter(x=>x.role==="admin").map(u=>creds[u.un]).filter(Boolean);
-    if(!adminEntries.length){toast$("Admin ले पहिले Biometric Setup गर्नुपर्छ (मेरो Account बाट)","error");return;}
+    if(!adminEntries.length){_showInlineErr("setAccessResult","Admin ले पहिले Biometric Setup गर्नुपर्छ (मेरो Account बाट)");return;}
     const assertion=await navigator.credentials.get({publicKey:{
       challenge:crypto.getRandomValues(new Uint8Array(32)),
       allowCredentials:adminEntries.map(c=>({id:new Uint8Array(c.id),type:"public-key"})),
@@ -8611,12 +8851,12 @@ async function verifySettingsBiometric(){
     closeModal();
     if(window._settingsAccessCB)window._settingsAccessCB();
     window._settingsAccessCB=null;
-  }catch(e){toast$("❌ Fingerprint verify असफल — Password प्रयोग गर्नुस्","error");}
+  }catch(e){_showInlineErr("setAccessResult","Fingerprint verify असफल — Password प्रयोग गर्नुस्");}
 }
 async function verifySettingsPW(){
   const pw=document.getElementById("setPWInput")?.value||"";
   const admin=USERS.find(x=>x.role==="admin");
-  if(!admin||!(await verifyPassword(pw,admin.salt,admin.pwHash))){toast$("गलत password!","error");const el=document.getElementById("setPWInput");if(el){el.value="";el.focus();}return;}
+  if(!admin||!(await verifyPassword(pw,admin.salt,admin.pwHash))){_showInlineErr("setAccessResult","गलत password!");const el=document.getElementById("setPWInput");if(el){el.value="";el.focus();}return;}
   closeModal();
   if(window._settingsAccessCB)window._settingsAccessCB();
   window._settingsAccessCB=null;
@@ -8624,40 +8864,43 @@ async function verifySettingsPW(){
 // Biometric नभएको device को लागि fallback — Admin को (real) Gmail/email मा 6-digit code पठाउने
 async function sendSettingsEmailCode(){
   const admin=USERS.find(x=>x.role==="admin");
-  if(!admin||!admin.email||/@nabinpos\.local$/i.test(admin.email)){toast$("Admin को Email set छैन! Staff Manager → Admin → Contact Info बाट थप्नुस्।","error");return;}
+  if(!admin||!admin.email||/@nabinpos\.local$/i.test(admin.email)){_showInlineErr("setAccessResult","Admin को Email set छैन! Staff Manager → Admin → Contact Info बाट थप्नुस्।");return;}
   const body=document.getElementById("setAccessBody");
   toast$("Code पठाउँदैछ...","warn");
   try{
     const{error}=await sb.auth.signInWithOtp({email:admin.email,options:{shouldCreateUser:false}});
-    if(error){toast$("⚠️ असफल: "+error.message,"error");return;}
-  }catch(e){toast$("⚠️ Network Error","error");return;}
+    if(error){_showInlineErr("setAccessResult","असफल: "+error.message);return;}
+  }catch(e){_showInlineErr("setAccessResult","Network Error — फेरि कोशिस गर्नुस्");return;}
   if(body)body.innerHTML=`
     <div style="font-size:12px;color:var(--text3);background:#dcfce7;border:1.5px solid #86efac;border-radius:8px;padding:9px 12px;margin-bottom:12px;">📧 <strong>${esc(admin.email)}</strong> मा 6-digit code पठाइयो। Email (Spam folder पनि) जाँच्नुस्।</div>
     <div class="field"><label>Verification Code</label><input id="setEmailCode" placeholder="123456" inputmode="numeric" maxlength="6" autofocus onkeydown="if(event.key==='Enter')verifySettingsEmailCode('${esc(admin.email)}')" style="font-size:18px;letter-spacing:6px;text-align:center;"/></div>
+    <div id="setAccessResult" style="margin-bottom:10px;"></div>
     <button onclick="verifySettingsEmailCode('${esc(admin.email)}')" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Code Verify गर्नुस्</button>`;
 }
 async function verifySettingsEmailCode(email){
   const code=(document.getElementById("setEmailCode")?.value||"").trim();
-  if(!code){toast$("Code भर्नुस्!","error");return;}
+  if(!code){_showInlineErr("setAccessResult","Code भर्नुस्!");return;}
   try{
     const{error}=await sb.auth.verifyOtp({email,token:code,type:"email"});
-    if(error){toast$("❌ गलत/म्याद सकिएको Code!","error");return;}
-  }catch(e){toast$("⚠️ Verify Error","error");return;}
+    if(error){_showInlineErr("setAccessResult","गलत/म्याद सकिएको Code!");return;}
+  }catch(e){_showInlineErr("setAccessResult","Verify Error — फेरि कोशिस गर्नुस्");return;}
   closeModal();
   if(window._settingsAccessCB)window._settingsAccessCB();
   window._settingsAccessCB=null;
 }
 
+
 async function requireAdminPW(cb,reason){
   const hasBio=window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(()=>false);
-  openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔐 Admin Verify</h3><button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button></div><div style="background:#fef3c7;border:1.5px solid var(--gold);border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);">🔒 <strong>${esc(reason)}</strong> को लागि Admin verify चाहिन्छ।</div>${hasBio?`<button onclick="verifyAdminBiometric()" style="width:100%;padding:12px;background:#1e293b;border:1.5px solid #475569;color:#e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;">🪪 Fingerprint प्रयोग गर्नुस्</button><div style="text-align:center;font-size:11px;color:var(--text4);margin-bottom:10px;">— वा —</div>`:""}<div class="field"><label>Admin Password</label><input type="password" id="adminPWInput" placeholder="••••••••" autofocus onkeydown="if(event.key==='Enter')verifyAdminPW()" style="font-size:16px;letter-spacing:3px;"/></div><button onclick="verifyAdminPW()" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Password ले Verify गर्नुस्</button>`,400);
+  openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔐 Admin Verify</h3><button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button></div><div style="background:#fef3c7;border:1.5px solid var(--gold);border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);">🔒 <strong>${esc(reason)}</strong> को लागि Admin verify चाहिन्छ।</div>${hasBio?`<button onclick="verifyAdminBiometric()" style="width:100%;padding:12px;background:#1e293b;border:1.5px solid #475569;color:#e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;">🪪 Fingerprint प्रयोग गर्नुस्</button><div style="text-align:center;font-size:11px;color:var(--text4);margin-bottom:10px;">— वा —</div>`:""}<div class="field"><label>Admin Password</label><input type="password" id="adminPWInput" placeholder="••••••••" autofocus onkeydown="if(event.key==='Enter')verifyAdminPW()" style="font-size:16px;letter-spacing:3px;"/></div><div id="adminPWResult" style="margin-bottom:10px;"></div><button onclick="verifyAdminPW()" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Password ले Verify गर्नुस्</button>`,400);
   window._adminPWCB=cb;
 }
+function _showInlineErr(elId,msg){const el=document.getElementById(elId);if(el)el.innerHTML=`<div style="font-size:12px;color:var(--red);background:#fee2e2;border:1.5px solid #fca5a5;border-radius:8px;padding:9px 12px;font-weight:700;">❌ ${esc(msg)}</div>`;toast$("❌ "+msg,"error");}
 async function verifyAdminBiometric(){
   try{
     const creds=JSON.parse(localStorage.getItem("nabin_bio_creds")||"{}");
     const adminEntries=USERS.filter(x=>x.role==="admin").map(u=>creds[u.un]).filter(Boolean);
-    if(!adminEntries.length){toast$("Admin ले पहिले Biometric Setup गर्नुपर्छ (Settings → Security)","error");return;}
+    if(!adminEntries.length){_showInlineErr("adminPWResult","Admin ले पहिले Biometric Setup गर्नुपर्छ (Settings → Security)");return;}
     const assertion=await navigator.credentials.get({publicKey:{
       challenge:crypto.getRandomValues(new Uint8Array(32)),
       allowCredentials:adminEntries.map(c=>({id:new Uint8Array(c.id),type:"public-key"})),
@@ -8667,9 +8910,9 @@ async function verifyAdminBiometric(){
     closeModal();
     if(window._adminPWCB)window._adminPWCB();
     window._adminPWCB=null;
-  }catch(e){toast$("❌ Fingerprint verify असफल — Password प्रयोग गर्नुस्","error");}
+  }catch(e){_showInlineErr("adminPWResult","Fingerprint verify असफल — Password प्रयोग गर्नुस्");}
 }
-async function verifyAdminPW(){const pw=document.getElementById("adminPWInput")?.value||"";const admin=USERS.find(x=>x.role==="admin");if(!admin||!(await verifyPassword(pw,admin.salt,admin.pwHash))){toast$("गलत password!","error");const el=document.getElementById("adminPWInput");if(el){el.value="";el.focus();}return;}closeModal();if(window._adminPWCB)window._adminPWCB();window._adminPWCB=null;}
+async function verifyAdminPW(){const pw=document.getElementById("adminPWInput")?.value||"";const admin=USERS.find(x=>x.role==="admin");if(!admin||!(await verifyPassword(pw,admin.salt,admin.pwHash))){_showInlineErr("adminPWResult","गलत password!");const el=document.getElementById("adminPWInput");if(el){el.value="";el.focus();}return;}closeModal();if(window._adminPWCB)window._adminPWCB();window._adminPWCB=null;}
 
 function voidBill(billId){
   const bill=salesHistory.find(x=>x.id===billId);if(!bill)return;if(bill.status==="voided"){toast$("Already voided!","warn");return;}
