@@ -1785,9 +1785,28 @@ function syncToSupabase(){
 // यो device मा कुन record पछिल्लोपटक Supabase मा साँच्चै पठाइयो भन्ने snapshot
 // — यसले "अनछोइएको record पनि blindly re-push हुँदा अर्को device को edit overwrite हुने" समस्या रोक्छ
 let _lastSyncedSnapshot={};
+// कुन table मा कुन id हरू हाल Supabase (cloud) मा साँच्चै छन् भन्ने ट्र्याक — यसले local बाट
+// delete भएको item लाई cloud बाटै पनि हटाउन (pushTable मा) सम्भव बनाउँछ। पहिले यो कहिल्यै
+// track हुँदैनथ्यो, त्यसैले delete गरेको item cloud मा सधैं बाँकी रहन्थ्यो र फेरि sync हुँदा
+// फर्केर आउँथ्यो — "trial data फेरि देखियो" bug को असली जड यही थियो।
+let _lastKnownCloudIds={};
 async function pushTable(tableName,arr){
-  if(!arr||!arr.length)return;
+  arr=arr||[];
   const snap=_lastSyncedSnapshot[tableName]||(_lastSyncedSnapshot[tableName]={});
+  const currentIds=new Set(arr.map(o=>o.id));
+  const knownIds=_lastKnownCloudIds[tableName];
+  if(knownIds&&knownIds.size){
+    const deletedIds=[...knownIds].filter(id=>!currentIds.has(id));
+    if(deletedIds.length){
+      const{error:delErr}=await sb.from(tableName).delete().in("id",deletedIds);
+      if(delErr)console.error("Supabase delete["+tableName+"]:",delErr.message);
+      else{
+        deletedIds.forEach(id=>{knownIds.delete(id);delete snap[id];});
+        console.log("🗑️ Supabase["+tableName+"]: "+deletedIds.length+" record(s) deleted (matched local delete)");
+      }
+    }
+  }
+  if(!arr.length)return;
   const changed=[];
   for(const o of arr){
     const json=JSON.stringify(o);
@@ -1797,7 +1816,10 @@ async function pushTable(tableName,arr){
   const rows=changed.map(o=>({id:o.id,data:o}));
   const{error}=await sb.from(tableName).upsert(rows);
   if(error){console.error("Supabase upsert["+tableName+"]:",error.message);return;}
-  changed.forEach(o=>{snap[o.id]=JSON.stringify(o);});
+  changed.forEach(o=>{
+    snap[o.id]=JSON.stringify(o);
+    (_lastKnownCloudIds[tableName]||(_lastKnownCloudIds[tableName]=new Set())).add(o.id);
+  });
 }
 
 // ── Staff/User accounts — यो अलग राखिएको छ (SB_TABLES generic loop बाट बाहिर)
@@ -1940,6 +1962,7 @@ async function loadDB(){
         // snapshot मा नथप्ने, ताकि तिनको लागि आफ्नै pending push फेरि सही तरिकाले चल्न पाओस्
         for(const k in snap)delete snap[k];
         mapped.forEach(o=>{snap[o.id]=JSON.stringify(o);});
+        _lastKnownCloudIds[tbl]=new Set(mapped.map(o=>o.id)); // यही table मा cloud मा साँच्चै भएको id हरूको ताजा baseline
         if(preserved>0)syncToSupabase(); // जोगिएका unsynced record हरू फेरि push गर्ने कोशिस गर्ने
       }
     });
