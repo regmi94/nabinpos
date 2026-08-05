@@ -1789,7 +1789,21 @@ let _lastSyncedSnapshot={};
 // delete भएको item लाई cloud बाटै पनि हटाउन (pushTable मा) सम्भव बनाउँछ। पहिले यो कहिल्यै
 // track हुँदैनथ्यो, त्यसैले delete गरेको item cloud मा सधैं बाँकी रहन्थ्यो र फेरि sync हुँदा
 // फर्केर आउँथ्यो — "trial data फेरि देखियो" bug को असली जड यही थियो।
+// localStorage मा पनि सेभ गरिन्छ (page reload मा नहराओस् भनेर) — नत्र app खोलेको केही सेकेन्डभित्रै
+// (background cloud fetch पूरा हुनु अघि नै) कसैले item delete गरिहाल्यो भने, त्यो बेला अझै कुनै
+// baseline नभएकोले delete detect नै नहुने र फेरि cloud बाट फर्केर आउने race-condition हुन्थ्यो।
 let _lastKnownCloudIds={};
+try{
+  const _persistedIds=JSON.parse(localStorage.getItem("nabin_cloudids")||"{}");
+  Object.keys(_persistedIds).forEach(tbl=>{_lastKnownCloudIds[tbl]=new Set(_persistedIds[tbl]);});
+}catch(e){}
+function _persistKnownCloudIds(){
+  try{
+    const out={};
+    Object.keys(_lastKnownCloudIds).forEach(tbl=>{out[tbl]=[..._lastKnownCloudIds[tbl]];});
+    localStorage.setItem("nabin_cloudids",JSON.stringify(out));
+  }catch(e){}
+}
 async function pushTable(tableName,arr){
   arr=arr||[];
   const snap=_lastSyncedSnapshot[tableName]||(_lastSyncedSnapshot[tableName]={});
@@ -1799,10 +1813,13 @@ async function pushTable(tableName,arr){
     const deletedIds=[...knownIds].filter(id=>!currentIds.has(id));
     if(deletedIds.length){
       const{error:delErr}=await sb.from(tableName).delete().in("id",deletedIds);
-      if(delErr)console.error("Supabase delete["+tableName+"]:",delErr.message);
-      else{
+      if(delErr){
+        console.error("Supabase delete["+tableName+"]:",delErr.message);
+        toast$("⚠️ Cloud बाट "+tableName+" delete हुन सकेन: "+delErr.message,"error");
+      }else{
         deletedIds.forEach(id=>{knownIds.delete(id);delete snap[id];});
         console.log("🗑️ Supabase["+tableName+"]: "+deletedIds.length+" record(s) deleted (matched local delete)");
+        _persistKnownCloudIds();
       }
     }
   }
@@ -1820,6 +1837,7 @@ async function pushTable(tableName,arr){
     snap[o.id]=JSON.stringify(o);
     (_lastKnownCloudIds[tableName]||(_lastKnownCloudIds[tableName]=new Set())).add(o.id);
   });
+  _persistKnownCloudIds();
 }
 
 // ── Staff/User accounts — यो अलग राखिएको छ (SB_TABLES generic loop बाट बाहिर)
@@ -1963,6 +1981,7 @@ async function loadDB(){
         for(const k in snap)delete snap[k];
         mapped.forEach(o=>{snap[o.id]=JSON.stringify(o);});
         _lastKnownCloudIds[tbl]=new Set(mapped.map(o=>o.id)); // यही table मा cloud मा साँच्चै भएको id हरूको ताजा baseline
+        _persistKnownCloudIds();
         if(preserved>0)syncToSupabase(); // जोगिएका unsynced record हरू फेरि push गर्ने कोशिस गर्ने
       }
     });
@@ -4335,6 +4354,7 @@ function initPurchNew(){
       document.getElementById("pnInv").value=p.inv;
       document.getElementById("pnDate").value=p.date;
       pnItems=p.items.map(it=>({...it}));
+      window._pnExpandedIdx=-1;
       pnVat=false;pnDisc=0;
       window._pnPayTab=(p.payM||"").startsWith("Split")?"split":"single";
       pnPayM=window._pnPayTab==="split"?"split":(p.payM||"cash").toLowerCase();
@@ -4362,7 +4382,7 @@ function initPurchNew(){
 
   if(titleEl)titleEl.textContent="🛒 नयाँ Purchase Entry";
   const sb2=document.getElementById("pnSaveBtn");if(sb2)sb2.textContent="Next → Bill Preview";
-  pnItems=[{name:"",qty:"",unit:"kg",rate:"",tot:0,expiry:""}];pnPayM="cash";pnVat=false;pnDisc=0;window._pnPayTab="single";
+  pnItems=[{name:"",qty:"",unit:"kg",rate:"",tot:0,expiry:"",batchNo:"",weight:""}];pnPayM="cash";pnVat=false;pnDisc=0;window._pnPayTab="single";window._pnExpandedIdx=0;
   renderPNPayMethods();renderPNItems();updatePNSummary();
   setTimeout(()=>switchPNPayTab("single"),0);
 }
@@ -4399,16 +4419,38 @@ function setPNPayMethod(m){
   updatePNSummary();
 }
 let pnItemIdCounter=10;
-function addPNItem(){pnItems.push({name:"",qty:"",unit:"kg",rate:"",tot:0,expiry:""});renderPNItems();}
+function addPNItem(){pnItems.push({name:"",qty:"",unit:"kg",rate:"",tot:0,expiry:"",batchNo:"",weight:""});window._pnExpandedIdx=pnItems.length-1;renderPNItems();}
+function editPNItem(i){window._pnExpandedIdx=i;renderPNItems();}
+function collapsePNItem(){window._pnExpandedIdx=-1;renderPNItems();}
+function _pnItemIsFilled(it){return it.name&&it.qty&&it.rate;}
 function renderPNItems(){
   const PNAMES=products.map(p=>p.name);
+  if(window._pnExpandedIdx===undefined)window._pnExpandedIdx=pnItems.length?pnItems.length-1:-1;
   document.getElementById("pnItemsTable").innerHTML=`
     <div style="background:var(--bg4);border:1.5px solid var(--border);border-radius:12px;padding:12px;">
-      ${pnItems.map((it,i)=>`
+      ${pnItems.map((it,i)=>{
+        const expanded=i===window._pnExpandedIdx||!_pnItemIsFilled(it);
+        if(!expanded){
+          // ── Compact summary row — भरिसकेको item लाई एक लाइनमा मात्र देखाउने ──
+          const badges=[it.expiry?`📅${it.expiry}`:"",it.batchNo?`🏷️${esc(it.batchNo)}`:"",it.weight?`⚖️${esc(it.weight)}`:""].filter(Boolean).join(" · ");
+          return`<div style="display:flex;align-items:center;gap:8px;padding:9px 4px;${i>0?"border-top:1px dashed var(--border2);":""}">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(it.name)}</div>
+              <div style="font-size:10.5px;color:var(--text4);">${it.qty} ${esc(it.unit)} × रु${it.rate} = <span style="color:var(--gold);font-weight:800;">रु${fmtN(it.tot||0)}</span>${badges?" · "+badges:""}</div>
+            </div>
+            <button onclick="editPNItem(${i})" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);width:30px;height:30px;border-radius:7px;font-size:13px;cursor:pointer;flex-shrink:0;">✏️</button>
+            ${pnItems.length>1?`<button onclick="pnItems.splice(${i},1);if(window._pnExpandedIdx>=pnItems.length)window._pnExpandedIdx=pnItems.length-1;renderPNItems();updatePNSummary();" style="background:#fee2e2;border:1px solid var(--red2);color:var(--red);width:30px;height:30px;border-radius:7px;font-weight:700;cursor:pointer;font-size:13px;flex-shrink:0;">×</button>`:""}
+          </div>`;
+        }
+        // ── Expanded edit form — नयाँ item वा Edit थिचेको बेला मात्र ──
+        return`
         <div style="${i>0?"border-top:1px dashed var(--border2);padding-top:12px;margin-top:12px;":""}">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <span style="font-size:10.5px;font-weight:800;color:var(--text3);">Item #${i+1}</span>
-            ${pnItems.length>1?`<button onclick="pnItems.splice(${i},1);renderPNItems();updatePNSummary();" style="background:#fee2e2;border:1px solid var(--red2);color:var(--red);width:24px;height:24px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;">×</button>`:""}
+            <div style="display:flex;gap:6px;">
+              ${_pnItemIsFilled(it)?`<button onclick="collapsePNItem()" style="background:#dcfce7;border:1px solid var(--green2);color:var(--green);padding:2px 9px;border-radius:6px;font-weight:700;cursor:pointer;font-size:10.5px;">✓ Done</button>`:""}
+              ${pnItems.length>1?`<button onclick="pnItems.splice(${i},1);if(window._pnExpandedIdx>=pnItems.length)window._pnExpandedIdx=pnItems.length-1;renderPNItems();updatePNSummary();" style="background:#fee2e2;border:1px solid var(--red2);color:var(--red);width:24px;height:24px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;">×</button>`:""}
+            </div>
           </div>
           <div style="display:flex;gap:6px;margin-bottom:6px;">
             <select onchange="pnSetItemName(${i},this.value)" style="flex:1;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;box-sizing:border-box;min-width:0;">
@@ -4422,20 +4464,26 @@ function renderPNItems(){
             <input type="number" step="any" id="pnRate_${i}" value="${it.rate}" oninput="pnQtyRateChange(${i},'rate',this.value)" placeholder="Rate" style="width:100%;padding:8px 6px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;outline:none;box-sizing:border-box;min-width:0;"/>
             <input type="number" step="any" id="pnTot_${i}" value="${+(it.tot||0).toFixed(2)}" oninput="pnQtyRateChange(${i},'tot',this.value)" title="कुल रकम टाइप गर्दा Rate auto-calculate हुन्छ" placeholder="Total" style="width:100%;padding:8px 6px;background:#fff7ed;border:1.5px solid var(--gold);border-radius:8px;color:var(--gold);font-weight:800;font-size:12px;outline:none;box-sizing:border-box;min-width:0;"/>
           </div>
-          <button type="button" onclick="openPNExpiryPopup(${i})" style="width:100%;padding:7px;background:${it.expiry?"#f0fdf4":"#fff"};border:1.5px solid ${it.expiry?"var(--green)":"var(--border)"};border-radius:7px;color:${it.expiry?"var(--green)":"var(--text4)"};font-size:10.5px;font-weight:700;cursor:pointer;box-sizing:border-box;">📅 ${it.expiry?"Expiry: "+it.expiry:"Expiry Date (optional)"}</button>
-        </div>`).join("")}
+          <button type="button" onclick="openPNDetailsPopup(${i})" style="width:100%;padding:7px;background:${(it.expiry||it.batchNo||it.weight)?"#f0fdf4":"#fff"};border:1.5px solid ${(it.expiry||it.batchNo||it.weight)?"var(--green)":"var(--border)"};border-radius:7px;color:${(it.expiry||it.batchNo||it.weight)?"var(--green)":"var(--text4)"};font-size:10.5px;font-weight:700;cursor:pointer;box-sizing:border-box;">📅🏷️⚖️ ${(it.expiry||it.batchNo||it.weight)?[it.expiry&&"Expiry: "+it.expiry,it.batchNo&&"Batch: "+it.batchNo,it.weight&&"Wt: "+it.weight].filter(Boolean).join(" · "):"Expiry / Batch No. / Weight (optional)"}</button>
+        </div>`;
+      }).join("")}
       <button type="button" onclick="addPNItem()" style="width:100%;padding:10px;margin-top:12px;background:#dbeafe;border:1.5px dashed var(--blue);color:var(--blue);border-radius:9px;font-weight:800;font-size:12.5px;cursor:pointer;">➕ अर्को Item थप्नुस्</button>
     </div>`;
 }
 // Qty, Rate, Total मध्ये जुनसुकै दुई भरे तेस्रो auto-calculate हुने — पूरा table re-render नगरी (typing focus नहराओस्)
-// ── Purchase Item Expiry — MFG Date + "Used Before X days/months" (Inventory जस्तै system) ──
-function openPNExpiryPopup(i){
+// ── Purchase Item Details — Expiry + Batch Number + Weight (एउटै popup मा) ──
+function openPNDetailsPopup(i){
   const it=pnItems[i];if(!it)return;
   openModal(`
     <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
-      <h3 style="margin:0;color:var(--text);font-size:15px;">📅 Expiry — ${it.name||"Item"}</h3>
+      <h3 style="margin:0;color:var(--text);font-size:15px;">📋 Details — ${it.name||"Item"}</h3>
       <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
     </div>
+    <div class="g2" style="margin-bottom:10px;">
+      <div class="field"><label>🏷️ Batch Number</label><input id="pnbatch_i" value="${esc(it.batchNo||"")}" placeholder="जस्तै: BN-2026-08"/></div>
+      <div class="field"><label>⚖️ Weight <span style="font-size:9px;color:var(--text4);">(प्रति थान)</span></label><input id="pnwt_i" value="${esc(it.weight||"")}" placeholder="जस्तै: 500g"/></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;">📅 Expiry Tracking</div>
     <div style="display:flex;gap:6px;margin-bottom:10px;">
       <div style="flex:1;"><label style="font-size:9px;color:var(--text4);">MFG (Production) Date</label>
         <input type="date" id="pnexp_mfg" oninput="calcPNItemExpiry(${i})" style="width:100%;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;font-size:12px;box-sizing:border-box;"/></div>
@@ -4452,7 +4500,7 @@ function openPNExpiryPopup(i){
     </div>
     <div style="font-size:10px;color:var(--text4);text-align:center;margin-bottom:10px;">— या सिधै Expiry Date पनि छान्न सक्नुहुन्छ —</div>
     <input type="date" id="pnexp_direct" value="${it.expiry||""}" oninput="document.getElementById('pnexp_display').textContent=this.value;" style="width:100%;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;font-size:12px;box-sizing:border-box;margin-bottom:14px;"/>
-    <button onclick="savePNItemExpiry(${i})" class="btn btn-gold" style="width:100%;padding:11px;font-size:13px;">✅ Set गर्नुस्</button>
+    <button onclick="savePNItemDetails(${i})" class="btn btn-gold" style="width:100%;padding:11px;font-size:13px;">✅ Set गर्नुस्</button>
   `,380);
 }
 function calcPNItemExpiry(i){
@@ -4468,14 +4516,16 @@ function calcPNItemExpiry(i){
   if(dispEl)dispEl.textContent=ymd;
   if(directEl)directEl.value=ymd;
 }
-function savePNItemExpiry(i){
+function savePNItemDetails(i){
   const val=document.getElementById("pnexp_direct")?.value||"";
   pnItems[i].expiry=val;
   pnItems[i].mfg=document.getElementById("pnexp_mfg")?.value||"";
   pnItems[i].shelfDur=parseInt(document.getElementById("pnexp_dur")?.value||0)||0;
   pnItems[i].shelfUnit=document.getElementById("pnexp_unit")?.value||"months";
+  pnItems[i].batchNo=sanitizeInput((document.getElementById("pnbatch_i")?.value||"").trim());
+  pnItems[i].weight=sanitizeInput((document.getElementById("pnwt_i")?.value||"").trim());
   closeModal();renderPNItems();
-  toast$(val?"✅ Expiry Set भयो: "+val:"Expiry हटाइयो");
+  toast$("✅ Details सेभ भयो");
 }
 // Product छान्दा त्यो product को stored Unit auto-भर्ने — अब हरेक पटक Unit फेरि छान्नु पर्दैन
 function pnSetItemName(i,name){
@@ -5057,7 +5107,7 @@ function renderInventory(q="",catF="All"){
     <tr><th>Barcode</th><th>Product</th><th>Category</th><th>Purchase</th><th>Selling</th><th>Stock</th><th>VAT</th><th>Adjust</th><th></th></tr>
     ${list.map(p=>{const isLow=p.stock<=p.low&&p.low>0;return`<tr style="background:${isLow?"#fee2e2":""};">
       <td style="color:var(--text4);font-family:monospace;font-size:10px;">${p.bc||"—"}</td>
-      <td style="font-weight:700;color:var(--text);">${CICON[p.cat]||"📦"} ${esc(p.name)}</td>
+      <td style="font-weight:700;color:var(--text);">${CICON[p.cat]||"📦"} ${esc(p.name)}${(p.pkgQty||p.weight||p.batchNo)?`<div style="font-size:9px;font-weight:500;color:var(--text4);margin-top:2px;">${p.pkgQty?`📦${p.pkgQty}`:""}${p.weight?` ⚖️${esc(p.weight)}`:""}${p.batchNo?` 🏷️${esc(p.batchNo)}`:""}</div>`:""}</td>
       <td><span class="badge" style="background:#ede9fe;color:var(--purple);">${esc(p.cat)}</span></td>
       <td style="color:var(--red);">रु ${p.buy}</td>
       <td style="color:var(--gold);font-weight:700;">रु ${p.price}</td>
@@ -5099,6 +5149,9 @@ function showInvForm(){
       <div class="field"><label>Stock</label><input type="number" step="any" id="ist" placeholder="0"/></div>
       <div class="field"><label>Unit</label><input id="iun" value="pcs" placeholder="kg/ltr/pcs" list="unitOptions" oninput="syncNewDefaultPricing()"/></div>
       <div class="field"><label>Low Stock Alert</label><input type="number" step="any" id="ilo" placeholder="0"/></div>
+      <div class="field"><label>📦 Packaging Qty <span style="font-size:9px;color:var(--text4);">(1 packet/carton मा कति थान)</span></label><input type="number" step="any" id="ipkg" placeholder="जस्तै: 24"/></div>
+      <div class="field"><label>⚖️ Weight <span style="font-size:9px;color:var(--text4);">(प्रति थान)</span></label><input id="iwt" placeholder="जस्तै: 500g वा 1kg"/></div>
+      <div class="field" style="grid-column:1/-1;"><label>🏷️ Batch Number</label><input id="ibatch" placeholder="जस्तै: BN-2026-08"/></div>
       <div class="field" style="grid-column:1/-1;">
         <label>📅 Expiry Tracking</label>
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -5255,6 +5308,9 @@ function editProd(id){
       <div class="field"><label>Stock</label><input type="number" step="any" id="ep_stock" value="${p.stock||0}"/></div>
       <div class="field"><label>Unit</label><input id="ep_unit" value="${p.unit||"pcs"}" list="unitOptions"/></div>
       <div class="field"><label>Low Stock Alert</label><input type="number" step="any" id="ep_low" value="${p.low||0}"/></div>
+      <div class="field"><label>📦 Packaging Qty <span style="font-size:9px;color:var(--text4);">(1 packet/carton मा कति थान)</span></label><input type="number" step="any" id="ep_pkg" value="${p.pkgQty||""}" placeholder="जस्तै: 24"/></div>
+      <div class="field"><label>⚖️ Weight <span style="font-size:9px;color:var(--text4);">(प्रति थान)</span></label><input id="ep_wt" value="${p.weight||""}" placeholder="जस्तै: 500g वा 1kg"/></div>
+      <div class="field" style="grid-column:1/-1;"><label>🏷️ Batch Number</label><input id="ep_batch" value="${p.batchNo||""}" placeholder="जस्तै: BN-2026-08"/></div>
       <div class="field" style="grid-column:1/-1;">
         <label>📅 Expiry Tracking</label>
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -5330,6 +5386,9 @@ function _applyEditProd(id,name,price,newStock,stockChanged){
   p.mfg=document.getElementById("ep_exp_mfg")?.value||"";
   p.shelfDur=parseInt(document.getElementById("ep_exp_dur")?.value||0)||0;
   p.shelfUnit=document.getElementById("ep_exp_unit")?.value||"months";
+  p.pkgQty=parseFloat(document.getElementById("ep_pkg")?.value||0)||0;
+  p.weight=sanitizeInput((document.getElementById("ep_wt")?.value||"").trim());
+  p.batchNo=sanitizeInput((document.getElementById("ep_batch")?.value||"").trim());
   p.vat=parseInt(document.getElementById("ep_vat").value||0);
   const suppIds=[...document.querySelectorAll("#ep_sup_list input[type=checkbox]:checked")].map(cb=>parseInt(cb.value));
   p.suppIds=suppIds;p.suppId=suppIds[0]||0;
@@ -5485,7 +5544,7 @@ function saveInvProd(){
   const pricingRows=getPricingRows("inv_pricing_rows");
   // Always ensure base price is in pricing
   const pricing=pricingRows.length>0?pricingRows:[{label:"1 "+unit,qty:1,unit,price:basePrice}];
-  products.push({id:Date.now(),name:n,cat:document.getElementById("ica").value,subcats:getSelectedSubcats("i"),price:basePrice,buy:parseFloat(document.getElementById("ipu").value||0),stock:parseFloat(st||0),unit,bc:document.getElementById("ibc").value||"",vat:parseInt(document.getElementById("iva").value),low:parseFloat(document.getElementById("ilo").value||0),expiry:document.getElementById("iexp").value||"",mfg:document.getElementById("iexp_mfg")?.value||"",shelfDur:parseInt(document.getElementById("iexp_dur")?.value||0)||0,shelfUnit:document.getElementById("iexp_unit")?.value||"months",suppId:mainSuppId,suppIds,pricing});
+  products.push({id:Date.now(),name:n,cat:document.getElementById("ica").value,subcats:getSelectedSubcats("i"),price:basePrice,buy:parseFloat(document.getElementById("ipu").value||0),stock:parseFloat(st||0),unit,bc:document.getElementById("ibc").value||"",vat:parseInt(document.getElementById("iva").value),low:parseFloat(document.getElementById("ilo").value||0),expiry:document.getElementById("iexp").value||"",mfg:document.getElementById("iexp_mfg")?.value||"",shelfDur:parseInt(document.getElementById("iexp_dur")?.value||0)||0,shelfUnit:document.getElementById("iexp_unit")?.value||"months",pkgQty:parseFloat(document.getElementById("ipkg")?.value||0)||0,weight:sanitizeInput((document.getElementById("iwt")?.value||"").trim()),batchNo:sanitizeInput((document.getElementById("ibatch")?.value||"").trim()),suppId:mainSuppId,suppIds,pricing});
   saveDB();closeModal();toast$("Product थपियो ✅");renderInventory("",invCatF);
 }
 
@@ -6822,13 +6881,21 @@ function renderSalesLog(){
         ?`<span style="background:#fef3c7;color:var(--warn);padding:3px 8px;border-radius:18px;font-size:10px;font-weight:700;">↩️ Return</span>`
         :`<span style="background:#dcfce7;color:var(--green);padding:3px 8px;border-radius:18px;font-size:10px;font-weight:700;">✅ OK</span>`;
       const trStyle=isVoid?"opacity:.8;text-decoration:line-through;":isReturn?"opacity:.8;":"";
+      let totalCell=`रु ${fmt(b.total)}`;
+      if(isReturn){
+        const _rEntries=(returnEntries||[]).filter(r=>r.billRef===b.billNo);
+        const _rBack=_rEntries.filter(r=>r.kind!=="exchange_add").reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+        const _rAdd=_rEntries.filter(r=>r.kind==="exchange_add").reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+        const _adj=b.total-_rBack+_rAdd;
+        totalCell=`<span style="text-decoration:line-through;color:var(--text4);font-size:10px;">रु ${fmt(b.total)}</span><br><span style="color:var(--warn);font-weight:900;">रु ${fmt(_adj)}</span>`;
+      }
       return`<tr style="background:${rowBg};${trStyle}">
         <td style="color:${isVoid?"var(--red)":isReturn?"var(--warn)":"var(--purple)"};font-weight:700;font-family:monospace;">${esc(b.billNo)}</td>
         <td style="font-size:11px;color:var(--text4);">${b.date}</td>
         <td style="font-size:11px;color:var(--text4);">${b.time||""}</td>
         <td style="color:var(--text2);font-weight:600;">${esc(b.custName)}</td>
         <td style="color:var(--text3);">${b.items.length}</td>
-        <td style="color:${isVoid?"var(--red)":"var(--gold)"};font-weight:800;${isVoid?"text-decoration:line-through;":""}">रु ${fmt(b.total)}</td>
+        <td style="color:${isVoid?"var(--red)":"var(--gold)"};font-weight:800;${isVoid?"text-decoration:line-through;":""}">${totalCell}</td>
         <td><span style="background:#dbeafe;color:var(--blue);padding:2px 7px;border-radius:18px;font-size:10px;">${b.payM}</span></td>
         <td>${statusBadge}</td>
         <td>
@@ -6968,8 +7035,27 @@ function viewBillDetail(id){
 function reprintBill(id){
   const bill=salesHistory.find(x=>x.id===id);if(!bill)return;
   const doRP=()=>{
-    if(bill.status==="returned")toast$("ℹ️ यो receipt ORIGINAL रकम देखाउँछ — Return/Exchange पछिको adjusted total हेर्न 👁 View खोल्नुस्","warn");
-    showReceipt({billNo:bill.billNo,items:bill.items,total:bill.total,payM:bill.payM,cashRec:bill.cashRec||0,change:bill.change||0,cust:bill.custName,creditAmt:bill.creditAmt||0,discount:bill.discount||0,subtotal:bill.subtotal||0,vatAmt:bill.vatAmt||0,date:bill.date,time:bill.time,cashier:bill.cashier});addLog("Reprint",bill.billNo);
+    let printItems=bill.items,printTotal=bill.total,printSubtotal=bill.subtotal||0,printVat=bill.vatAmt||0;
+    if(bill.status==="returned"){
+      // Return/Exchange पछिको हालको (adjusted) बिल बनाउने — returned qty घटाउने, exchange item थप्ने
+      const related=(returnEntries||[]).filter(r=>r.billRef===bill.billNo);
+      const returned=related.filter(r=>r.kind!=="exchange_add");
+      const added=related.filter(r=>r.kind==="exchange_add");
+      const retMap={};
+      returned.forEach(r=>{retMap[r.productId]=(retMap[r.productId]||0)+(parseFloat(r.qty)||0);});
+      printItems=bill.items.map(it=>{
+        const retQty=retMap[it.id]||0;
+        const newQty=+((it.qty||0)-retQty).toFixed(3);
+        return newQty>0.0001?{...it,qty:newQty,total:it.price*newQty}:null;
+      }).filter(Boolean);
+      added.forEach(r=>{printItems.push({id:r.productId,name:r.productName+" (Exchange)",price:r.refundAmt/(r.qty||1),qty:r.qty,pricingQty:1,vat:0,total:r.refundAmt});});
+      const totalReturnedAmt=returned.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+      const totalExchangedAmt=added.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+      printTotal=+(bill.total-totalReturnedAmt+totalExchangedAmt).toFixed(2);
+      printSubtotal=printItems.reduce((s,it)=>s+it.price*it.qty,0);
+      toast$("ℹ️ यो receipt Return/Exchange पछिको हालको (adjusted) बिल हो","warn");
+    }
+    showReceipt({billNo:bill.billNo,items:printItems,total:printTotal,payM:bill.payM,cashRec:bill.cashRec||0,change:bill.change||0,cust:bill.custName,creditAmt:bill.creditAmt||0,discount:bill.discount||0,subtotal:printSubtotal,vatAmt:printVat,date:bill.date,time:bill.time,cashier:bill.cashier});addLog("Reprint",bill.billNo);
   };
   if(currentUser?.role==="admin"){doRP();return;}
   requireAdminPW(doRP,"Reprint: "+bill.billNo);
@@ -7386,7 +7472,7 @@ function openReturnFromBill(billId){
     items=bill.items.map(it=>{
       const alreadyRtn=(returnEntries||[]).filter(r=>r.billRef===bill.billNo&&r.productId===it.id).reduce((s,r)=>s+(parseFloat(r.qty)||0),0);
       const remainQty=+(((it.qty||0)-alreadyRtn).toFixed(3));
-      return{id:it.id,name:it.name,price:it.price,unit:it.unit,maxQty:remainQty,soldQty:it.qty,alreadyReturned:alreadyRtn};
+      return{id:it.id,name:it.name,price:it.price,unit:it.unit,maxQty:remainQty,soldQty:it.qty,alreadyReturned:alreadyRtn,pricingQty:it.pricingQty||1};
     }).filter(it=>it.maxQty>0.0001);
     if(!items.length){toast$("⚠️ यो बिलका सबै items पहिल्यै पूर्ण फिर्ता भइसकेको छ!","error");return;}
   }else{
@@ -7401,7 +7487,7 @@ function openReturnFromBill(billId){
   window._rtCartMode=!!bill;
   window._rtBillObj=bill||null;
   if(bill){
-    items.forEach(it=>{window._rtSelected[it.id]={name:it.name,price:it.price,unit:it.unit,qty:it.maxQty,maxQty:it.maxQty};});
+    items.forEach(it=>{window._rtSelected[it.id]={name:it.name,price:it.price,unit:it.unit,qty:it.maxQty,maxQty:it.maxQty,pricingQty:it.pricingQty||1};});
   }
   openModal(`
     <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
@@ -7481,7 +7567,7 @@ function renderRtCartList(){
 function rtStep(pid,delta){
   pid=parseInt(pid);
   const it=(window._rtItems||[]).find(x=>x.id===pid);if(!it)return;
-  if(!window._rtSelected[pid])window._rtSelected[pid]={name:it.name,price:it.price,unit:it.unit,qty:0,maxQty:it.maxQty};
+  if(!window._rtSelected[pid])window._rtSelected[pid]={name:it.name,price:it.price,unit:it.unit,qty:0,maxQty:it.maxQty,pricingQty:it.pricingQty||1};
   const sel=window._rtSelected[pid];
   let q=+((sel.qty||0)+delta).toFixed(3);
   q=Math.max(0,q);
@@ -7711,14 +7797,16 @@ function _applyBillAction(){
     // गर्न मिल्दैन (product record नै छैन), तर refund/log/customer-balance सबै सही तरिकाले चल्छ।
     if(p){
       const before=p.stock;
-      p.stock+=qty;
+      const pricingQty=(typeof s.pricingQty==="number"&&s.pricingQty>0)?s.pricingQty:1;
+      const baseQty=+(qty*pricingQty).toFixed(3); // Combo/bulk pack (जस्तै "combo of 3") भए वास्तविक piece-level qty यही हो
+      p.stock+=baseQty;
       // date = आज (जुन बेला physically stock फेरियो — Stock Log/Audit को लागि real-time accurate)
       // attribDate = original sale को मिति — P&L/Sales Report मा त्यही दिनको हिसाबमा गनिन्छ
-      stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+qty,before,after:p.stock,ref:origBillNo||"RTN",date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name});
+      stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+baseQty,before,after:p.stock,ref:origBillNo||"RTN",date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name});
       // Buy cost: बिक्री भएकै बेलाको buy rate (origBill.items मा साथसाथै सेभ भएको) प्रयोग गर्ने,
       // होइन भने आजको लाइभ p.buy (जुन बेला-बेला बदलिन सक्छ, त्यसले P&L मा Returns को cost गलत देखाउँथ्यो)।
       const _histBuy=origBill?(origBill.items.find(x=>x.id===p.id)||{}).buy:undefined;
-      const buyCost=+(((typeof _histBuy==="number"?_histBuy:(p.buy||0)))*qty).toFixed(2);
+      const buyCost=+(((typeof _histBuy==="number"?_histBuy:(p.buy||0)))*baseQty).toFixed(2);
       returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo||"—",custName,productId:p.id,productName:p.name,unit:p.unit,qty,refundAmt:amt,buyCost,method,reason,date:dateStr,origDate,user:currentUser.name});
     }else{
       // Product delete भइसकेको — stock adjust गर्न सकिँदैन, तर refund/audit trail चाहिँ हराउनु हुँदैन
