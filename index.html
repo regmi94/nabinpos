@@ -79,7 +79,7 @@
   .modal-overlay{position:fixed;inset:0;background:rgba(21,101,192,.25);backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;}
   .modal{background:#ffffff;border:1.5px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);}
   /* TOAST */
-  #toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;z-index:9999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+  #toast{position:fixed;top:max(12px, env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;z-index:9999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:92vw;text-align:center;}
   /* GRID HELPERS */
   .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .settings-menu-btn{width:100%;display:flex;align-items:center;gap:12px;padding:16px;background:#ffffff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 2px 8px rgba(21,101,192,.07);cursor:pointer;text-align:left;font-size:14px;font-weight:700;color:var(--text);transition:background .15s;}
@@ -506,7 +506,7 @@
       <div class="name">⚡ NabinPOS</div>
       <div class="sub">Butwal · Final Edition</div>
     </div>
-    <nav class="sidebar-nav" id="sideNav"><button class="nav-btn" data-screen="dashboard" onclick="goScreen('dashboard')"><span style="font-size:14px;">▦</span>Dashboard</button><button class="nav-btn" data-screen="pos" onclick="goScreen('pos')"><span style="font-size:14px;">🧾</span>POS Billing</button><button class="nav-btn" data-screen="saleslog" onclick="goScreen('saleslog')"><span style="font-size:14px;">📜</span>Sales History</button><button class="nav-btn" data-screen="customers" onclick="goScreen('customers')"><span style="font-size:14px;">👥</span>Customers</button><button class="nav-btn" data-screen="purchase" onclick="goScreen('purchase')"><span style="font-size:14px;">🛒</span>Purchase</button><button class="nav-btn" data-screen="suppliers" onclick="goScreen('suppliers')"><span style="font-size:14px;">🤝</span>Suppliers</button><button class="nav-btn" data-screen="inventory" onclick="goScreen('inventory')"><span style="font-size:14px;">📦</span>Inventory</button><button class="nav-btn" data-screen="stocklog" onclick="goScreen('stocklog')"><span style="font-size:14px;">🔄</span>Stock Log</button><button class="nav-btn" data-screen="damage" onclick="goScreen('damage')"><span style="font-size:14px;">💔</span>Damage/Loss</button><button class="nav-btn" data-screen="assets" onclick="goScreen('assets')"><span style="font-size:14px;">🏢</span>Fixed Assets</button><button class="nav-btn" data-screen="returns" onclick="goScreen('returns')"><span style="font-size:14px;">↩️</span>Returns</button><button class="nav-btn" data-screen="reports" onclick="goScreen('reports')"><span style="font-size:14px;">📊</span>Reports</button><button class="nav-btn" data-screen="expenses" onclick="goScreen('expenses')"><span style="font-size:14px;">💸</span>Expenses</button><button class="nav-btn" data-screen="actlog" onclick="goScreen('actlog')"><span style="font-size:14px;">📋</span>Activity</button></nav>
+    <nav class="sidebar-nav" id="sideNav"><button class="nav-btn" data-screen="dashboard" onclick="goScreen('dashboard')"><span style="font-size:14px;">▦</span>Dashboard</button><button class="nav-btn" data-screen="pos" onclick="goScreen('pos')"><span style="font-size:14px;">🧾</span>POS Billing</button><button class="nav-btn" data-screen="saleslog" onclick="goScreen('saleslog')"><span style="font-size:14px;">📜</span>Sales History</button><button class="nav-btn" data-screen="customers" onclick="goScreen('customers')"><span style="font-size:14px;">👥</span>Customers</button><button class="nav-btn" data-screen="purchase" onclick="goScreen('purchase')"><span style="font-size:14px;">🛒</span>Purchase</button><button class="nav-btn" data-screen="suppliers" onclick="goScreen('suppliers')"><span style="font-size:14px;">🤝</span>Suppliers</button><button class="nav-btn" data-screen="inventory" onclick="goScreen('inventory')"><span style="font-size:14px;">📦</span>Inventory</button><button class="nav-btn" data-screen="stocklog" onclick="goScreen('stocklog')"><span style="font-size:14px;">🔄</span>Stock Log</button><button class="nav-btn" data-screen="damage" onclick="goScreen('damage')"><span style="font-size:14px;">💔</span>Damage/Loss</button><button class="nav-btn" data-screen="assets" onclick="goScreen('assets')"><span style="font-size:14px;">🏢</span>Fixed Assets</button><button class="nav-btn" data-screen="returns" onclick="goScreen('returns')"><span style="font-size:14px;">↩️</span>Returns</button><button class="nav-btn" data-screen="reports" onclick="goScreen('reports')"><span style="font-size:14px;">📊</span>Reports</button><button class="nav-btn" data-screen="expenses" onclick="goScreen('expenses')"><span style="font-size:14px;">💸</span>Expenses</button><button class="nav-btn" data-screen="vault" onclick="goScreen('vault')"><span style="font-size:14px;">🏦</span>Cash Vault</button><button class="nav-btn" data-screen="actlog" onclick="goScreen('actlog')"><span style="font-size:14px;">📋</span>Activity</button></nav>
     <div class="sidebar-user">
       <div class="user-card">
         <div class="avatar" id="sideAvatar" style="background: rgba(74, 222, 128, 0.094); border: 2px solid rgb(74, 222, 128); color: rgb(74, 222, 128);">BI</div>
@@ -2635,6 +2635,13 @@
       </div>
     </div>
 
+    <!-- ── CASH VAULT ── -->
+    <div id="s-vault" class="screen">
+      <div class="screen-inner">
+        <div id="vaultInner"></div>
+      </div>
+    </div>
+
     <!-- ── RETURNS ── -->
     <div id="s-returns" class="screen">
       <div class="screen-inner">
@@ -3328,6 +3335,10 @@ let monthEndCounts=[];
 let closedDays=[]; // Security: dates that have been formally Day-Closed — voiding/returning a bill from a closed date now needs extra admin scrutiny
 try{const cd=localStorage.getItem("nabin_closed_days");if(cd)closedDays=JSON.parse(cd);}catch(e){}
 let cashRegisterEntries=[];
+let vaultAdjustments=[]; // Cash Vault: manual deposit/withdraw/transfer/adjustment entries
+let vaultSettings=[{id:1,openingCash:0,openingBank:0,setupDate:"",setupDone:false}]; // Cash Vault: opening balances (single-row array, matches SB_TABLES sync pattern)
+try{const va=localStorage.getItem("nabin_vaultadj");if(va)vaultAdjustments=JSON.parse(va);}catch(e){}
+try{const vs=localStorage.getItem("nabin_vaultsettings");if(vs){const _vs=JSON.parse(vs);if(_vs&&_vs.length)vaultSettings=_vs;}}catch(e){}
 let shopInfo={name:"Nabin Mart",addr:"बुटवल-१०, लुम्बिनी प्रदेश",contact:"9857XXXXXX",pan:"XXXXXXXXX",vat:"Active",email:"",web:"nabinmart.com.np",footer1:"धन्यवाद! पुनः आउनुहोस् 🙏",footer2:"Thank You · Come Again"};
 let _tickerRAF=null;
 let _expiryRAF=null;
@@ -3425,7 +3436,7 @@ function nepaliMatch(name,q){
 // ══════════════════════════════════════════════════
 // DATA SAVE/LOAD — localStorage (instant/offline) + Supabase (cloud sync)
 // ══════════════════════════════════════════════════
-const DB_KEYS={products:"nabin_products",customers:"nabin_customers",ledger:"nabin_ledger",suppliers:"nabin_suppliers",purchases:"nabin_purchases",expenses:"nabin_expenses",salesHistory:"nabin_sales",stockMovements:"nabin_stockmov",damageEntries:"nabin_damage",cashRegister:"nabin_cashregister",fixedAssets:"nabin_fixedassets",assetLossLog:"nabin_assetloss"};
+const DB_KEYS={products:"nabin_products",customers:"nabin_customers",ledger:"nabin_ledger",suppliers:"nabin_suppliers",purchases:"nabin_purchases",expenses:"nabin_expenses",salesHistory:"nabin_sales",stockMovements:"nabin_stockmov",damageEntries:"nabin_damage",cashRegister:"nabin_cashregister",fixedAssets:"nabin_fixedassets",assetLossLog:"nabin_assetloss",vaultAdjustments:"nabin_vaultadj",vaultSettings:"nabin_vaultsettings"};
 
 // Supabase table name ↔ app array name mapping
 const SB_TABLES={
@@ -3433,7 +3444,8 @@ const SB_TABLES={
   purchases:"purchases",expenses:"expenses",salesHistory:"sales",stockMovements:"stock_movements",
   damageEntries:"damage_entries",cashRegisterEntries:"cash_register",returnEntries:"returns",
   purchaseReturns:"purchase_returns",monthEndCounts:"month_end_counts",
-  fixedAssets:"fixed_assets",assetLossLog:"asset_loss_log"
+  fixedAssets:"fixed_assets",assetLossLog:"asset_loss_log",
+  vaultAdjustments:"vault_adjustments",vaultSettings:"vault_settings"
 };
 
 function saveDB(){
@@ -3455,6 +3467,8 @@ function saveDBLocal(){
     localStorage.setItem(DB_KEYS.cashRegister,  JSON.stringify(cashRegisterEntries||[]));
     localStorage.setItem(DB_KEYS.fixedAssets,   JSON.stringify(fixedAssets||[]));
     localStorage.setItem(DB_KEYS.assetLossLog,  JSON.stringify(assetLossLog||[]));
+    localStorage.setItem(DB_KEYS.vaultAdjustments, JSON.stringify(vaultAdjustments||[]));
+    localStorage.setItem(DB_KEYS.vaultSettings,    JSON.stringify(vaultSettings||[]));
     localStorage.setItem("nabin_returns",        JSON.stringify(returnEntries||[]));
     localStorage.setItem("nabin_purchreturns",   JSON.stringify(purchaseReturns||[]));
     localStorage.setItem("nabin_monthend",       JSON.stringify(monthEndCounts||[]));
@@ -3471,7 +3485,8 @@ function syncToSupabase(){
       const arrays={products,customers,ledger,suppliers,purchases,expenses,salesHistory,
         stockMovements,damageEntries,cashRegisterEntries:cashRegisterEntries||[],
         returnEntries:returnEntries||[],purchaseReturns:purchaseReturns||[],monthEndCounts:monthEndCounts||[],
-        fixedAssets:fixedAssets||[],assetLossLog:assetLossLog||[]};
+        fixedAssets:fixedAssets||[],assetLossLog:assetLossLog||[],
+        vaultAdjustments:vaultAdjustments||[],vaultSettings:vaultSettings||[]};
       await Promise.all(Object.entries(SB_TABLES).map(([arrKey,tbl])=>pushTable(tbl,arrays[arrKey])));
       console.log("☁️ Supabase synced");
     }catch(e){console.error("Supabase sync failed:",e);}
@@ -3652,6 +3667,8 @@ async function loadDB(){
     const me=localStorage.getItem("nabin_monthend");if(me)monthEndCounts=JSON.parse(me);
     const fa=localStorage.getItem(DB_KEYS.fixedAssets); if(fa)fixedAssets=JSON.parse(fa);
     const al=localStorage.getItem(DB_KEYS.assetLossLog);if(al)assetLossLog=JSON.parse(al);
+    const vaj=localStorage.getItem(DB_KEYS.vaultAdjustments);if(vaj)vaultAdjustments=JSON.parse(vaj);
+    const vst=localStorage.getItem(DB_KEYS.vaultSettings);if(vst){const _vst=JSON.parse(vst);if(_vst&&_vst.length)vaultSettings=_vst;}
   }catch(e){console.warn("Local load error:",e);}
 
   // 2) Supabase बाट ताजा data ल्याएर overwrite गर्ने (सबै device मा साझा data)
@@ -3674,7 +3691,7 @@ async function loadDB(){
         // पूर्ण empty ले overwrite नगर्ने।
         const currentArr={products,customers,ledger,suppliers,purchases,expenses,salesHistory,
           stockMovements,damageEntries,cashRegisterEntries,returnEntries,purchaseReturns,
-          monthEndCounts,fixedAssets,assetLossLog}[arrKey]||[];
+          monthEndCounts,fixedAssets,assetLossLog,vaultAdjustments,vaultSettings}[arrKey]||[];
         if(mapped.length===0&&Array.isArray(currentArr)&&currentArr.length>0){
           console.error(`⚠️ SAFETY GUARD: "${tbl}" cloud बाट खाली आयो तर local मा ${currentArr.length} records थिए — overwrite SKIP गरियो, local data सुरक्षित राखियो। सम्भावित कारण: Supabase RLS policy ले access block गर्यो।`);
           _suspiciousEmpty.push(tbl);
@@ -3726,6 +3743,8 @@ async function loadDB(){
         else if(arrKey==="monthEndCounts")monthEndCounts=merged;
         else if(arrKey==="fixedAssets")fixedAssets=merged;
         else if(arrKey==="assetLossLog")assetLossLog=merged;
+        else if(arrKey==="vaultAdjustments")vaultAdjustments=merged;
+        else if(arrKey==="vaultSettings"){if(merged.length)vaultSettings=merged;}
         // cloud-confirmed भागलाई मात्र "last synced" मान्ने — preserved (unsynced) record हरूलाई
         // snapshot मा नथप्ने, ताकि तिनको लागि आफ्नै pending push फेरि सही तरिकाले चल्न पाओस्
         for(const k in snap)delete snap[k];
@@ -3851,6 +3870,7 @@ async function confirmResetDB(){
   products=[];customers=[];ledger=[];suppliers=[];purchases=[];expenses=[];
   salesHistory=[];stockMovements=[];damageEntries=[];cashRegisterEntries=[];
   returnEntries=[];purchaseReturns=[];monthEndCounts=[];
+  vaultAdjustments=[];vaultSettings=[{id:1,openingCash:0,openingBank:0,setupDate:"",setupDone:false}];
   _lastSyncedSnapshot={};
   // Cloud (Supabase) clear — यो नहुँदा localStorage मात्र हट्थ्यो, reload पछि फेरि पुरानो data फर्कन्थ्यो
   let cloudOk=true;
@@ -4213,7 +4233,7 @@ function goScreen(s,_verified){
   // stop tickers when leaving POS
   if(s!=="pos"&&typeof _tickerRAF!=="undefined"&&_tickerRAF){cancelAnimationFrame(_tickerRAF);_tickerRAF=null;}
   if(s!=="pos"&&typeof _expiryRAF!=="undefined"&&_expiryRAF){cancelAnimationFrame(_expiryRAF);_expiryRAF=null;}
-  if(s==="dashboard")renderDashboard();else if(s==="pos")initPOS();else if(s==="saleslog")renderSalesLog();else if(s==="customers")renderCustomers();else if(s==="purchase")renderPurchase();else if(s==="purchnew")initPurchNew();else if(s==="suppliers")renderSuppliers();else if(s==="inventory")renderInventory("",invCatF);else if(s==="stocklog")renderStockLog();else if(s==="damage")renderDamage();else if(s==="assets")renderAssets();else if(s==="returns")renderReturns();else if(s==="reports")renderReports();else if(s==="expenses")renderExpenses();else if(s==="actlog")renderActLog();else if(s==="settings")renderSettings();
+  if(s==="dashboard")renderDashboard();else if(s==="pos")initPOS();else if(s==="saleslog")renderSalesLog();else if(s==="customers")renderCustomers();else if(s==="purchase")renderPurchase();else if(s==="purchnew")initPurchNew();else if(s==="suppliers")renderSuppliers();else if(s==="inventory")renderInventory("",invCatF);else if(s==="stocklog")renderStockLog();else if(s==="damage")renderDamage();else if(s==="assets")renderAssets();else if(s==="returns")renderReturns();else if(s==="reports")renderReports();else if(s==="expenses")renderExpenses();else if(s==="vault")renderVault();else if(s==="actlog")renderActLog();else if(s==="settings")renderSettings();
 }
 
 // ══════════════════════════════════════════════════
@@ -8563,13 +8583,20 @@ function editExpense(id){
     <div class="field"><label>रकम (रु) *</label><input type="number" step="any" id="eea" value="${e.amt}"/></div>
     <div class="field"><label>मिति</label><input type="date" id="eed" value="${e.date}"/></div>
     <div class="field"><label>Category</label><select id="eec" style="width:100%;padding:8px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);outline:none;">${["Rent","Salary","Utility","Transport","Internet","Misc"].map(c=>`<option${e.cat===c?" selected":""}>${c}</option>`).join("")}</select></div>
+    <div class="field"><label>कहाँबाट तिरियो?</label>
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="eexpPayCashBtn" onclick="window._eexpPayM='Cash';document.getElementById('eexpPayCashBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--green);background:#dcfce7;color:var(--green);font-weight:700;cursor:pointer;';document.getElementById('eexpPayBankBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text4);font-weight:700;cursor:pointer;';" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid ${((e.method||"Cash")==="Cash")?"var(--green)":"var(--border)"};background:${((e.method||"Cash")==="Cash")?"#dcfce7":"#fff"};color:${((e.method||"Cash")==="Cash")?"var(--green)":"var(--text4)"};font-weight:700;cursor:pointer;">💵 Cash</button>
+        <button type="button" id="eexpPayBankBtn" onclick="window._eexpPayM='Bank';document.getElementById('eexpPayBankBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--blue);background:#dbeafe;color:var(--blue);font-weight:700;cursor:pointer;';document.getElementById('eexpPayCashBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text4);font-weight:700;cursor:pointer;';" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid ${(e.method==="Bank")?"var(--blue)":"var(--border)"};background:${(e.method==="Bank")?"#dbeafe":"#fff"};color:${(e.method==="Bank")?"var(--blue)":"var(--text4)"};font-weight:700;cursor:pointer;">🏦 Bank</button>
+      </div>
+    </div>
     <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="saveEditExpense(${id})">✅ Update गर्नुस्</button>`,440);
+  window._eexpPayM=e.method||"Cash";
 }
 function saveEditExpense(id){
   const e=expenses.find(x=>x.id===id);if(!e)return;
   const n=document.getElementById("een").value.trim();const a=document.getElementById("eea").value;
   if(!n||!a){toast$("भर्नुस्!","error");return;}
-  e.name=n;e.amt=parseFloat(a);e.cat=document.getElementById("eec").value;e.date=document.getElementById("eed").value||e.date;
+  e.name=n;e.amt=parseFloat(a);e.cat=document.getElementById("eec").value;e.date=document.getElementById("eed").value||e.date;e.method=window._eexpPayM||e.method||"Cash";
   addLog("Edit Expense",n+" — रु "+a);saveDB();closeModal();toast$("✅ Updated!");renderExpenses();
 }
 function deleteExpense(id){
@@ -8584,14 +8611,238 @@ function showExpForm(){
     <div class="field"><label>रकम (रु) *</label><input type="number" step="any" id="ea" placeholder="0"/></div>
     <div class="field"><label>मिति</label><input type="date" id="ed"/></div>
     <div class="field"><label>Category</label><select id="ec" style="width:100%;padding:8px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);outline:none;">${["Rent","Salary","Utility","Transport","Internet","Misc"].map(c=>`<option>${c}</option>`).join("")}</select></div>
+    <div class="field"><label>कहाँबाट तिरियो?</label>
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="expPayCashBtn" onclick="window._expPayM='Cash';document.getElementById('expPayCashBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--green);background:#dcfce7;color:var(--green);font-weight:700;cursor:pointer;';document.getElementById('expPayBankBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text4);font-weight:700;cursor:pointer;';" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--green);background:#dcfce7;color:var(--green);font-weight:700;cursor:pointer;">💵 Cash</button>
+        <button type="button" id="expPayBankBtn" onclick="window._expPayM='Bank';document.getElementById('expPayBankBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--blue);background:#dbeafe;color:var(--blue);font-weight:700;cursor:pointer;';document.getElementById('expPayCashBtn').style.cssText='flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text4);font-weight:700;cursor:pointer;';" style="flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text4);font-weight:700;cursor:pointer;">🏦 Bank</button>
+      </div>
+    </div>
     <button class="btn btn-red" style="width:100%;padding:12px;font-size:14px;" onclick="saveExp()">✅ Save खर्च</button>`,440);
+  window._expPayM="Cash";
 }
 function saveExp(){
   const n=document.getElementById("en").value.trim();const a=document.getElementById("ea").value;
   if(!n||!a){toast$("भर्नुस्!","error");return;}
-  expenses.push({id:Date.now(),name:n,amt:parseFloat(a),cat:document.getElementById("ec").value,date:document.getElementById("ed").value||"2081-01-15"});
+  expenses.push({id:Date.now(),name:n,amt:parseFloat(a),cat:document.getElementById("ec").value,date:document.getElementById("ed").value||"2081-01-15",method:window._expPayM||"Cash"});
   addLog("Expense",n+" — रु "+a);
   saveDB();closeModal();toast$("Expense save ✅");renderExpenses();
+}
+
+// ══════════════════════════════════════════════════
+// CASH VAULT — Cash-in-Hand + Bank Balance, हरेक transaction बाट auto track
+// ══════════════════════════════════════════════════
+function _vaultIsCash(m){return(m||"").toLowerCase().includes("cash");}
+function _vaultIsCredit(m){return(m||"").toLowerCase().includes("credit");}
+// Split label जस्तै "Split: Cash:120+Bank:80" बाट cash/bank amount निकाल्ने
+function _vaultParseSplit(label){
+  const cm=/Cash:([\d.]+)/i.exec(label||"");const bm=/Bank:([\d.]+)/i.exec(label||"");
+  return{cash:cm?parseFloat(cm[1])||0:0,bank:bm?parseFloat(bm[1])||0:0};
+}
+function getVaultTotals(){
+  const vs=(vaultSettings&&vaultSettings[0])||{openingCash:0,openingBank:0};
+  const openingCash=vs.openingCash||0,openingBank=vs.openingBank||0;
+
+  // 1) Sales + Credit Received + Exchange + Expenses — LIVE होइन, "Day Close" गर्दा मात्र यहाँ थपिन्छ
+  //    (vaultAdjustments type day_close_cash/day_close_bank — हेर्नुस् _pushDayCloseToVault())
+  const dayCloseCash=(vaultAdjustments||[]).filter(a=>a.type==="day_close_cash").reduce((s,a)=>s+(a.amt||0),0);
+  const dayCloseBank=(vaultAdjustments||[]).filter(a=>a.type==="day_close_bank").reduce((s,a)=>s+(a.amt||0),0);
+
+  // 2) Supplier Due Payments (ledger type supp_payment) — LIVE (तुरुन्तै connect)
+  const suppPayEntries=(ledger||[]).filter(l=>l.type==="supp_payment");
+  let suppCash=0,suppBank=0;
+  suppPayEntries.forEach(l=>{
+    if((l.payMethod||"").startsWith("Split")){const sp=_vaultParseSplit(l.payMethod);suppCash+=sp.cash;suppBank+=sp.bank;}
+    else if(_vaultIsCash(l.payMethod)){suppCash+=l.amt||0;}
+    else{suppBank+=l.amt||0;}
+  });
+
+  // 3) Purchases — paid-now portion — LIVE (payM: "cash"/"bank"/"credit"/"Split: Cash:X+Bank:Y")
+  let purchCash=0,purchBank=0;
+  (purchases||[]).forEach(p=>{
+    if(!p.paid)return;
+    if((p.payM||"").startsWith("Split")){const sp=_vaultParseSplit(p.payM);purchCash+=sp.cash;purchBank+=sp.bank;}
+    else if(_vaultIsCash(p.payM)){purchCash+=p.paid;}
+    else if(!_vaultIsCredit(p.payM)){purchBank+=p.paid;}
+  });
+
+  // 4) Supplier/Purchase Returns (goods फिर्ता गर्दा supplier बाट पैसा फिर्ता आउने) — LIVE
+  let purchRetCash=0,purchRetBank=0;
+  (purchaseReturns||[]).forEach(r=>{
+    if(_vaultIsCash(r.method))purchRetCash+=r.amt||0;
+    else if(r.method&&!_vaultIsCredit(r.method))purchRetBank+=r.amt||0;
+  });
+
+  // 5) Manual vault adjustments/transfers — LIVE
+  const va=vaultAdjustments||[];
+  const cashAdj=va.filter(a=>a.type==="cash_adjust").reduce((s,a)=>s+(a.amt||0),0);
+  const bankAdj=va.filter(a=>a.type==="bank_adjust").reduce((s,a)=>s+(a.amt||0),0);
+  const cashToBank=va.filter(a=>a.type==="transfer_cash_to_bank").reduce((s,a)=>s+(a.amt||0),0);
+  const bankToCash=va.filter(a=>a.type==="transfer_bank_to_cash").reduce((s,a)=>s+(a.amt||0),0);
+  const ownerCashIn=va.filter(a=>a.type==="owner_cash_in").reduce((s,a)=>s+(a.amt||0),0);
+  const ownerCashOut=va.filter(a=>a.type==="owner_cash_out").reduce((s,a)=>s+(a.amt||0),0);
+
+  const cashInHand=openingCash+dayCloseCash+purchRetCash-suppCash-purchCash+cashAdj-cashToBank+bankToCash+ownerCashIn-ownerCashOut;
+  const bankBalance=openingBank+dayCloseBank+purchRetBank-suppBank-purchBank+bankAdj+cashToBank-bankToCash;
+
+  return{
+    openingCash,openingBank,cashInHand,bankBalance,total:cashInHand+bankBalance,
+    dayCloseCash,dayCloseBank,suppCash,suppBank,purchCash,purchBank,purchRetCash,purchRetBank,
+    setupDone:!!((vaultSettings&&vaultSettings[0])||{}).setupDone
+  };
+}
+// Day Close हुँदा — त्यो दिनको Sales+Credit Received+Exchange−Expenses लाई Vault मा एकैचोटि थप्ने (per-transaction होइन)
+function _pushDayCloseToVault(date){
+  if((vaultAdjustments||[]).some(a=>a.forDate===date&&(a.type==="day_close_cash"||a.type==="day_close_bank")))return; // यो दिन पहिले नै push भइसक्यो
+  const daySales=(salesHistory||[]).filter(s=>s.date===date&&s.status!=="voided");
+  const dayReturns=(returnEntries||[]).filter(r=>r.date===date);
+  const dayCashRet=dayReturns.filter(r=>_vaultIsCash(r.method)).reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const dayBankRet=dayReturns.filter(r=>r.method&&!_vaultIsCash(r.method)).reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const cashSales=daySales.filter(s=>(s.payM||"").toLowerCase()==="cash").reduce((s,b)=>s+b.total,0)-dayCashRet;
+  const bankSales=daySales.filter(s=>s.payM&&!(s.payM||"").toLowerCase().includes("cash")).reduce((s,b)=>s+(b.total-(b.creditAmt||0)),0)-dayBankRet;
+  const dayCredRec=(cashRegisterEntries||[]).filter(e=>e.date===date&&e.type==="credit_received");
+  const credCash=dayCredRec.filter(e=>_vaultIsCash(e.payMethod)).reduce((s,e)=>s+(e.amt||0),0);
+  const credBank=dayCredRec.filter(e=>!_vaultIsCash(e.payMethod)).reduce((s,e)=>s+(e.amt||0),0);
+  const exchangeCash=(cashRegisterEntries||[]).filter(e=>e.date===date&&e.type==="exchange_extra_cash").reduce((s,e)=>s+(e.amt||0),0);
+  const dayYMD=toYMD(date);
+  const dayExp=(expenses||[]).filter(e=>toYMD(e.date)===dayYMD);
+  const expCash=dayExp.filter(e=>(e.method||"Cash")==="Cash").reduce((s,e)=>s+(e.amt||0),0);
+  const expBank=dayExp.filter(e=>e.method==="Bank").reduce((s,e)=>s+(e.amt||0),0);
+
+  const cashNet=cashSales+credCash+exchangeCash-expCash;
+  const bankNet=bankSales+credBank-expBank;
+  const t=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+  const nowDate=new Date().toLocaleDateString("en-GB");
+  vaultAdjustments.unshift({id:Date.now(),type:"day_close_cash",amt:cashNet,forDate:date,note:"Day Close — "+date,date:nowDate,time:t,user:currentUser?.name||"System"});
+  vaultAdjustments.unshift({id:Date.now()+1,type:"day_close_bank",amt:bankNet,forDate:date,note:"Day Close — "+date,date:nowDate,time:t,user:currentUser?.name||"System"});
+  saveDB();
+}
+function renderVault(){
+  const el=document.getElementById("vaultInner");if(!el)return;
+  const v=getVaultTotals();
+  const isAdmin=currentUser?.role==="admin";
+  if(!v.setupDone){
+    el.innerHTML=`<div class="page-header"><div><div class="page-title">🏦 Cash Vault</div><div class="page-sub">पहिलो पटक — Opening Balance सेट गर्नुस्</div></div></div>
+    <div class="card" style="padding:20px;text-align:center;">
+      <div style="font-size:34px;">🏦</div>
+      <div style="font-weight:800;margin:10px 0 4px;color:var(--text);">Cash Vault Setup</div>
+      <div style="color:var(--text4);font-size:12px;margin-bottom:16px;">अहिले तपाईंको हातमा नगद (Cash) र Bank मा कति रकम छ, त्यो एकपटक भर्नुस्। Supplier Payment/Purchase तुरुन्तै auto-update हुन्छ, अनि Sale र Expense चाहिँ हरेक दिन Day Close गर्दा मात्र update हुन्छ।</div>
+      ${isAdmin?`<button class="btn btn-gold" style="padding:12px 22px;" onclick="showVaultSetup()">🏁 Opening Balance भर्नुस्</button>`:`<div style="color:var(--red);font-size:12px;">Admin ले मात्र Setup गर्न सक्छ</div>`}
+    </div>`;
+    return;
+  }
+  const suppPayments=(ledger||[]).filter(l=>l.type==="supp_payment").slice(0,15);
+  const vaultLog=[...(vaultAdjustments||[])].sort((a,b)=>b.id-a.id).slice(0,15);
+  const typeLabel={transfer_cash_to_bank:"➡️ Cash → Bank जम्मा",transfer_bank_to_cash:"⬅️ Bank → Cash झिकाइ",cash_adjust:"⚖️ Cash Adjustment",bank_adjust:"⚖️ Bank Adjustment",owner_cash_in:"➕ Owner ले Cash हाले",owner_cash_out:"➖ Owner ले Cash झिके"};
+  el.innerHTML=`
+  <div class="page-header"><div><div class="page-title">🏦 Cash Vault</div><div class="page-sub">Supplier Payment/Purchase = Real-time · Sale/Expense = Day Close मा update</div></div>
+    ${isAdmin?`<button class="btn btn-blue" style="font-size:11px;" onclick="showVaultSetup()">⚙️ Opening Edit</button>`:""}
+  </div>
+  ${!closedDays.includes(new Date().toLocaleDateString("en-GB"))?`<div class="card" style="padding:10px 14px;margin-bottom:12px;background:#fff8e1;border:1.5px solid var(--gold);">
+    <div style="font-size:11px;color:#92400e;">⚠️ आजको Day Close अझै भएको छैन — आजको Sale/Expense यो balance मा देखिँदैन। दिनको अन्त्यमा 🌙 Manual Day Close गर्नुस्।</div>
+  </div>`:""}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div class="card" style="padding:16px;text-align:center;background:linear-gradient(135deg,#fef3c7,#fde68a);border:none;">
+      <div style="font-size:24px;">💵</div>
+      <div style="font-size:11px;color:#92400e;font-weight:700;margin-top:2px;">Cash in Hand</div>
+      <div style="font-size:20px;font-weight:900;color:${v.cashInHand>=0?"#92400e":"var(--red)"};">रु ${fmtN(v.cashInHand)}</div>
+    </div>
+    <div class="card" style="padding:16px;text-align:center;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border:none;">
+      <div style="font-size:24px;">🏦</div>
+      <div style="font-size:11px;color:#1e40af;font-weight:700;margin-top:2px;">Bank Balance</div>
+      <div style="font-size:20px;font-weight:900;color:${v.bankBalance>=0?"#1e40af":"var(--red)"};">रु ${fmtN(v.bankBalance)}</div>
+    </div>
+  </div>
+  <div class="card" style="padding:14px;text-align:center;margin-bottom:14px;background:var(--bg4);">
+    <div style="font-size:11px;color:var(--text4);font-weight:700;">कुल पसलको Cash+Bank Value</div>
+    <div style="font-size:22px;font-weight:900;color:var(--gold);">रु ${fmtN(v.total)}</div>
+  </div>
+  ${isAdmin?`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;">
+    <button class="btn" style="background:#dcfce7;border:1.5px solid var(--green);color:var(--green);font-size:11px;padding:10px;" onclick="showVaultAdjustModal('transfer_cash_to_bank')">➡️ Cash → Bank जम्मा</button>
+    <button class="btn" style="background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);font-size:11px;padding:10px;" onclick="showVaultAdjustModal('transfer_bank_to_cash')">⬅️ Bank → Cash झिकाइ</button>
+    <button class="btn" style="background:#fef3c7;border:1.5px solid var(--gold);color:#92400e;font-size:11px;padding:10px;" onclick="showVaultAdjustModal('cash_adjust')">⚖️ Cash Adjust (मिलान)</button>
+    <button class="btn" style="background:#ede9fe;border:1.5px solid #7c3aed;color:#7c3aed;font-size:11px;padding:10px;" onclick="showVaultAdjustModal('bank_adjust')">⚖️ Bank Adjust (मिलान)</button>
+  </div>`:""}
+  <div class="page-header" style="margin-top:6px;"><div class="page-title" style="font-size:14px;">🤝 हालसालैको Supplier Due Payment</div></div>
+  <div class="card" style="overflow:auto;margin-bottom:16px;">
+    <table class="tbl"><tbody><tr><th>मिति</th><th>Supplier</th><th>रकम</th><th>Method</th><th></th></tr>
+    ${suppPayments.length?suppPayments.map(l=>`<tr>
+      <td style="font-size:11px;color:var(--text4);">${l.date} ${l.time||""}</td>
+      <td style="font-weight:600;">${esc(l.suppName||"")}</td>
+      <td style="color:var(--red);font-weight:700;">रु ${fmtN(l.amt)}</td>
+      <td style="font-size:11px;color:var(--text3);">${esc(l.payMethod||"")}</td>
+      <td><button onclick="printVaultSuppVoucher(${l.id})" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">🖨️</button></td>
+    </tr>`).join(""):`<tr><td colspan="5" style="text-align:center;color:var(--text4);padding:18px;">कुनै Supplier payment भएको छैन</td></tr>`}
+    </tbody></table>
+  </div>
+  <div class="page-header" style="margin-top:6px;"><div class="page-title" style="font-size:14px;">📋 Vault Transaction Log (Deposit/Withdraw/Adjust)</div></div>
+  <div class="card" style="overflow:auto;">
+    <table class="tbl"><tbody><tr><th>मिति</th><th>Type</th><th>रकम</th><th>Note</th><th>By</th></tr>
+    ${vaultLog.length?vaultLog.map(a=>`<tr>
+      <td style="font-size:11px;color:var(--text4);">${a.date} ${a.time||""}</td>
+      <td style="font-size:11px;">${typeLabel[a.type]||a.type}</td>
+      <td style="font-weight:700;color:${(a.type==="cash_adjust"||a.type==="bank_adjust")&&a.amt<0?"var(--red)":"var(--text)"};">रु ${fmtN(a.amt)}</td>
+      <td style="font-size:11px;color:var(--text3);">${esc(a.note||"—")}</td>
+      <td style="font-size:11px;color:var(--text4);">${esc(a.user||"")}</td>
+    </tr>`).join(""):`<tr><td colspan="5" style="text-align:center;color:var(--text4);padding:18px;">कुनै entry छैन</td></tr>`}
+    </tbody></table>
+  </div>`;
+}
+function showVaultSetup(){
+  const vs=(vaultSettings&&vaultSettings[0])||{openingCash:0,openingBank:0};
+  openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:16px;"><h3 style="margin:0;color:var(--text);">🏁 Opening Balance</h3><button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button></div>
+  <div style="color:var(--text4);font-size:12px;margin-bottom:12px;">अहिले (यही क्षण) तपाईंको हातमा भएको Cash र Bank मा भएको रकम भर्नुस्। यो एकपटक मात्र भर्ने हो — त्यसपछि सबै calculation यहीँबाट सुरु हुन्छ।</div>
+  <div class="field"><label>💵 अहिलेको Cash in Hand (रु)</label><input type="number" step="any" id="vsCash" value="${vs.openingCash||0}"/></div>
+  <div class="field"><label>🏦 अहिलेको Bank Balance (रु)</label><input type="number" step="any" id="vsBank" value="${vs.openingBank||0}"/></div>
+  <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="saveVaultSetup()">✅ Save गर्नुस्</button>`,420);
+}
+function saveVaultSetup(){
+  const cash=parseFloat(document.getElementById("vsCash")?.value||0);
+  const bank=parseFloat(document.getElementById("vsBank")?.value||0);
+  vaultSettings=[{id:1,openingCash:cash,openingBank:bank,setupDate:new Date().toLocaleDateString("en-GB"),setupDone:true}];
+  addLog("Vault Setup","Opening Cash:रु"+fmtN(cash)+" Bank:रु"+fmtN(bank));
+  saveDB();closeModal();toast$("✅ Opening Balance save भयो");renderVault();
+}
+function showVaultAdjustModal(type){
+  const titles={transfer_cash_to_bank:"➡️ Cash बाट Bank मा जम्मा",transfer_bank_to_cash:"⬅️ Bank बाट Cash झिकाइ",cash_adjust:"⚖️ Cash Adjustment (मिलान)",bank_adjust:"⚖️ Bank Adjustment (मिलान)"};
+  const isAdj=type==="cash_adjust"||type==="bank_adjust";
+  openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:16px;"><h3 style="margin:0;color:var(--text);">${titles[type]}</h3><button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button></div>
+  ${isAdj?`<div style="color:var(--text4);font-size:12px;margin-bottom:10px;">गन्ती गर्दा भेटिएको वास्तविक रकम भन्दा कम/बढी भए यहाँ + या - मा फरक रकम भर्नुस् (जस्तै Rs 50 बढी भए 50, कम भए -50)।</div>`:""}
+  <div class="field"><label>रकम (रु) ${isAdj?"(+ वा -)":"*"}</label><input type="number" step="any" id="vaAmt" placeholder="0"/></div>
+  <div class="field"><label>Note</label><input id="vaNote" placeholder="कारण लेख्नुस् (optional)"/></div>
+  <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="saveVaultAdjust('${type}')">✅ Save गर्नुस्</button>`,420);
+}
+function saveVaultAdjust(type){
+  const amt=parseFloat(document.getElementById("vaAmt")?.value||0);
+  if(!amt){toast$("रकम भर्नुस्!","error");return;}
+  const isAdj=type==="cash_adjust"||type==="bank_adjust";
+  const finalAmt=isAdj?amt:Math.abs(amt); // transfer amount सधैं positive, adjustment +/- दुवै मिल्छ
+  const note=document.getElementById("vaNote")?.value||"";
+  const d=new Date().toLocaleDateString("en-GB");const t=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+  vaultAdjustments.unshift({id:Date.now(),type,amt:finalAmt,note,date:d,time:t,user:currentUser?.name||""});
+  addLog("Vault "+type,"रु "+fmtN(finalAmt)+(note?" — "+note:""));
+  saveDB();closeModal();toast$("✅ Vault update भयो");renderVault();
+}
+function printVaultSuppVoucher(ledgerId){
+  const l=(ledger||[]).find(x=>x.id===ledgerId);if(!l)return;
+  const w=window.open("","_blank","width=320,height=560");if(!w)return;
+  w.document.write(`<!DOCTYPE html><html><head><title>Payment Voucher</title><style>*{margin:0;padding:0;font-family:'Courier New',monospace;font-size:12px;}body{width:280px;padding:14px;}.r{display:flex;justify-content:space-between;margin:5px 0;}.c{text-align:center;}@media print{.np{display:none;}}</style></head><body>
+  <h2 class="c">⚡ ${shopInfo?.name||"NabinPOS"}</h2><div class="c">${shopInfo?.addr||""}</div>
+  <hr style="border:1px dashed #000;margin:8px 0;"/>
+  <div class="c" style="font-weight:bold;">🤝 SUPPLIER PAYMENT VOUCHER</div>
+  <hr style="border:1px dashed #000;margin:8px 0;"/>
+  <div class="r"><span>Date</span><span>${l.date} ${l.time||""}</span></div>
+  <div class="r"><span>Supplier</span><span>${esc(l.suppName||"")}</span></div>
+  <div class="r"><span>Method</span><span>${esc(l.payMethod||"")}</span></div>
+  ${l.note?`<div class="r"><span>Note</span><span>${esc(l.note)}</span></div>`:""}
+  <hr style="border:1px dashed #000;margin:8px 0;"/>
+  <div class="r" style="font-weight:bold;font-size:15px;"><span>Amount Paid</span><span>रु ${fmtN(l.amt)}</span></div>
+  <hr style="border:1px dashed #000;margin:8px 0;"/>
+  <div class="c">Received By: ______________</div>
+  <div class="c" style="margin-top:14px;">Processed By: ${esc(l.user||"")}</div>
+  <div class="c" style="margin-top:10px;font-size:10px;">⚡ NabinPOS v1.0 | © 2026</div>
+  <div class="c np" style="margin-top:10px;"><button onclick="window.print()">🖨️ Print</button></div>
+  </body></html>`);
+  w.document.close();setTimeout(()=>w.print(),400);
 }
 
 // ══════════════════════════════════════════════════
@@ -10188,6 +10439,8 @@ function backupAll(){
     returnEntries:returnEntries||[],
     purchaseReturns:purchaseReturns||[],
     cashRegisterEntries:cashRegisterEntries||[],
+    vaultAdjustments:vaultAdjustments||[],
+    vaultSettings:vaultSettings||[],
     cats:CATS||[],
     cicons:CICON||{},
     users:USERS.map(u=>({id:u.id,un:u.un,name:u.name,role:u.role,av:u.av,c:u.c})), // ⚠️ Security: password backup मा राखिँदैन
@@ -10228,6 +10481,8 @@ function restoreBackup(input){
       if(data.returnEntries)returnEntries=data.returnEntries;
       if(data.purchaseReturns){purchaseReturns=data.purchaseReturns;localStorage.setItem("nabin_purchreturns",JSON.stringify(purchaseReturns));}
       if(data.cashRegisterEntries){cashRegisterEntries=data.cashRegisterEntries;localStorage.setItem("nabin_cashregister",JSON.stringify(cashRegisterEntries));}
+      if(data.vaultAdjustments){vaultAdjustments=data.vaultAdjustments;localStorage.setItem("nabin_vaultadj",JSON.stringify(vaultAdjustments));}
+      if(data.vaultSettings&&data.vaultSettings.length){vaultSettings=data.vaultSettings;localStorage.setItem("nabin_vaultsettings",JSON.stringify(vaultSettings));}
       if(data.cats&&Array.isArray(data.cats)&&data.cats.length){CATS.splice(0,CATS.length,...data.cats);localStorage.setItem("nabin_cats",JSON.stringify(CATS));}
       if(data.cicons){Object.keys(CICON).forEach(k=>delete CICON[k]);Object.assign(CICON,data.cicons);localStorage.setItem("nabin_cicons",JSON.stringify(CICON));}
       if(data.users&&Array.isArray(data.users)){data.users.forEach(u=>{const ex=USERS.find(x=>x.id===u.id);if(ex){if(u.salt&&u.pwHash){ex.salt=u.salt;ex.pwHash=u.pwHash;delete ex.pw;}else if(u.pw){ex.pw=u.pw;}ex.name=u.name||ex.name;ex.role=u.role||ex.role;}else USERS.push(u);});localStorage.setItem("nabin_users",JSON.stringify(USERS));migrateLegacyPasswords();}
@@ -10429,8 +10684,9 @@ function confirmDayClose(date,cash,digi,cg,cr,total){
   const doClose=()=>{
     if(!closedDays.includes(date))closedDays.push(date);
     localStorage.setItem("nabin_closed_days",JSON.stringify(closedDays));
+    _pushDayCloseToVault(date);
     addLog("Day Close",date+" — Cash:रु"+fmtN(cash)+" Digital:रु"+fmtN(digi)+" Total:रु"+fmtN(total)+" — LOCKED by "+currentUser.name);
-    toast$("🔒 "+date+" Day-Close भयो! अब यो दिनको बिल Void/Return गर्न Admin approval चाहिन्छ।");
+    toast$("🔒 "+date+" Day-Close भयो! Vault पनि update भयो — अब यो दिनको बिल Void/Return गर्न Admin approval चाहिन्छ।");
     closeModal();
   };
   requireAdminPW(doClose,"Day Close Lock: "+date);
