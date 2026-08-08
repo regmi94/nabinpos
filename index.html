@@ -3336,7 +3336,7 @@ let closedDays=[]; // Security: dates that have been formally Day-Closed — voi
 try{const cd=localStorage.getItem("nabin_closed_days");if(cd)closedDays=JSON.parse(cd);}catch(e){}
 let cashRegisterEntries=[];
 let vaultAdjustments=[]; // Cash Vault: manual deposit/withdraw/transfer/adjustment entries
-let vaultSettings=[{id:1,openingCash:0,openingBank:0,setupDate:"",setupDone:false}]; // Cash Vault: opening balances (single-row array, matches SB_TABLES sync pattern)
+let vaultSettings=[]; // Cash Vault: opening balances — खाली रहन्छ जबसम्म user ले Setup नगरोस् (cloud को empty table सँग मिलाउन)
 try{const va=localStorage.getItem("nabin_vaultadj");if(va)vaultAdjustments=JSON.parse(va);}catch(e){}
 try{const vs=localStorage.getItem("nabin_vaultsettings");if(vs){const _vs=JSON.parse(vs);if(_vs&&_vs.length)vaultSettings=_vs;}}catch(e){}
 let shopInfo={name:"Nabin Mart",addr:"बुटवल-१०, लुम्बिनी प्रदेश",contact:"9857XXXXXX",pan:"XXXXXXXXX",vat:"Active",email:"",web:"nabinmart.com.np",footer1:"धन्यवाद! पुनः आउनुहोस् 🙏",footer2:"Thank You · Come Again"};
@@ -3631,6 +3631,15 @@ async function pullUsersFromCloud(){
         USERS.push(u);
       }
     });
+    // ⚠️ Delete sync — कुनै staff यो device मा देखिएको तर cloud मा अब छैन (अर्को device/session बाट
+    // हटाइसकेको) भने, यहाँबाट पनि हटाउने — नत्र "delete गरे पनि फेरि देखिने" bug हुन्छ। Safety: cloud
+    // मा कम्तिमा 1 admin भएको बेला मात्र prune गर्ने, transient empty/broken response ले सबै staff
+    // नहराओस् भनेर।
+    const cloudIds=new Set(data.map(r=>r.data&&r.data.id).filter(id=>id!=null));
+    const cloudHasAdmin=data.some(r=>r.data&&r.data.role==="admin");
+    if(data.length>0&&cloudHasAdmin){
+      for(let i=USERS.length-1;i>=0;i--){if(!cloudIds.has(USERS[i].id))USERS.splice(i,1);}
+    }
     localStorage.setItem("nabin_users",JSON.stringify(USERS));
   }catch(e){console.warn("Cloud users pull error:",e);}
 }
@@ -3870,7 +3879,7 @@ async function confirmResetDB(){
   products=[];customers=[];ledger=[];suppliers=[];purchases=[];expenses=[];
   salesHistory=[];stockMovements=[];damageEntries=[];cashRegisterEntries=[];
   returnEntries=[];purchaseReturns=[];monthEndCounts=[];
-  vaultAdjustments=[];vaultSettings=[{id:1,openingCash:0,openingBank:0,setupDate:"",setupDone:false}];
+  vaultAdjustments=[];vaultSettings=[];
   _lastSyncedSnapshot={};
   // Cloud (Supabase) clear — यो नहुँदा localStorage मात्र हट्थ्यो, reload पछि फेरि पुरानो data फर्कन्थ्यो
   let cloudOk=true;
