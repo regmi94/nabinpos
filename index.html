@@ -3259,9 +3259,9 @@ const USERS=[
   {id:3,name:"Ram Bahadur",  un:"ram",  pw:"cash123", role:"cashier",av:"RB",c:"#60b4ff",email:"ram@nabinpos.local"},
 ];
 const PERMS={
-  admin:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:1,suppliers:1,inventory:1,stocklog:1,damage:1,assets:1,returns:1,reports:1,expenses:1,actlog:1,settings:1},
-  staff:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:0,suppliers:0,inventory:1,stocklog:1,damage:1,assets:0,returns:1,reports:0,expenses:0,actlog:0,settings:0},
-  cashier:{dashboard:1,pos:1,saleslog:0,customers:0,purchase:0,suppliers:0,inventory:0,stocklog:0,damage:0,assets:0,returns:0,reports:0,expenses:0,actlog:0,settings:0},
+  admin:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:1,suppliers:1,inventory:1,stocklog:1,damage:1,assets:1,returns:1,reports:1,expenses:1,vault:1,actlog:1,settings:1},
+  staff:  {dashboard:1,pos:1,saleslog:1,customers:1,purchase:0,suppliers:0,inventory:1,stocklog:1,damage:1,assets:0,returns:1,reports:0,expenses:0,vault:0,actlog:0,settings:0},
+  cashier:{dashboard:1,pos:1,saleslog:0,customers:0,purchase:0,suppliers:0,inventory:0,stocklog:0,damage:0,assets:0,returns:0,reports:0,expenses:0,vault:0,actlog:0,settings:0},
 };
 const NAV_ALL=[
   {id:"dashboard", icon:"▦", label:"Dashboard"},
@@ -3277,6 +3277,7 @@ const NAV_ALL=[
   {id:"returns",   icon:"↩️",label:"Returns"},
   {id:"reports",   icon:"📊",label:"Reports"},
   {id:"expenses",  icon:"💸",label:"Expenses"},
+  {id:"vault",     icon:"🏦",label:"Cash Vault"},
   {id:"actlog",    icon:"📋",label:"Activity"},
   {id:"settings",  icon:"⚙️",label:"Settings"},
 ];
@@ -4588,6 +4589,7 @@ async function doLogin(){
     else{_showInlineErr("loginResult","गलत username वा password! ("+_failCount+"/3)");}
     const p=document.getElementById("loginPW");if(p){p.value="";p.focus();}return;
   }
+  if(u.active===false){_showInlineErr("loginResult","🚫 यो account Deactivate गरिएको छ। Admin लाई सम्पर्क गर्नुस्।");return;}
   // Supabase Auth session बनाउने (best-effort — नेटवर्क slow भए login नअड्कोस् भनेर
   // await नगरी background मा पठाइएको छ, त्यसैले login तुरुन्तै हुन्छ)
   toast$("Login हुँदैछ...","warn");
@@ -4733,6 +4735,7 @@ async function doBiometricLogin(){
     }
     const u=USERS.find(x=>x.un===un);
     if(!u){toast$("User फेला परेन","error");return;}
+    if(u.active===false){toast$("🚫 यो account Deactivate गरिएको छ। Admin लाई सम्पर्क गर्नुस्।","error");return;}
     // Supabase Auth session पनि बनाउने (RLS को लागि आवश्यक) — background मा, login नअड्काई
     if(savedPw){
       sb.auth.signInWithPassword({email:u.email,password:savedPw}).catch(e=>console.error("Biometric→Supabase auth failed:",e));
@@ -8700,14 +8703,28 @@ function getVaultTotals(){
   };
 }
 // Day Close हुँदा — त्यो दिनको Sales+Credit Received+Exchange−Expenses लाई Vault मा एकैचोटि थप्ने (per-transaction होइन)
+// Sale को payM label बाट Cash/Bank(digital) टुक्र्याउने — "Cash" (pure), "eSewa/Khalti/QR/Fonepay/Bank" (pure digital),
+// वा "Cash:100+QR:50+Cr:20" (mixed-split) — तीनवटै case ठीकसँग handle गर्नुपर्छ, नत्र split bill भएको दिनको
+// Cash/Bank breakdown गलत हुन्छ (सारा रकम गलत bucket मा गइदिन सक्छ)।
+function _vaultCategorizeSalePay(payM,total,creditAmt){
+  const net=(total||0)-(creditAmt||0); // paid-now portion मात्र (credit-दिएको भाग होइन)
+  if(!payM)return{cash:0,bank:net};
+  if(/cash:/i.test(payM)&&/qr:/i.test(payM)){ // split bill — "Cash:100+QR:50+Cr:20"
+    const cm=/Cash:([\d.]+)/i.exec(payM);const qm=/QR:([\d.]+)/i.exec(payM);
+    return{cash:cm?parseFloat(cm[1])||0:0,bank:qm?parseFloat(qm[1])||0:0};
+  }
+  if(payM.toLowerCase()==="cash")return{cash:net,bank:0};
+  return{cash:0,bank:net};
+}
 function _pushDayCloseToVault(date){
   if((vaultAdjustments||[]).some(a=>a.forDate===date&&(a.type==="day_close_cash"||a.type==="day_close_bank")))return; // यो दिन पहिले नै push भइसक्यो
   const daySales=(salesHistory||[]).filter(s=>s.date===date&&s.status!=="voided");
   const dayReturns=(returnEntries||[]).filter(r=>r.date===date);
   const dayCashRet=dayReturns.filter(r=>_vaultIsCash(r.method)).reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
   const dayBankRet=dayReturns.filter(r=>r.method&&!_vaultIsCash(r.method)).reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
-  const cashSales=daySales.filter(s=>(s.payM||"").toLowerCase()==="cash").reduce((s,b)=>s+b.total,0)-dayCashRet;
-  const bankSales=daySales.filter(s=>s.payM&&!(s.payM||"").toLowerCase().includes("cash")).reduce((s,b)=>s+(b.total-(b.creditAmt||0)),0)-dayBankRet;
+  let cashSales=0,bankSales=0;
+  daySales.forEach(s=>{const c=_vaultCategorizeSalePay(s.payM,s.total,s.creditAmt);cashSales+=c.cash;bankSales+=c.bank;});
+  cashSales-=dayCashRet;bankSales-=dayBankRet;
   const dayCredRec=(cashRegisterEntries||[]).filter(e=>e.date===date&&e.type==="credit_received");
   const credCash=dayCredRec.filter(e=>_vaultIsCash(e.payMethod)).reduce((s,e)=>s+(e.amt||0),0);
   const credBank=dayCredRec.filter(e=>!_vaultIsCash(e.payMethod)).reduce((s,e)=>s+(e.amt||0),0);
@@ -10143,9 +10160,9 @@ function renderSettingsStaff(){
         <td style="padding:8px 8px;color:var(--text3);">@${u.un}</td>
         <td style="padding:8px 8px;"><span style="color:${RC[u.role]};font-weight:700;font-size:11px;text-transform:capitalize;">${u.role}</span></td>
         <td style="padding:8px 8px;text-align:center;">
-          <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
-            <input type="checkbox" checked onchange="toast$('Status feature coming soon','info')" style="accent-color:var(--green);width:13px;height:13px;cursor:pointer;"/>
-            <span style="font-size:10px;color:var(--green);font-weight:600;">Active</span>
+          <label style="display:inline-flex;align-items:center;gap:4px;cursor:${u.role==="admin"?"default":"pointer"};">
+            <input type="checkbox" ${u.active===false?"":"checked"} ${u.role==="admin"?"disabled":""} onchange="toggleStaffActive(${u.id})" style="accent-color:var(--green);width:13px;height:13px;cursor:${u.role==="admin"?"default":"pointer"};"/>
+            <span style="font-size:10px;color:${u.active===false?"var(--red)":"var(--green)"};font-weight:600;">${u.active===false?"Inactive":"Active"}</span>
           </label>
         </td>
         <td style="padding:8px 8px;text-align:center;">
@@ -10159,7 +10176,7 @@ function renderSettingsStaff(){
 function showStaffDetail(uid){
   const u=USERS.find(x=>x.id===uid);if(!u)return;
   const RC={admin:"#f0b429",staff:"#4ade80",cashier:"#60b4ff"};
-  const MOD_LABEL={dashboard:"Dashboard",pos:"POS Billing",saleslog:"Sales Log",customers:"Customers",purchase:"Purchase",suppliers:"Suppliers",inventory:"Inventory",stocklog:"Stock Log",damage:"Damage",returns:"Returns",reports:"Reports",expenses:"Expenses",actlog:"Activity Log",settings:"Settings"};
+  const MOD_LABEL={dashboard:"Dashboard",pos:"POS Billing",saleslog:"Sales Log",customers:"Customers",purchase:"Purchase",suppliers:"Suppliers",inventory:"Inventory",stocklog:"Stock Log",damage:"Damage",returns:"Returns",reports:"Reports",expenses:"Expenses",vault:"Cash Vault",actlog:"Activity Log",settings:"Settings"};
   const isAdmin=u.role==="admin";
   openModal(`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -10331,6 +10348,20 @@ async function removeStaff(uid){
   addLog("Settings","Staff removed: "+u.name);
   await deleteUserFromCloud(uid);
   toast$(u.name+" removed","warn");renderSettings();
+}
+
+async function toggleStaffActive(uid){
+  const u=USERS.find(x=>x.id===uid);if(!u)return;
+  if(u.role==="admin"){toast$("Admin लाई deactivate गर्न मिल्दैन!","error");renderSettingsStaff();return;}
+  if(u.id===currentUser.id){toast$("आफैंलाई deactivate गर्न मिल्दैन!","error");renderSettingsStaff();return;}
+  const willDeactivate=u.active!==false;
+  if(willDeactivate&&!confirm("'"+u.name+"' लाई Deactivate गर्ने? यसपछि उनी Login गर्न सक्दैनन् (data/history सुरक्षित रहन्छ)।"))return;
+  u.active=!willDeactivate;
+  localStorage.setItem("nabin_users",JSON.stringify(USERS));
+  addLog("Settings","Staff "+(u.active===false?"deactivated":"reactivated")+": "+u.name);
+  await pushUsersToCloud();
+  toast$(u.name+(u.active===false?" deactivate भयो":" फेरि active भयो"),u.active===false?"warn":"success");
+  renderSettingsStaff();
 }
 
 async function changeStaffPW(uid){
