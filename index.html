@@ -79,7 +79,7 @@
   .modal-overlay{position:fixed;inset:0;background:rgba(21,101,192,.25);backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;}
   .modal{background:#ffffff;border:1.5px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);}
   /* TOAST */
-  #toast{position:fixed;top:max(12px, env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;z-index:9999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:92vw;text-align:center;}
+  #toast{position:fixed;top:max(12px, env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;z-index:999999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:92vw;text-align:center;}
   /* GRID HELPERS */
   .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .settings-menu-btn{width:100%;display:flex;align-items:center;gap:12px;padding:16px;background:#ffffff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 2px 8px rgba(21,101,192,.07);cursor:pointer;text-align:left;font-size:14px;font-weight:700;color:var(--text);transition:background .15s;}
@@ -586,12 +586,13 @@
               <button onclick="exportBillCustomerExcel()" style="font-size:11px;padding:5px 8px;border-radius:7px;border:1px solid var(--gold);background:#fef3c7;color:var(--gold);cursor:pointer;font-weight:700;">📥 Excel</button>
             </div>
           </div>
-          <div id="trendNote" style="font-size:10px;color:var(--text4);margin-bottom:4px;">⚠️ Chart library load हुन सकेन — Internet जाँच्नुस् र फेरि खोल्नुस्।</div>
+          <div id="trendNote" style="font-size:10px;color:var(--text4);margin-bottom:4px;"></div>
           <div style="position:relative;height:220px;"><canvas id="trendCanvas"></canvas></div>
         </div>
         <div class="card" style="margin-bottom:12px;">
             <div class="card-title" style="color:var(--red);">🔴 Low Stock Alert</div>
             <div id="lowStockList"><div style="display:flex;justify-content:space-between;padding:5px 8px;background:#fff0f0;border-radius:6px;margin-bottom:4px;"><span style="font-size:11px;color:#e0b0b0;">Bigboss</span><span style="font-size:11px;font-weight:700;color:var(--red);">0 pcs</span></div></div>
+            <button onclick="repTab='low_stock';goScreen('reports');" style="width:100%;margin-top:8px;padding:8px;background:#fee2e2;border:1.5px solid var(--red);color:var(--red);border-radius:8px;font-weight:700;font-size:11.5px;cursor:pointer;">📊 पूरा Low Stock Report हेर्नुहोस्</button>
         </div>
         <div class="card">
           <div class="card-title">⚡ Quick Access</div>
@@ -841,7 +842,8 @@
           <div style="display:flex;align-items:center;gap:12px;">
             <button class="btn btn-ghost" onclick="goScreen('customers')">← Back</button>
             <div><div class="page-title" id="cdName"></div><div id="cdBadge"></div></div>
-            <button onclick="deleteCustomer(activeCustId)" style="margin-left:auto;background:#fee2e2;border:1.5px solid #fca5a5;color:var(--red);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Delete</button>
+            <button onclick="openCustPurchaseReport()" style="margin-left:auto;background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📄 Purchase PDF</button>
+            <button onclick="deleteCustomer(activeCustId)" style="background:#fee2e2;border:1.5px solid #fca5a5;color:var(--red);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Delete</button>
           </div>
         </div>
         <div class="g2">
@@ -1199,8 +1201,9 @@
       <div class="screen-inner">
         <div class="page-header">
           <div><div class="page-title">📦 Inventory</div><div class="page-sub" id="invSub">3 products · 1 low stock</div></div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button onclick="openBarcodePrintModal()" style="padding:9px 16px;background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">🏷️ Barcode Print</button>
+            <button onclick="showBulkImportModal()" style="padding:9px 16px;background:#dcfce7;border:1.5px solid var(--green);color:var(--green);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">📥 Bulk Import</button>
             <button class="btn btn-gold" onclick="showInvForm()">➕ Product</button>
           </div>
         </div>
@@ -1267,8 +1270,7 @@
     <!-- ── REPORTS ── -->
     <div id="s-reports" class="screen">
       <div class="screen-inner">
-        <div class="page-header"><div class="page-title">📊 Reports</div></div>
-        <div class="tabs" id="repTabs"><button class="tab" onclick="repTab='pl';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📊 P&amp;L</button><button class="tab" onclick="repTab='sales';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🧾 Sales</button><button class="tab" onclick="repTab='purchase';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🛒 Purchase</button><button class="tab" onclick="repTab='expense';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">💸 Expenses</button><button class="tab" onclick="repTab='damage';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">💔 Damage</button><button class="tab" onclick="repTab='assets';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🏢 Fixed Assets</button><button class="tab" onclick="repTab='vat';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🧾 VAT</button><button class="tab" onclick="repTab='stock';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📦 Stock</button><button class="tab" onclick="repTab='credit';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📒 Credit</button><button class="tab" onclick="repTab='supplier_due';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🤝 Supplier Due</button><button class="tab active" onclick="repTab='item_inv';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">📋 Item Inventory Sheet</button><button class="tab" onclick="repTab='audit';document.querySelectorAll('#repTabs .tab').forEach(b=&gt;b.classList.remove('active'));this.classList.add('active');renderRepContent();">🔍 Stock Audit</button></div>
+        <div class="tabs" id="repTabs"></div>
         <div id="repContent">
     <!-- Date Range Filter -->
     <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;">
@@ -3299,7 +3301,7 @@ let suppliers=[];
 let purchases=[];
 let expenses=[];
 
-let currentUser=null,currentScreen="dashboard",cart=[],held=[],vatOn=false,selCustId="",invCatF="All",actLogs=[{id:1,u:"System",r:"system",a:"Boot",d:"NabinPOS started",t:"—"}],pnItems=[{name:"",qty:"",unit:"kg",rate:"",tot:0}],pnPayM="cash",activeCustId=null,purchFilter="all",purchSupFilter="all",purchFromDate="",purchToDate="",repTab="pl",pnVat=false,pnDisc=0;
+let currentUser=null,currentScreen="dashboard",cart=[],held=[],vatOn=false,selCustId="",invCatF="All",actLogs=[{id:1,u:"System",r:"system",a:"Boot",d:"NabinPOS started",t:"—"}],pnItems=[{name:"",qty:"",unit:"kg",rate:"",tot:0}],pnPayM="cash",activeCustId=null,purchFilter="all",purchSupFilter="all",purchFromDate="",purchToDate="",repTab="__gateway__",pnVat=false,pnDisc=0;
 // Security: holds the plaintext password only transiently in memory for the current session
 // (needed to create/refresh an encrypted biometric-replay credential), never written to
 // localStorage/backups. Cleared on logout.
@@ -3308,6 +3310,13 @@ let _lastLoginPw=null;
 let creditSortBy="due_high",creditShowInactive=false,creditFromDate="",creditToDate="";
 // Supplier Due Report filter state  
 let suppDueSortBy="due_high";
+// Supplier Analysis (advanced) filter/sort state
+let supAnFrom="",supAnTo="",supAnSupplier="all",supAnCat="All",supAnItem="All",supAnPayStatus="all",supAnPurchType="all",supAnSort="amt_high";
+let supAnView="purchase",supAnProfitSort="margin_high";
+let _supAnCharts={amt:null,share:null,trend:null,payable:null};
+// Customer Analysis (advanced) filter/sort state
+let custAnCust="all",custAnCat="All",custAnItem="All",custAnAmtMin="",custAnAmtMax="",custAnSort="amt_high";
+let _custAnCharts={spend:null,cat:null,item:null,compare:null};
 
 // Sales History — हरेक bill save हुन्छ
 let salesHistory=[];
@@ -3769,7 +3778,7 @@ async function loadDB(){
     console.log("✅ Supabase data loaded —",products.length,"products,",customers.length,"customers");
     if(_suspiciousEmpty.length){
       console.error("⚠️ Cloud sync problem — tables affected:",_suspiciousEmpty.join(", "));
-      toast$("⚠️ Cloud sync समस्या ("+_suspiciousEmpty.length+" tables) — local data सुरक्षित छ। Supabase RLS Policy जाँच्नुस्।","error");
+      toast$("⚠️ Cloud sync समस्या: "+_suspiciousEmpty.join(", ")+" — local data सुरक्षित छ। यी table को Supabase RLS Policy जाँच्नुस्।","error");
     }
     checkDataIntegrity();
     // यदि screen पहिले नै खुलिसकेको छ भने ताजा data सँग फेरि render गर्ने
@@ -3964,7 +3973,8 @@ function fmtQty(n){
 // Security: HTML-escape helper — use when interpolating any user-entered text into innerHTML
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 // Security: minimum password strength — at least 6 chars, one letter, one number
-function isStrongPassword(pw){return typeof pw==="string"&&pw.length>=6&&/[a-zA-Z]/.test(pw)&&/[0-9]/.test(pw);}
+function isStrongPassword(pw){return typeof pw==="string"&&pw.length>=12&&/[A-Z]/.test(pw)&&/[0-9]/.test(pw)&&/[^A-Za-z0-9]/.test(pw);}
+const PW_RULE_MSG="Password कम्तीमा 12 अक्षर, 1 ठूलो अक्षर (A-Z), 1 number, र 1 special character (!@#$... आदि) हुनुपर्छ!";
 function isValidEmail(e){return typeof e==="string"&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());}
 function isValidPhone(p){const digits=(p||"").replace(/[^0-9]/g,"");return digits.length===10;}
 // Security: local-account password hashing (PBKDF2-SHA256, 100k iterations, per-user random salt).
@@ -4498,7 +4508,28 @@ function buildSidebar(){
 
 function updateFooter(s){const f=document.getElementById("appFooter");if(f)f.style.display=["pos","custdetail","purchnew"].includes(s)?"none":"flex";}
 
-let _failCount=0,_lockUntil=0;
+// ── LOGIN LOCKOUT (escalating) ──
+// पहिलो पटक 3 गलत try पछि 30s lock। त्यसपछि हरेक round मा 2-2 try मात्र दिने, र lock समय
+// escalate हुँदै जाने: 30s → 2min → 10min → 30min → 1hr (त्यसपछि 1hr मै रहने)।
+// _lockLevel (kति पटक lock भइसक्यो) र lock state localStorage मा persist हुन्छ ताकि page
+// refresh गरेर lock bypass गर्न नसकियोस्। Successful login मा मात्र पूर्ण रूपमा reset हुन्छ।
+const LOCK_DURATIONS_MS=[30*1000,2*60*1000,10*60*1000,30*60*1000,60*60*1000];
+function _loadLockState(){
+  try{
+    const s=JSON.parse(localStorage.getItem("nabin_lock_state")||"{}");
+    _failCount=s.failCount||0;_lockUntil=s.lockUntil||0;_lockLevel=s.lockLevel||0;
+  }catch(e){_failCount=0;_lockUntil=0;_lockLevel=0;}
+}
+function _saveLockState(){
+  localStorage.setItem("nabin_lock_state",JSON.stringify({failCount:_failCount,lockUntil:_lockUntil,lockLevel:_lockLevel}));
+}
+let _failCount=0,_lockUntil=0,_lockLevel=0;
+_loadLockState();
+function _fmtLockDuration(ms){
+  if(ms<60000)return Math.ceil(ms/1000)+" sec";
+  if(ms<3600000)return Math.ceil(ms/60000)+" min";
+  return Math.ceil(ms/3600000)+" hr";
+}
 function openForgotPassword(){
   openModal(`
     <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
@@ -4538,13 +4569,13 @@ async function showSetNewPasswordAfterRecovery(){
       <h3 style="margin:0;color:var(--text);">🔑 नयाँ Password सेट गर्नुस्</h3>
     </div>
     <div style="background:#dcfce7;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);">✅ Reset link verify भयो${u?" — @"+esc(u.un):""}। अब नयाँ password राख्नुस्।</div>
-    <div class="field"><label>नयाँ Password *</label><input type="password" autocomplete="new-password" id="rec_new1" placeholder="नयाँ password"/></div>
+    <div class="field"><label>नयाँ Password *</label><input type="password" autocomplete="new-password" id="rec_new1" placeholder="नयाँ password"/><div style="font-size:10px;color:var(--text4);margin-top:2px;">कम्तीमा 12 अक्षर + 1 ठूलो अक्षर + 1 number + 1 special character</div></div>
     <div class="field"><label>नयाँ Password (फेरि) *</label><input type="password" autocomplete="new-password" id="rec_new2" placeholder="फेरि टाइप गर्नुस्"/></div>
     <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="completePasswordRecovery('${u?u.un:""}')">✅ Password सेट गर्नुस्</button>`,420);
 }
 async function completePasswordRecovery(un){
   const new1=document.getElementById("rec_new1")?.value||"",new2=document.getElementById("rec_new2")?.value||"";
-  if(!isStrongPassword(new1)){toast$("नयाँ password कम्तीमा 6 अक्षर + 1 letter + 1 number हुनुपर्छ!","error");return;}
+  if(!isStrongPassword(new1)){toast$(PW_RULE_MSG,"error");return;}
   if(new1!==new2){toast$("Password मिलेन!","error");return;}
   toast$("Password update हुँदैछ...","warn");
   try{
@@ -4566,7 +4597,7 @@ async function completePasswordRecovery(un){
 
 async function doLogin(){
   const now=Date.now();
-  if(_lockUntil>now){const s=Math.ceil((_lockUntil-now)/1000);_showInlineErr("loginResult","🔒 "+s+"s पछि try गर्नुस्!");return;}
+  if(_lockUntil>now){_showInlineErr("loginResult","🔒 "+_fmtLockDuration(_lockUntil-now)+" पछि try गर्नुस्!");return;}
   const un=(document.getElementById("loginUN")?.value||"").trim(),pw=document.getElementById("loginPW")?.value||"";
   const re=document.getElementById("loginResult");if(re)re.innerHTML="";
   if(!un){_showInlineErr("loginResult","Username भर्नुस्!");return;}if(!pw){_showInlineErr("loginResult","Password भर्नुस्!");return;}
@@ -4585,8 +4616,16 @@ async function doLogin(){
   const u=(uCand&&await verifyPassword(pw,uCand.salt,uCand.pwHash))?uCand:null;
   if(!u){
     _failCount++;
-    if(_failCount>=3){_lockUntil=Date.now()+30000;_failCount=0;_showInlineErr("loginResult","❌ 3 पटक गलत! 30 sec lock 🔒");}
-    else{_showInlineErr("loginResult","गलत username वा password! ("+_failCount+"/3)");}
+    const allowedTries=_lockLevel===0?3:2; // पहिलो round 3 try, त्यसपछि हरेक round 2-2 try मात्र
+    if(_failCount>=allowedTries){
+      _lockLevel=Math.min(_lockLevel+1,LOCK_DURATIONS_MS.length);
+      const dur=LOCK_DURATIONS_MS[_lockLevel-1];
+      _lockUntil=Date.now()+dur;_failCount=0;
+      _showInlineErr("loginResult","❌ धेरै पटक गलत! "+_fmtLockDuration(dur)+" lock 🔒");
+    }else{
+      _showInlineErr("loginResult","गलत username वा password! ("+_failCount+"/"+allowedTries+")");
+    }
+    _saveLockState();
     const p=document.getElementById("loginPW");if(p){p.value="";p.focus();}return;
   }
   if(u.active===false){_showInlineErr("loginResult","🚫 यो account Deactivate गरिएको छ। Admin लाई सम्पर्क गर्नुस्।");return;}
@@ -4600,7 +4639,7 @@ async function doLogin(){
   sb.auth.signInWithPassword({email:u.email,password:pw}).then(({error})=>{
     if(error)console.warn("Supabase Auth login skipped (non-blocking):",error.message);
   }).catch(e=>console.warn("Supabase Auth network issue (non-blocking):",e));
-  _failCount=0;_lockUntil=0;
+  _failCount=0;_lockUntil=0;_lockLevel=0;_saveLockState();
   document.getElementById("loginUN").value="";document.getElementById("loginPW").value="";
   currentUser=u;
   _lastLoginPw=pw; // यो session मा biometric setup गर्दा चाहिने — localStorage मा कहिल्यै लेखिँदैन
@@ -4635,6 +4674,10 @@ function doLogout(auto=false){
   if(!auto&&!confirm("Logout गर्ने?"))return;
   clearIdleTimer();
   addLog("Logout",(currentUser?.name||"")+(auto?" (auto-idle)":" out"));localStorage.setItem("nabin_last_screen",currentScreen||"dashboard");localStorage.setItem("nabin_last_screen_time",String(Date.now()));currentUser=null;_lastLoginPw=null;
+  // 🔒 सुरक्षा फिक्स: कुनै modal (जस्तै Staff Detail/Permissions wizard) खुला भइरहेको भए logout हुँदा
+  // बन्द गर्ने — नत्र logout भइसकेपछि पनि त्यो modal खुलै रहन्थ्यो र त्यसबाट सबै काम (permission change,
+  // password reset, delete) गर्न मिल्थ्यो, जुन ठूलो security gap थियो।
+  closeModal();
   // सुरक्षा फिक्स: DOM बाट हरेक screen को "active" class हटाउने (विशेषगरी Settings) — ताकि
   // अर्को/नयाँ Staff ले यही device मा login गर्दा पुरानो screen कहिल्यै residual/leftover नदेखियोस्
   document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
@@ -4678,6 +4721,7 @@ let _lockPending=false;
 function lockApp(){
   if(!currentUser)return;
   const ov=document.getElementById("appLockOverlay");if(!ov)return;
+  closeModal(); // 🔒 यहाँ पनि खुला modal (permissions/detail wizard) बन्द गर्ने — lock overlay अगाडि आउँदा पनि सुरक्षित रहोस्
   const nm=document.getElementById("lockUserName");if(nm)nm.textContent="🔒 "+currentUser.name+" ("+currentUser.role+") — Locked";
   ov.style.display="flex";
   const creds=JSON.parse(localStorage.getItem("nabin_bio_creds")||"{}");
@@ -5058,10 +5102,26 @@ function renderSalesTrend(){
   if(_trendChart){_trendChart.destroy();_trendChart=null;}
   if(typeof Chart==="undefined"){
     const note=document.getElementById("trendNote");
-    if(note)note.textContent="⚠️ Chart library load हुन सकेन — Internet जाँच्नुस् र फेरि खोल्नुस्।";
+    if(note)note.innerHTML=`⚠️ Chart library load हुन सकेन — Internet जाँच्नुस्। <button onclick="retryLoadChart()" style="background:#fef3c7;border:1px solid var(--gold);color:#92400e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;margin-left:4px;">🔄 Retry</button>`;
     return;
   }
+  const note=document.getElementById("trendNote");if(note)note.innerHTML="";
   _trendChart=_buildTrendChart("trendCanvas",mode,ctype);
+}
+let _chartRetryInProgress=false;
+function retryLoadChart(){
+  if(_chartRetryInProgress)return;
+  if(typeof Chart!=="undefined"){renderSalesTrend();return;}
+  _chartRetryInProgress=true;
+  const note=document.getElementById("trendNote");if(note)note.innerHTML="⏳ फेरि load गर्दै...";
+  const s=document.createElement("script");
+  s.src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js";
+  s.onload=()=>{_chartRetryInProgress=false;renderSalesTrend();};
+  s.onerror=()=>{
+    _chartRetryInProgress=false;
+    if(note)note.innerHTML=`⚠️ फेरि पनि load भएन — Internet जाँच्नुस्। <button onclick="retryLoadChart()" style="background:#fef3c7;border:1px solid var(--gold);color:#92400e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;margin-left:4px;">🔄 फेरि Retry</button>`;
+  };
+  document.head.appendChild(s);
 }
 function openTrendFullscreen(){
   const mode=(document.getElementById("trendMode")||{}).value||"month";
@@ -5168,13 +5228,8 @@ function startLowStockTicker(){
     _tickerRAF=requestAnimationFrame(tick);
   });
 }
-function addToCart(id){
-  const p=products.find(x=>x.id===id);if(!p)return;
-  if(p.stock===0&&p.cat!=="फास्टफुड"){toast$("Stock छैन!","error");return;}
-  const ex=cart.find(c=>c.id===id);
-  if(ex)ex.qty++;else cart.push({...p,qty:1});
-  renderCart();toast$(p.name+" थपियो ✅");
-}
+// नोट: पुरानो addToCart(id) यहाँबाट हटाइयो — तल (pricing tier support भएको) version मात्र active थियो,
+// यो dead code थियो (JS मा पछिल्लो function definition ले पहिलेकोलाई override गर्छ)। Confusion हुनबाट जोगाउन हटाइयो।
 function renderCart(){
   const ci=document.getElementById("cartItems");if(!ci)return;
   if(cart.length===0){ci.innerHTML='<div style="text-align:center;color:var(--border2);padding:40px 10px;"><div style="font-size:32px;">🛒</div><div style="margin-top:6px;font-size:12px;">Cart खाली</div></div>';renderCartTotals();return;}
@@ -5415,7 +5470,7 @@ function addToCartWithPricing(id,label,qty,price,unit){
   else cart.push({...p,qty:1,price,_unitPrice:price,_pricingLabel:label,_pricingQty:qty,_cartUnit:unit,name:p.name+" ("+label+")"});
   renderCart();toast$(p.name+" ("+label+") थपियो ✅");
 }
-const MAX_HELD_BILLS=2;
+const MAX_HELD_BILLS=5;
 function updateResumeBtn(){
   const b=document.getElementById("resumeBtn");if(!b)return;
   if(held.length>0){
@@ -5752,7 +5807,7 @@ function completeSale(total,creditCustId){
 }
 
 function showReceipt(b){
-  document.getElementById("receiptBox").innerHTML=`<div style="font-family:'Courier New',monospace;font-size:12px;text-align:left;"><div style="font-size:17px;font-weight:900;color:var(--gold);text-align:center;">⚡ ${shopInfo?.name||"NabinPOS"}</div><div style="font-size:10px;color:var(--text4);text-align:center;">${shopInfo?.addr||""} ${shopInfo?.contact?"📞"+shopInfo.contact:""}</div><div style="border-top:1px dashed var(--border2);margin:8px 0;"></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text4);"><span>Bill: <strong>${esc(b.billNo)}</strong></span><span>${b.date} ${b.time||""}</span></div><div style="font-size:10px;color:var(--text4);">Customer: ${esc(b.cust)} | ${esc(b.cashier)}</div><div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>${b.items.map(i=>`<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:11px;">${esc(i.name)} ×${i.qty}</span><span style="font-size:11px;font-weight:700;color:var(--gold);">रु ${fmtN(i.price*i.qty)}</span></div>`).join("")}<div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>${(b.discount||0)>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);"><span>Subtotal</span><span>रु ${fmt((b.subtotal||b.total)+(b.discount||0)-(b.vatAmt||0))}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--green);font-weight:700;"><span>🎁 Discount</span><span>-रु ${fmt(b.discount)}</span></div>`:""}<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;margin-top:${(b.discount||0)>0?"4px":"0"};"><span>TOTAL</span><span style="color:var(--gold);">रु ${fmt(b.total)}</span></div>${(b.cashRec||0)>0?`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>Cash</span><span>रु ${fmt(b.cashRec)}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--green);"><span>🔙 Change</span><span>रु ${fmt(b.change||0)}</span></div>`:""}<div style="font-size:11px;color:var(--blue);">Payment: ${b.payM}</div>${(b.creditAmt||0)>0?`<div style="margin-top:5px;padding:5px 8px;background:#fef3c7;border-radius:6px;font-size:11px;">📒 यो बिलको Credit: रु ${fmt(b.creditAmt)} — ${esc(b.cust)}</div>`:""}${(b.totalDueNow||0)>0?`<div style="margin-top:5px;padding:6px 8px;background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;font-size:11px;">${(b.oldDue||0)>0?`<div style="display:flex;justify-content:space-between;color:var(--text3);"><span>पुरानो Due</span><span>रु ${fmt(b.oldDue)}</span></div>`:""}<div style="display:flex;justify-content:space-between;font-weight:800;color:var(--red);margin-top:2px;"><span>⚠️ कुल बाँकी Due</span><span>रु ${fmt(b.totalDueNow)}</span></div></div>`:""}<div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text4);">धन्यवाद! 🙏</div><div style="text-align:center;font-size:10px;color:var(--text4);">⚡ NabinPOS v1.0 | © 2026 Nabin Mart</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;"><button onclick="printLastBill()" style="padding:9px;background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">🖨️ Print</button><button onclick="document.getElementById('receiptModal').style.display='none';resetPOSDiscount();" class="btn btn-gold" style="padding:9px;font-size:12px;">✓ Close</button></div>`;
+  document.getElementById("receiptBox").innerHTML=`<div style="font-family:'Courier New',monospace;font-size:12px;text-align:left;"><div style="font-size:17px;font-weight:900;color:var(--gold);text-align:center;">⚡ ${shopInfo?.name||"NabinPOS"}</div><div style="font-size:10px;color:var(--text4);text-align:center;">${shopInfo?.addr||""} ${shopInfo?.contact?"📞"+shopInfo.contact:""}</div><div style="border-top:1px dashed var(--border2);margin:8px 0;"></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text4);"><span>Bill: <strong>${esc(b.billNo)}</strong></span><span>${b.date} ${b.time||""}</span></div><div style="font-size:10px;color:var(--text4);">Customer: ${esc(b.cust)} | ${esc(b.cashier)}</div><div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>${b.items.map(i=>`<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:11px;">${esc(i.name)} ×${i.qty}</span><span style="font-size:11px;font-weight:700;color:var(--gold);">रु ${fmtN(i.price*i.qty)}</span></div>`).join("")}<div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>${(b.discount||0)>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);"><span>Subtotal</span><span>रु ${fmt(b.subtotal!=null?b.subtotal:(b.total+(b.discount||0)-(b.vatAmt||0)))}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--green);font-weight:700;"><span>🎁 Discount</span><span>-रु ${fmt(b.discount)}</span></div>`:""}<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;margin-top:${(b.discount||0)>0?"4px":"0"};"><span>TOTAL</span><span style="color:var(--gold);">रु ${fmt(b.total)}</span></div>${(b.cashRec||0)>0?`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>Cash</span><span>रु ${fmt(b.cashRec)}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--green);"><span>🔙 Change</span><span>रु ${fmt(b.change||0)}</span></div>`:""}<div style="font-size:11px;color:var(--blue);">Payment: ${b.payM}</div>${(b.creditAmt||0)>0?`<div style="margin-top:5px;padding:5px 8px;background:#fef3c7;border-radius:6px;font-size:11px;">📒 यो बिलको Credit: रु ${fmt(b.creditAmt)} — ${esc(b.cust)}</div>`:""}${(b.totalDueNow||0)>0?`<div style="margin-top:5px;padding:6px 8px;background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;font-size:11px;">${(b.oldDue||0)>0?`<div style="display:flex;justify-content:space-between;color:var(--text3);"><span>पुरानो Due</span><span>रु ${fmt(b.oldDue)}</span></div>`:""}<div style="display:flex;justify-content:space-between;font-weight:800;color:var(--red);margin-top:2px;"><span>⚠️ कुल बाँकी Due</span><span>रु ${fmt(b.totalDueNow)}</span></div></div>`:""}<div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text4);">धन्यवाद! 🙏</div><div style="text-align:center;font-size:10px;color:var(--text4);">⚡ NabinPOS v1.0 | © 2026 Nabin Mart</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;"><button onclick="printLastBill()" style="padding:9px;background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">🖨️ Print</button><button onclick="document.getElementById('receiptModal').style.display='none';resetPOSDiscount();" class="btn btn-gold" style="padding:9px;font-size:12px;">✓ Close</button></div>`;
   window._lastBill=b;document.getElementById("receiptModal").style.display="flex";
 }
 function printRec(b){
@@ -7228,7 +7283,7 @@ async function openMyAccount(){
     <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;">🔑 Password बदल्नुस्</div>
     ${!pwSetByUser?`<div style="background:#fff7ed;border:1px solid #fcd34d;color:#92400e;padding:8px 12px;border-radius:8px;font-size:11px;font-weight:700;margin-bottom:10px;">⚠️ Biometric Setup अनुमति दिनुअघि, पहिले आफ्नो password बदल्नुहोस् (default password बाट फरक)</div>`:""}
     <div class="field"><label>हालको Password *</label><input type="password" autocomplete="new-password" id="ma_old" placeholder="हालको password"/></div>
-    <div class="field"><label>नयाँ Password *</label><input type="password" autocomplete="new-password" id="ma_new1" placeholder="नयाँ password"/></div>
+    <div class="field"><label>नयाँ Password *</label><input type="password" autocomplete="new-password" id="ma_new1" placeholder="नयाँ password"/><div style="font-size:10px;color:var(--text4);margin-top:2px;">कम्तीमा 12 अक्षर + 1 ठूलो अक्षर + 1 number + 1 special character</div></div>
     <div class="field"><label>नयाँ Password (फेरि) *</label><input type="password" autocomplete="new-password" id="ma_new2" placeholder="फेरि टाइप गर्नुस्"/></div>
     <div id="maResult" style="margin-bottom:10px;"></div>
     <button onclick="saveMyPassword()" class="btn btn-gold" style="width:100%;padding:11px;font-size:13px;margin-bottom:16px;">✅ Password Update गर्नुस्</button>
@@ -7268,7 +7323,7 @@ async function saveMyPassword(){
   const resEl=document.getElementById("maResult");
   const showErr=(msg)=>{if(resEl)resEl.innerHTML=`<div style="font-size:12px;color:var(--red);background:#fee2e2;border:1.5px solid #fca5a5;border-radius:8px;padding:9px 12px;font-weight:700;">❌ ${esc(msg)}</div>`;toast$("❌ "+msg,"error");};
   if(!(await verifyPassword(oldPw,currentUser.salt,currentUser.pwHash))){showErr("हालको password मिलेन!");return;}
-  if(!isStrongPassword(new1)){showErr("नयाँ password कम्तीमा 6 अक्षर + 1 letter + 1 number हुनुपर्छ!");return;}
+  if(!isStrongPassword(new1)){showErr(PW_RULE_MSG);return;}
   if(new1!==new2){showErr("नयाँ password मिलेन!");return;}
   if(resEl)resEl.innerHTML='';
   toast$("Password update हुँदैछ...","warn");
@@ -7629,23 +7684,45 @@ function generateItemInventorySheet(){
 }
 function renderReports(){
   const tabs=[
-    {id:"pl",      label:"📊 P&L"},
-    {id:"sales",   label:"🧾 Sales"},
-    {id:"purchase",label:"🛒 Purchase"},
-    {id:"expense", label:"💸 Expenses"},
-    {id:"damage",  label:"💔 Damage"},
-    {id:"assets",  label:"🏢 Fixed Assets"},
-    {id:"vat",     label:"🧾 VAT"},
-    {id:"stock",   label:"📦 Stock"},
-    {id:"credit",  label:"📒 Credit"},
-    {id:"supplier_due", label:"🤝 Supplier Due"},
-    {id:"item_inv",  label:"📋 Item Inventory Sheet"},
-    {id:"audit",     label:"🔍 Stock Audit"},
+    {id:"pl",      label:"P&L",icon:"📊",desc:"Profit & Loss — नाफा/नोक्सान"},
+    {id:"sales",   label:"Sales",icon:"🧾",desc:"बिक्री विवरण"},
+    {id:"purchase",label:"Purchase",icon:"🛒",desc:"खरिद विवरण"},
+    {id:"expense", label:"Expenses",icon:"💸",desc:"खर्च विवरण"},
+    {id:"damage",  label:"Damage",icon:"💔",desc:"नोक्सानी विवरण"},
+    {id:"assets",  label:"Fixed Assets",icon:"🏢",desc:"सम्पत्ति विवरण"},
+    {id:"vat",     label:"VAT",icon:"🧾",desc:"कर विवरण"},
+    {id:"stock",   label:"Stock",icon:"📦",desc:"पूरा स्टक सूची"},
+    {id:"credit",  label:"Credit",icon:"📒",desc:"ग्राहक बाँकी"},
+    {id:"supplier_due", label:"Supplier Due",icon:"🤝",desc:"सप्लायर बाँकी"},
+    {id:"supplier_analysis", label:"Supplier Analysis",icon:"📈",desc:"सप्लायर विश्लेषण, Ranking + Charts"},
+    {id:"customer_analysis", label:"Customer Analysis",icon:"💹",desc:"ग्राहक विश्लेषण + Profit/Margin"},
+    {id:"low_stock", label:"Low Stock",icon:"🔴",desc:"कम स्टक भएका सामान"},
+    {id:"expiry",    label:"Expiry",icon:"⏰",desc:"म्याद नजिकिएका सामान"},
+    {id:"item_inv",  label:"Item Inventory Sheet",icon:"📋",desc:"दैनिक स्टक ledger"},
+    {id:"audit",     label:"Stock Audit",icon:"🔍",desc:"स्टक gap जाँच"},
   ];
   // Set default dates if empty — दुवै (From & To) आजकै मिति देखिने, महिनाको सुरु देखि होइन
   if(!repFromDate){const d=new Date();repFromDate=localYMD(d);repToDate=localYMD(d);}
+  if(!repTab)repTab="__gateway__";
 
-  document.getElementById("repTabs").innerHTML=tabs.map(t=>`<button class="tab${repTab===t.id?" active":""}" onclick="repTab='${t.id}';document.querySelectorAll('#repTabs .tab').forEach(b=>b.classList.remove('active'));this.classList.add('active');renderRepContent();">${t.label}</button>`).join("");
+  if(repTab==="__gateway__"){
+    document.getElementById("repTabs").innerHTML="";
+    document.getElementById("repContent").innerHTML=`
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:17px;font-weight:900;color:var(--text);">📊 Reports Center</div>
+        <div style="font-size:11.5px;color:var(--text4);margin-top:2px;">चाहिएको Report छान्नुस्</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        ${tabs.map(t=>`
+        <button onclick="repTab='${t.id}';renderReports();" style="text-align:left;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 12px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="font-size:24px;">${t.icon}</div>
+          <div style="font-size:12.5px;font-weight:800;color:var(--text);margin-top:6px;">${t.label}</div>
+          <div style="font-size:10px;color:var(--text4);margin-top:2px;line-height:1.4;">${t.desc}</div>
+        </button>`).join("")}
+      </div>`;
+    return;
+  }
+  document.getElementById("repTabs").innerHTML=`<button class="tab" onclick="repTab='__gateway__';renderReports();" style="background:var(--bg4);">⬅️ सबै Reports</button>`+tabs.map(t=>`<button class="tab${repTab===t.id?" active":""}" onclick="repTab='${t.id}';document.querySelectorAll('#repTabs .tab').forEach(b=>b.classList.remove('active'));this.classList.add('active');renderRepContent();">${t.icon} ${t.label}</button>`).join("");
 
   document.getElementById("repContent").innerHTML=`
     <!-- Date Range Filter -->
@@ -8230,6 +8307,14 @@ function renderRepContent(){
       </div>
       <div style="margin-top:10px;font-size:10px;color:var(--text4);text-align:right;">⚡ NabinPOS · ${shopInfo?.name||"Nabin Mart"} · Generated: ${new Date().toLocaleString()}</div>`;
   }
+  else if(repTab==="supplier_analysis"){
+    el.innerHTML=renderSupplierAnalysisHTML();
+    setTimeout(buildSupplierAnalysisCharts,0);
+  }
+  else if(repTab==="customer_analysis"){
+    el.innerHTML=renderCustomerAnalysisHTML();
+    setTimeout(buildCustomerAnalysisCharts,0);
+  }
   else if(repTab==="item_inv"){
     // ── Item Inventory Sheet — Daily Beg/Purch/Usage/End ledger per item ──
     if(!window._iisMode)window._iisMode="summary";
@@ -8282,6 +8367,60 @@ function renderRepContent(){
           </div>
           <button onclick="fixStockAudit(${iss.product.id})" style="width:100%;margin-top:8px;padding:8px;background:#fef3c7;border:1.5px solid var(--gold);color:#92400e;border-radius:7px;font-weight:800;font-size:11px;cursor:pointer;">🔧 Sync गर्नुस् (Live Stock लाई Ledger को अन्तिम मान अनुसार मिलाउने)</button>
         </div>`).join("")}`;
+  }
+  else if(repTab==="low_stock"){
+    const consMap=_buildConsumptionMap(30);
+    const lowItems=products.filter(p=>p.stock<=p.low&&p.low>0).sort((a,b)=>a.stock-b.stock);
+    el.innerHTML=`
+      ${repLineBlock(null,[
+        ["🔴","Low Stock Items",lowItems.length,"var(--red)"],
+        ["📦","Total Products",products.length,"var(--blue)"],
+      ])}
+      <div class="card" style="overflow:auto;margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div class="card-title" style="margin:0;">🔴 Low Stock Report</div></div>
+        ${!lowItems.length?`<div style="text-align:center;padding:30px;color:var(--green);">✅ सबै Stock ठीक छ — कुनै पनि Low Stock item छैन</div>`:`
+        <table class="tbl">
+          <tr><th>SN</th><th>Item</th><th>Stock</th><th>Buy Rate</th><th>Sell Rate</th><th>Avg Daily Use</th><th>Supplier</th></tr>
+          ${lowItems.map((p,i)=>`<tr style="background:${p.stock===0?"#fee2e2":"#fef9c3"};">
+            <td>${i+1}</td>
+            <td style="font-weight:600;color:var(--text);">${esc(p.name)}</td>
+            <td style="color:${p.stock===0?"var(--red)":"#b45309"};font-weight:800;">${fmtQty(p.stock)} ${esc(p.unit)}</td>
+            <td style="color:var(--text3);">रु ${fmtN(p.buy)}</td>
+            <td style="color:var(--gold);font-weight:700;">रु ${fmtN(p.price)}</td>
+            <td style="color:var(--text3);">${(consMap[p.id]||0).toFixed(1)} ${esc(p.unit)}/दिन</td>
+            <td style="color:var(--purple);font-weight:700;">${esc(_supplierAbbrevForProduct(p))}</td>
+          </tr>`).join("")}
+        </table>`}
+      </div>`;
+  }
+  else if(repTab==="expiry"){
+    const today=new Date();
+    const expItems=products.filter(p=>p.expiry).map(p=>{
+      const ed=new Date(p.expiry);
+      const daysLeft=Math.ceil((ed-today)/(1000*60*60*24));
+      return{...p,daysLeft};
+    }).filter(p=>p.daysLeft<=90).sort((a,b)=>a.daysLeft-b.daysLeft);
+    el.innerHTML=`
+      ${repLineBlock(null,[
+        ["⏰","Nearing Expiry (≤90 days)",expItems.length,"var(--red)"],
+        ["💰","Total Value at Risk","रु "+fmtN(expItems.reduce((s,p)=>s+p.buy*p.stock,0)),"var(--gold)"],
+      ])}
+      <div class="card" style="overflow:auto;margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div class="card-title" style="margin:0;">⏰ Expiry Report</div></div>
+        ${!expItems.length?`<div style="text-align:center;padding:30px;color:var(--green);">✅ ९० दिनभित्र म्याद सकिने कुनै item छैन</div>`:`
+        <table class="tbl">
+          <tr><th>SN</th><th>Item</th><th>Cost Price</th><th>Total Qty</th><th>Total Amount</th><th>Expiry</th><th>Supplier</th></tr>
+          ${expItems.map((p,i)=>`<tr style="background:${p.daysLeft<0?"#fee2e2":p.daysLeft<=30?"#fef9c3":"var(--bg2)"};">
+            <td>${i+1}</td>
+            <td style="font-weight:600;color:var(--text);">${esc(p.name)}</td>
+            <td style="color:var(--text3);">रु ${fmtN(p.buy)}</td>
+            <td style="color:var(--text2);font-weight:700;">${fmtQty(p.stock)} ${esc(p.unit)}</td>
+            <td style="color:var(--gold);font-weight:700;">रु ${fmtN(p.buy*p.stock)}</td>
+            <td style="color:${p.daysLeft<0?"var(--red)":p.daysLeft<=30?"#b45309":"var(--text3)"};font-weight:700;">${p.expiry}${p.daysLeft<0?" (Expired!)":" ("+p.daysLeft+" दिन)"}</td>
+            <td style="color:var(--purple);font-weight:700;">${esc(_supplierAbbrevForProduct(p))}</td>
+          </tr>`).join("")}
+        </table>`}
+      </div>`;
   }
   else{
     const stockValue=products.reduce((s,p)=>s+p.price*p.stock,0);const stockVal=stockValue;
@@ -8344,9 +8483,100 @@ function topProducts(bills,returns){
   return Object.values(c).filter(p=>p.qty>0.0001).sort((a,b)=>b.rev-a.rev).slice(0,8);
 }
 
+// Supplier नाम छोटो/professional रूपमा देखाउने — "Gopal Siddha"→"GS", पहिले नै छोटो भए ("SRP","P&G") त्यसै राख्ने
+function abbrevSupplier(name){
+  if(!name)return"—";
+  const t=String(name).trim();
+  if(!t)return"—";
+  if(t.length<=4||/^[A-Z0-9&.]+$/.test(t))return t.toUpperCase();
+  const words=t.split(/\s+/).filter(w=>w.length>0);
+  if(words.length===1)return t.slice(0,4).toUpperCase();
+  return words.map(w=>w[0].toUpperCase()).join("");
+}
+function _supplierNameForProduct(p){
+  if(p.suppId){const s=suppliers.find(x=>x.id===p.suppId);if(s)return s.name;}
+  // fallback — यो product सँग सम्बन्धित सबैभन्दा हालसालैको Purchase बाट supplier पत्ता लगाउने
+  // (date DD/MM/YYYY string भएकोले toYMD() ले normalize गरेर मात्र sort गर्नुपर्छ, नत्र गलत क्रम आउँछ)
+  const recent=purchases.filter(pu=>(pu.items||[]).some(it=>it.name===p.name)).sort((a,b)=>toYMD(b.date||"").localeCompare(toYMD(a.date||"")))[0];
+  return recent?recent.sname:"";
+}
+function _supplierAbbrevForProduct(p){return abbrevSupplier(_supplierNameForProduct(p));}
+// विगत N दिनमा हरेक product कति बिक्यो भन्ने map बनाउने (Avg Daily Consumption को लागि)
+function _buildConsumptionMap(days){
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);
+  const map={};
+  (salesHistory||[]).forEach(b=>{
+    if(b.status==="voided")return;
+    const bd=parseDMY(b.date);
+    if(bd<cutoff)return;
+    (b.items||[]).forEach(it=>{
+      const pcs=(it.qty||0)*(it.pricingQty||1);
+      map[it.id]=(map[it.id]||0)+pcs;
+    });
+  });
+  Object.keys(map).forEach(k=>{map[k]=map[k]/days;});
+  return map;
+}
+function printLowStockReport(){
+  const shop=shopInfo||{};
+  const consMap=_buildConsumptionMap(30);
+  const lowItems=products.filter(p=>p.stock<=p.low&&p.low>0).sort((a,b)=>a.stock-b.stock);
+  const w=window.open("","_blank","width=900,height=700");if(!w)return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Low Stock Report</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1a2e;padding:22px;}
+  .header{text-align:center;margin-bottom:16px;border-bottom:2.5px solid #dc2626;padding-bottom:12px;}
+  .shop-name{font-size:20px;font-weight:900;color:#dc2626;}
+  table{width:100%;border-collapse:collapse;margin-top:10px;}
+  th{background:#dc2626;color:#fff;padding:7px 6px;font-size:11px;text-align:left;}
+  td{padding:6px;border-bottom:1px solid #eee;font-size:11px;}
+  tr:nth-child(even){background:#fef2f2;}
+  .no-print{margin-top:16px;text-align:center;}
+  @media print{.no-print{display:none;}}
+  </style></head><body>
+  <div class="header"><div class="shop-name">${esc(shop.name||"NabinPOS")}</div><div style="font-size:11px;color:#666;">${esc(shop.addr||"")} · ${new Date().toLocaleDateString("en-GB")}</div>
+  <div style="font-size:15px;font-weight:800;margin-top:8px;">🔴 LOW STOCK REPORT</div></div>
+  <table><tr><th>SN</th><th>Item</th><th>Stock</th><th>Buy Rate</th><th>Sell Rate</th><th>Avg Daily Use</th><th>Supplier</th></tr>
+  ${lowItems.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>${fmtQty(p.stock)} ${esc(p.unit)}</td><td>रु ${fmtN(p.buy)}</td><td>रु ${fmtN(p.price)}</td><td>${(consMap[p.id]||0).toFixed(1)}/दिन</td><td>${esc(_supplierAbbrevForProduct(p))}</td></tr>`).join("")}
+  </table>
+  <div style="margin-top:14px;font-size:10px;color:#888;text-align:center;">NabinPOS v1.0 · Generated ${new Date().toLocaleString("en-GB")}</div>
+  <div class="no-print"><button onclick="window.print()" style="padding:10px 24px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🖨️ Print / Save as PDF</button></div>
+  <script>setTimeout(()=>window.print(),400);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+function printExpiryReport(){
+  const shop=shopInfo||{};
+  const today=new Date();
+  const expItems=products.filter(p=>p.expiry).map(p=>{const ed=new Date(p.expiry);const daysLeft=Math.ceil((ed-today)/(1000*60*60*24));return{...p,daysLeft};}).filter(p=>p.daysLeft<=90).sort((a,b)=>a.daysLeft-b.daysLeft);
+  const w=window.open("","_blank","width=900,height=700");if(!w)return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Expiry Report</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1a2e;padding:22px;}
+  .header{text-align:center;margin-bottom:16px;border-bottom:2.5px solid #b45309;padding-bottom:12px;}
+  .shop-name{font-size:20px;font-weight:900;color:#b45309;}
+  table{width:100%;border-collapse:collapse;margin-top:10px;}
+  th{background:#b45309;color:#fff;padding:7px 6px;font-size:11px;text-align:left;}
+  td{padding:6px;border-bottom:1px solid #eee;font-size:11px;}
+  tr:nth-child(even){background:#fffbeb;}
+  .no-print{margin-top:16px;text-align:center;}
+  @media print{.no-print{display:none;}}
+  </style></head><body>
+  <div class="header"><div class="shop-name">${esc(shop.name||"NabinPOS")}</div><div style="font-size:11px;color:#666;">${esc(shop.addr||"")} · ${new Date().toLocaleDateString("en-GB")}</div>
+  <div style="font-size:15px;font-weight:800;margin-top:8px;">⏰ EXPIRY REPORT (≤90 days)</div></div>
+  <table><tr><th>SN</th><th>Item</th><th>Cost Price</th><th>Total Qty</th><th>Total Amount</th><th>Expiry Date</th><th>Supplier</th></tr>
+  ${expItems.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>रु ${fmtN(p.buy)}</td><td>${fmtQty(p.stock)} ${esc(p.unit)}</td><td>रु ${fmtN(p.buy*p.stock)}</td><td>${p.expiry}${p.daysLeft<0?" (Expired)":" ("+p.daysLeft+"d)"}</td><td>${esc(_supplierAbbrevForProduct(p))}</td></tr>`).join("")}
+  </table>
+  <div style="margin-top:14px;font-size:10px;color:#888;text-align:center;">NabinPOS v1.0 · Generated ${new Date().toLocaleString("en-GB")}</div>
+  <div class="no-print"><button onclick="window.print()" style="padding:10px 24px;background:#b45309;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🖨️ Print / Save as PDF</button></div>
+  <script>setTimeout(()=>window.print(),400);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
 function printReport(){
   if(repTab==="credit"){printCreditReport();return;}
   if(repTab==="supplier_due"){printSupplierDueReport();return;}
+  if(repTab==="low_stock"){printLowStockReport();return;}
+  if(repTab==="expiry"){printExpiryReport();return;}
   const r=document.getElementById("repInner");if(!r)return;
   const w=window.open("","_blank","width=900,height=700");if(!w)return;
   const dateRangeHdr=repFromDate||repToDate?`<div style="text-align:center;font-size:12px;color:#555;margin-bottom:12px;">📅 Date Range: <strong>${repFromDate||"—"}</strong> to <strong>${repToDate||"—"}</strong></div>`:"";
@@ -8450,6 +8680,927 @@ function printCreditReport(){
   <script>setTimeout(()=>window.print(),500);<\/script>
   </body></html>`);
   w.document.close();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Customer Purchase History & Profitability — shared data builder used by
+// the per-customer PDF/Excel export AND the Reports → Customer Analysis screen.
+// Historical-cost accurate: uses the buy-rate saved on the bill item itself
+// (it.buy, captured at sale time) — NEVER today's live product.buy — so
+// profit/margin always reflect the actual cost at the time of that sale.
+// ══════════════════════════════════════════════════════════════════════════
+function _custInRange(dateStr,fromYMD,toYMD_){
+  const d=toYMD(dateStr);if(!d)return true;
+  if(fromYMD&&d<fromYMD)return false;
+  if(toYMD_&&d>toYMD_)return false;
+  return true;
+}
+function _buildCustPurchaseData(custId,opts){
+  opts=opts||{};
+  const fromD=opts.fromYMD||"",toD=opts.toYMD||"";
+  const cat=opts.cat||"All",item=opts.item||"All";
+  const amtMin=(opts.amtMin!==undefined&&opts.amtMin!==null&&opts.amtMin!=="")?parseFloat(opts.amtMin):null;
+  const amtMax=(opts.amtMax!==undefined&&opts.amtMax!==null&&opts.amtMax!=="")?parseFloat(opts.amtMax):null;
+  const inR=(ds)=>_custInRange(ds,fromD,toD);
+
+  let bills=salesHistory.filter(b=>(custId==="all"?!!b.custId:b.custId===custId)&&b.status!=="voided"&&inR(b.date));
+  if(amtMin!==null)bills=bills.filter(b=>(b.total||0)>=amtMin);
+  if(amtMax!==null)bills=bills.filter(b=>(b.total||0)<=amtMax);
+
+  const rows=[];
+  bills.forEach(b=>{
+    (b.items||[]).forEach(it=>{
+      const p=products.find(x=>x.id===it.id);
+      const itCat=p?.cat||"Other";
+      if(cat!=="All"&&itCat!==cat)return;
+      if(item!=="All"&&it.name!==item)return;
+      const pcs=(it.qty||0)*(it.pricingQty||1);
+      // Historical accuracy: it.buy was saved at the moment of sale — that is the true cost, not p.buy today
+      const buyRate=(typeof it.buy==="number")?it.buy:(p?.buy||0);
+      const amt=+(it.price*it.qty).toFixed(2);
+      const cost=+(buyRate*pcs).toFixed(2);
+      const margin=+(amt-cost).toFixed(2);
+      rows.push({date:b.date,billNo:b.billNo,custId:b.custId,custName:b.custName||"—",name:it.name,cat:itCat,unit:it.unit||p?.unit||"",qty:it.qty,rate:it.price,buyRate,amt,cost,margin,marginPct:amt>0?(margin/amt*100):0});
+    });
+  });
+
+  // Return netting — matched to this customer via the original bill (returnEntries stores custName, not custId)
+  const billCustMap={};salesHistory.forEach(b=>{billCustMap[b.billNo]=b.custId;});
+  const custReturns=(returnEntries||[]).filter(r=>{
+    if(r.kind==="exchange_add")return false;
+    const rc=billCustMap[r.billRef];
+    if(custId==="all"){if(!rc)return false;}else if(rc!==custId)return false;
+    return inR(r.origDate||r.date);
+  });
+  const returnTotal=custReturns.reduce((s,r)=>s+(parseFloat(r.refundAmt)||0),0);
+  const returnCost=custReturns.reduce((s,r)=>s+(parseFloat(r.buyCost)||0),0);
+  const returnMargin=returnTotal-returnCost;
+
+  const grossTotal=rows.reduce((s,r)=>s+r.amt,0);
+  const grossCost=rows.reduce((s,r)=>s+r.cost,0);
+  const grossQty=rows.reduce((s,r)=>s+(parseFloat(r.qty)||0),0);
+  const netTotal=+(grossTotal-returnTotal).toFixed(2);
+  const netCost=+(grossCost-returnCost).toFixed(2);
+  const netMargin=+((grossTotal-grossCost)-returnMargin).toFixed(2);
+  const marginPct=netTotal>0?(netMargin/netTotal*100):0;
+  const matchedBillNos=new Set(rows.map(r=>r.billNo));
+  const billsCount=(cat!=="All"||item!=="All")?matchedBillNos.size:bills.length;
+  const avgInvoice=billsCount>0?netTotal/billsCount:0;
+
+  return{bills,rows,billsCount,grossTotal,grossCost,grossQty,returnTotal,returnCost,returnMargin,
+    netTotal,netCost,netMargin,marginPct,avgInvoice,
+    byItem:_custGroupRows(rows,"item"),byCat:_custGroupRows(rows,"cat"),byDate:_custGroupRows(rows,"date")};
+}
+function _custGroupRows(rows,mode){
+  const map={};
+  rows.forEach(r=>{
+    const key=mode==="cat"?(r.cat||"Other"):mode==="date"?r.date:(r.name+"|"+r.unit);
+    if(!map[key])map[key]={key,name:mode==="cat"?(r.cat||"Other"):mode==="date"?r.date:r.name,unit:mode==="item"?r.unit:"",qty:0,amt:0,cost:0,margin:0,bills:new Set()};
+    map[key].qty+=parseFloat(r.qty)||0;map[key].amt+=r.amt;map[key].cost+=r.cost;map[key].margin+=r.margin;map[key].bills.add(r.billNo);
+  });
+  return Object.values(map).map(g=>({...g,billCount:g.bills.size,marginPct:g.amt>0?(g.margin/g.amt*100):0})).sort((a,b)=>b.amt-a.amt);
+}
+// Per-customer rollup — used by the "All Customers" ranking view in Customer Analysis
+function _customerAggregates(opts){
+  return customers.map(cu=>{
+    const d=_buildCustPurchaseData(cu.id,opts);
+    return{id:cu.id,name:cu.name,phone:cu.phone,code:cu.code,invoices:d.billsCount,qty:d.grossQty,
+      sales:d.netTotal,cost:d.netCost,profit:d.netMargin,marginPct:d.marginPct,avgInvoice:d.avgInvoice};
+  }).filter(r=>r.invoices>0);
+}
+
+// ── Customer Purchase History → PDF / Excel (Category / Item / Amount / Date wise / Complete) + Margin ──
+function openCustPurchaseReport(){
+  const c=customers.find(x=>x.id===activeCustId);if(!c)return;
+  const today=localYMD(new Date());
+  const monthStart=localYMD(new Date(new Date().getFullYear(),new Date().getMonth(),1));
+  window._cprGroup="item";
+  const catOpts=`<option value="All">सबै Category</option>`+CATS.map(cc=>`<option value="${esc(cc)}">${esc(cc)}</option>`).join("");
+  const itemOpts=`<option value="All">सबै Item</option>`+[...new Set(products.map(p=>p.name))].sort().map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">📄 Purchase History Export</h3><button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button></div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">👤 ${esc(c.name)} ${c.code?`<span style="color:var(--text4);font-weight:600;">(${esc(c.code)})</span>`:""}</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div class="field" style="flex:1;margin-bottom:0;"><label>देखि (From)</label><input type="date" id="cprFrom" value="${monthStart}"/></div>
+      <div class="field" style="flex:1;margin-bottom:0;"><label>सम्म (To)</label><input type="date" id="cprTo" value="${today}"/></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div class="field" style="flex:1;margin-bottom:0;"><label>Category (optional)</label><select id="cprCat">${catOpts}</select></div>
+      <div class="field" style="flex:1;margin-bottom:0;"><label>Item (optional)</label><select id="cprItem">${itemOpts}</select></div>
+    </div>
+    <div class="field">
+      <label>कसरी हेर्ने (Group By)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+        <button type="button" id="cprG_cat" onclick="setCprGroup('cat')" style="padding:9px 4px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📂 Category</button>
+        <button type="button" id="cprG_item" onclick="setCprGroup('item')" style="padding:9px 4px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📦 Item</button>
+        <button type="button" id="cprG_amt" onclick="setCprGroup('amt')" style="padding:9px 4px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💰 Amount</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <button type="button" id="cprG_date" onclick="setCprGroup('date')" style="padding:9px 4px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📅 Date</button>
+        <button type="button" id="cprG_complete" onclick="setCprGroup('complete')" style="padding:9px 4px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📋 Complete Detail</button>
+      </div>
+    </div>
+    <div style="background:#f0fdf4;border:1px solid var(--green);border-radius:8px;padding:8px 10px;margin:10px 0;font-size:10.5px;color:#166534;">💹 यो Report मा यो ग्राहकबाट कमाएको <b>Margin/Profit</b> (Historical Cost अनुसार) पनि देखिनेछ।</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn btn-blue" style="padding:12px;font-size:13px;" onclick="generateCustPurchaseReport(${c.id})">📄 PDF</button>
+      <button class="btn btn-green" style="padding:12px;font-size:13px;" onclick="exportCustPurchaseExcel(${c.id})">📊 Excel</button>
+    </div>`,460);
+  setTimeout(()=>setCprGroup("item"),0);
+}
+function setCprGroup(g){
+  window._cprGroup=g;
+  ["cat","item","amt","date","complete"].forEach(k=>{
+    const b=document.getElementById("cprG_"+k);if(!b)return;
+    const active=k===g;
+    b.style.border="1.5px solid "+(active?"var(--blue)":"var(--border2)");
+    b.style.background=active?"#dbeafe":"#fff";
+    b.style.color=active?"var(--blue)":"var(--text3)";
+  });
+}
+function _cprReadModalOpts(){
+  return{
+    fromYMD:(document.getElementById("cprFrom")||{}).value||"",
+    toYMD:(document.getElementById("cprTo")||{}).value||"",
+    cat:(document.getElementById("cprCat")||{}).value||"All",
+    item:(document.getElementById("cprItem")||{}).value||"All",
+    groupBy:window._cprGroup||"item"
+  };
+}
+function generateCustPurchaseReport(custId){
+  const c=customers.find(x=>x.id===custId);if(!c)return;
+  const o=_cprReadModalOpts();
+  const d=_buildCustPurchaseData(custId,o);
+  if(!d.rows.length){toast$("यो फिल्टरमा यो ग्राहकको कुनै खरिद भेटिएन","error");return;}
+  closeModal();
+  printCustPurchaseReport(c,o,d);
+}
+function exportCustPurchaseExcel(custId){
+  const c=customers.find(x=>x.id===custId);if(!c)return;
+  const o=_cprReadModalOpts();
+  const d=_buildCustPurchaseData(custId,o);
+  if(!d.rows.length){toast$("यो फिल्टरमा यो ग्राहकको कुनै खरिद भेटिएन","error");return;}
+  if(typeof XLSX==="undefined"){toast$("Excel library load हुन सकेन — Internet जाँच्नुस्","error");return;}
+  const detailSheet=d.rows.map(r=>({Date:r.date,"Bill#":r.billNo,Item:r.name,Category:r.cat,Qty:r.qty,Unit:r.unit,"Selling Price":r.rate,"Cost Rate":r.buyRate,"Sales Amount":r.amt,"Cost Amount":r.cost,Profit:r.margin,"Margin %":+r.marginPct.toFixed(2)}));
+  const summarySheet=[
+    {Metric:"Customer",Value:c.name},
+    {Metric:"Date Range",Value:(o.fromYMD||"—")+" to "+(o.toYMD||"—")},
+    {Metric:"Total Bills",Value:d.billsCount},
+    {Metric:"Gross Sales",Value:d.grossTotal},
+    {Metric:"Return",Value:d.returnTotal},
+    {Metric:"Net Sales",Value:d.netTotal},
+    {Metric:"Total Cost",Value:d.netCost},
+    {Metric:"Total Profit/Margin",Value:d.netMargin},
+    {Metric:"Margin %",Value:+d.marginPct.toFixed(2)},
+    {Metric:"Avg Invoice Value",Value:+d.avgInvoice.toFixed(2)},
+  ];
+  const catSheet=d.byCat.map(g=>({Category:g.name,Qty:g.qty,Bills:g.billCount,"Sales Amount":g.amt,"Cost Amount":g.cost,Profit:g.margin,"Margin %":+g.marginPct.toFixed(2)}));
+  const itemSheet=d.byItem.map(g=>({Item:g.name,Unit:g.unit,Qty:g.qty,Bills:g.billCount,"Sales Amount":g.amt,"Cost Amount":g.cost,Profit:g.margin,"Margin %":+g.marginPct.toFixed(2)}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(summarySheet),"Summary");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(detailSheet),"Item Detail");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(catSheet),"By Category");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(itemSheet),"By Item");
+  const fname=`CustomerHistory_${(c.name||"customer").replace(/[^a-zA-Z0-9]/g,"_")}_${o.fromYMD||"all"}_${o.toYMD||"all"}.xlsx`;
+  XLSX.writeFile(wb,fname);
+  addLog("Export","Customer Purchase Excel: "+fname);
+  closeModal();
+  toast$("📊 Excel export भयो ✅");
+}
+function printCustPurchaseReport(c,o,d){
+  const shop=shopInfo||{};
+  const groupBy=o.groupBy||"item";
+  const groupLabel={cat:"Category-wise",item:"Item-wise",amt:"Amount-wise",date:"Date-wise",complete:"Complete Detailed"}[groupBy]||"Item-wise";
+  const isFlat=(groupBy==="amt"||groupBy==="complete");
+  let flatRows=d.rows;
+  if(groupBy==="amt")flatRows=[...d.rows].sort((a,b)=>b.amt-a.amt);
+  else if(groupBy==="complete")flatRows=[...d.rows].sort((a,b)=>(a.date>b.date?1:a.date<b.date?-1:0));
+  const groupedRows=groupBy==="cat"?d.byCat:groupBy==="date"?d.byDate:d.byItem;
+
+  const rowsHtml=isFlat?
+    flatRows.map((r,i)=>`<tr>
+      <td style="color:#888;">${i+1}</td>
+      <td style="font-family:monospace;color:#555;white-space:nowrap;">${r.date}</td>
+      <td style="font-family:monospace;color:#555;">${esc(r.billNo)}</td>
+      <td style="font-weight:700;">${esc(r.name)}</td>
+      <td style="color:#555;">${esc(r.cat)}</td>
+      <td style="text-align:right;white-space:nowrap;">${fmtN(r.qty)} ${esc(r.unit||"")}</td>
+      <td style="text-align:right;">रु ${fmt(r.rate)}</td>
+      <td style="text-align:right;">रु ${fmt(r.buyRate)}</td>
+      <td style="text-align:right;color:#92400e;font-weight:700;white-space:nowrap;">रु ${fmt(r.amt)}</td>
+      <td style="text-align:right;color:#555;white-space:nowrap;">रु ${fmt(r.cost)}</td>
+      <td style="text-align:right;font-weight:700;white-space:nowrap;" class="${r.margin>=0?'mgpos':'mgneg'}">रु ${fmt(r.margin)}</td>
+      <td style="text-align:right;font-weight:700;white-space:nowrap;" class="${r.margin>=0?'mgpos':'mgneg'}">${r.marginPct.toFixed(1)}%</td>
+    </tr>`).join("")
+    :
+    groupedRows.map((r,i)=>`<tr>
+      <td style="color:#888;">${i+1}</td>
+      <td style="font-weight:700;">${esc(r.name)}</td>
+      <td style="text-align:right;white-space:nowrap;">${fmtN(r.qty)} ${esc(r.unit||"")}</td>
+      <td style="text-align:right;color:var(--text3);">${r.billCount}</td>
+      <td style="text-align:right;color:#92400e;font-weight:700;white-space:nowrap;">रु ${fmt(r.amt)}</td>
+      <td style="text-align:right;color:#555;white-space:nowrap;">रु ${fmt(r.cost)}</td>
+      <td style="text-align:right;font-weight:700;white-space:nowrap;" class="${r.margin>=0?'mgpos':'mgneg'}">रु ${fmt(r.margin)}</td>
+      <td style="text-align:right;font-weight:700;white-space:nowrap;" class="${r.margin>=0?'mgpos':'mgneg'}">${r.marginPct.toFixed(1)}%</td>
+    </tr>`).join("");
+  const theadHtml=isFlat?
+    `<tr><th>#</th><th>मिति</th><th>Bill#</th><th>Item</th><th>Category</th><th>Qty</th><th>Selling Price</th><th>Cost Rate</th><th>Sales Amount</th><th>Cost Amount</th><th>Profit</th><th>Margin %</th></tr>`
+    :
+    `<tr><th>#</th><th>${groupBy==="cat"?"Category":groupBy==="date"?"मिति":"Item"}</th><th>Qty</th><th>Bills</th><th>Sales Amount</th><th>Cost Amount</th><th>Profit</th><th>Margin %</th></tr>`;
+  const totalCols=isFlat?12:8;
+  const grandMarginPct=d.netTotal>0?(d.netMargin/d.netTotal*100):0;
+  const w=window.open("","_blank","width=1000,height=700");if(!w)return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Purchase History — ${esc(c.name)}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1a2e;background:#fff;padding:24px;}
+    .header{text-align:center;margin-bottom:20px;border-bottom:2.5px solid #1565c0;padding-bottom:14px;}
+    .shop-name{font-size:22px;font-weight:900;color:#1565c0;letter-spacing:1px;}
+    .shop-sub{font-size:11px;color:#555;margin-top:3px;}
+    .report-title{font-size:16px;font-weight:800;color:#b91c1c;margin-top:8px;}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;}
+    .sum-card{border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;text-align:center;}
+    .sum-val{font-size:16px;font-weight:900;margin-top:4px;}
+    .sum-lbl{font-size:10px;color:#666;margin-top:2px;}
+    table{width:100%;border-collapse:collapse;margin-top:16px;}
+    th{background:#1565c0;color:#fff;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;white-space:nowrap;}
+    td{padding:7px 10px;border-bottom:1px solid #e5e7eb;font-size:11px;}
+    tr:nth-child(even) td{background:#f8faff;}
+    .mgpos{color:#166534;}
+    .mgneg{color:#b91c1c;}
+    .total-row td{background:#1565c0!important;color:#fff;font-weight:900;font-size:13px;}
+    .footer{margin-top:20px;padding-top:10px;border-top:1.5px dashed #ccc;display:flex;justify-content:space-between;font-size:10px;color:#888;}
+    @media print{body{padding:10px;}@page{size:A4;margin:12mm;}table{font-size:9.5px;}}
+  </style></head><body>
+  <div class="header">
+    <div class="shop-name">⚡ ${shop.name||"NabinPOS"}</div>
+    <div class="shop-sub">${shop.addr||""} ${shop.contact?"| 📞 "+shop.contact:""} ${shop.pan?"| PAN: "+shop.pan:""}</div>
+    <div class="report-title">🧾 Customer Purchase History — ${esc(c.name)}</div>
+    <div style="font-size:11px;color:#666;margin-top:4px;">
+      Date Range: ${o.fromYMD||"—"} to ${o.toYMD||"—"} | View: ${groupLabel} ${o.cat&&o.cat!=="All"?"| Category: "+esc(o.cat):""} ${o.item&&o.item!=="All"?"| Item: "+esc(o.item):""} | Phone: ${esc(c.phone||"—")} | Generated: ${new Date().toLocaleString()}
+    </div>
+  </div>
+  <div class="summary-grid">
+    <div class="sum-card"><div class="sum-lbl">जम्मा Bills</div><div class="sum-val" style="color:#1565c0;">${d.billsCount}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Gross Sales</div><div class="sum-val" style="color:#92400e;">रु ${fmtN(d.grossTotal)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Return</div><div class="sum-val" style="color:#b91c1c;">रु ${fmtN(d.returnTotal)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Net Sales</div><div class="sum-val" style="color:#1565c0;">रु ${fmtN(d.netTotal)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Total Cost</div><div class="sum-val" style="color:#555;">रु ${fmtN(d.netCost)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">💹 Profit/Margin</div><div class="sum-val" style="color:${d.netMargin>=0?'#166534':'#b91c1c'};">रु ${fmtN(d.netMargin)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Margin %</div><div class="sum-val" style="color:#6d28d9;">${d.marginPct.toFixed(1)}%</div></div>
+    <div class="sum-card"><div class="sum-lbl">Avg Invoice</div><div class="sum-val" style="color:#1565c0;">रु ${fmtN(d.avgInvoice)}</div></div>
+  </div>
+  <table>
+    <thead>${theadHtml}</thead>
+    <tbody>
+    ${rowsHtml}
+    <tr class="total-row">
+      <td colspan="${totalCols-4}">जम्मा (Grand Total)</td>
+      <td>रु ${fmtN(d.netTotal)}</td>
+      <td>रु ${fmtN(d.netCost)}</td>
+      <td>रु ${fmtN(d.netMargin)}</td>
+      <td>${grandMarginPct.toFixed(1)}%</td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="footer">
+    <span>⚡ NabinPOS v1.0 | ${shop.name||"Nabin Mart"}</span>
+    <span>Printed: ${new Date().toLocaleString()}</span>
+  </div>
+  <script>setTimeout(()=>window.print(),500);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SUPPLIER ANALYSIS — advanced supplier-wise purchase analytics, ranking,
+// charts (real DB data only) and invoice-level drill-down.
+// ══════════════════════════════════════════════════════════════════════════
+function _buildSupplierAnalysisData(opts){
+  opts=opts||{};
+  const fromD=opts.fromYMD||"",toD=opts.toYMD||"";
+  const supId=opts.supplier||"all";
+  const cat=opts.cat||"All",item=opts.item||"All";
+  const payStatus=opts.payStatus||"all";
+  const purchType=opts.purchType||"all";
+  const inR=(ds)=>_custInRange(ds,fromD,toD);
+
+  let purch=purchases.filter(p=>inR(p.date));
+  if(supId!=="all")purch=purch.filter(p=>p.sid===parseInt(supId));
+  if(payStatus!=="all")purch=purch.filter(p=>p.status===payStatus);
+  if(purchType!=="all"){
+    purch=purch.filter(p=>{
+      const isCredit=(p.payM||"").toLowerCase().includes("credit")||(p.due||0)>0;
+      return purchType==="credit"?isCredit:!isCredit;
+    });
+  }
+  const rows=[];
+  purch.forEach(p=>{
+    (p.items||[]).forEach(it=>{
+      const prod=products.find(x=>x.name===it.name);
+      const itCat=prod?.cat||"Other";
+      if(cat!=="All"&&itCat!==cat)return;
+      if(item!=="All"&&it.name!==item)return;
+      const qty=parseFloat(it.qty)||0,rate=parseFloat(it.rate)||0,amt=+(qty*rate).toFixed(2);
+      rows.push({date:p.date,inv:p.inv,sid:p.sid,sname:p.sname,name:it.name,cat:itCat,unit:it.unit||"",qty,rate,amt,paid:p.paid,due:p.due,status:p.status});
+    });
+  });
+  const matchedInv=new Set(rows.map(r=>r.sid+"|"+r.inv));
+  const filteredPurch=(cat!=="All"||item!=="All")?purch.filter(p=>matchedInv.has(p.sid+"|"+p.inv)):purch;
+
+  const map={};
+  filteredPurch.forEach(p=>{
+    if(!map[p.sid]){
+      const s=suppliers.find(x=>x.id===p.sid);
+      map[p.sid]={sid:p.sid,name:p.sname||s?.name||"—",phone:s?.contact||"",total:0,invoices:0,items:0,qty:0,paid:0,due:0};
+    }
+    const m=map[p.sid];
+    m.total+=p.grand||0;m.invoices++;m.paid+=p.paid||0;m.due+=p.due||0;
+    (p.items||[]).forEach(it=>{
+      const prod=products.find(x=>x.name===it.name);
+      const itCat=prod?.cat||"Other";
+      if(cat!=="All"&&itCat!==cat)return;
+      if(item!=="All"&&it.name!==item)return;
+      m.items++;m.qty+=parseFloat(it.qty)||0;
+    });
+  });
+  const supRows=Object.values(map);
+  const grandTotal=supRows.reduce((s,r)=>s+r.total,0);
+  supRows.forEach(r=>{r.avg=r.invoices?r.total/r.invoices:0;r.pct=grandTotal>0?(r.total/grandTotal*100):0;});
+
+  const totalPurchase=filteredPurch.reduce((s,p)=>s+(p.grand||0),0);
+  const totalPaid=filteredPurch.reduce((s,p)=>s+(p.paid||0),0);
+  const totalPayable=filteredPurch.reduce((s,p)=>s+(p.due||0),0);
+
+  const byDate={};
+  filteredPurch.forEach(p=>{const dk=toYMD(p.date);if(!dk)return;if(!byDate[dk])byDate[dk]={date:dk,total:0,count:0};byDate[dk].total+=p.grand||0;byDate[dk].count++;});
+  const trend=Object.values(byDate).sort((a,b)=>a.date.localeCompare(b.date));
+
+  return{purch:filteredPurch,rows,supRows,grandTotal,totalPurchase,totalPaid,totalPayable,trend,supplierCount:supRows.length};
+}
+// ══════════════════════════════════════════════════════════════════════════
+// SUPPLIER PROFITABILITY — margin/profit per supplier, computed from actual
+// SALES (not purchase spend). Traces each sold item → its product → the
+// product's primary supplier (suppId), using the historical buy-cost saved
+// on the sale item (it.buy) so past margin stays accurate even if today's
+// cost has changed. Returns are netted out the same way.
+// Products with multiple suppliers (suppIds) are attributed to the primary
+// supplier (suppId / suppIds[0]) only — a shared item is not split.
+// ══════════════════════════════════════════════════════════════════════════
+function _buildSupplierProfitData(opts){
+  opts=opts||{};
+  const fromD=opts.fromYMD||"",toD=opts.toYMD||"";
+  const inR=(ds)=>_custInRange(ds,fromD,toD);
+
+  const rows=[];
+  salesHistory.filter(b=>b.status!=="voided"&&inR(b.date)).forEach(b=>{
+    (b.items||[]).forEach(it=>{
+      const p=products.find(x=>x.id===it.id);
+      const suppId=p?(p.suppId||0):0;
+      const pcs=(it.qty||0)*(it.pricingQty||1);
+      const buyRate=(typeof it.buy==="number")?it.buy:(p?.buy||0);
+      const amt=+(it.price*it.qty).toFixed(2);
+      const cost=+(buyRate*pcs).toFixed(2);
+      rows.push({suppId,billNo:b.billNo,qty:parseFloat(it.qty)||0,amt,cost,margin:+(amt-cost).toFixed(2)});
+    });
+  });
+
+  const retRows=(returnEntries||[]).filter(r=>r.kind!=="exchange_add"&&inR(r.origDate||r.date)).map(r=>{
+    const p=products.find(x=>x.id===r.productId);
+    const suppId=p?(p.suppId||0):0;
+    const refund=parseFloat(r.refundAmt)||0,cost=parseFloat(r.buyCost)||0;
+    return{suppId,refund,cost,margin:refund-cost};
+  });
+
+  const map={};
+  const ensure=(suppId)=>{
+    if(!map[suppId]){
+      const s=suppliers.find(x=>x.id===suppId);
+      map[suppId]={suppId,name:suppId?(s?.name||"—"):"❔ Supplier नभएको Item",qty:0,amt:0,cost:0,margin:0,bills:new Set()};
+    }
+    return map[suppId];
+  };
+  rows.forEach(r=>{const m=ensure(r.suppId);m.qty+=r.qty;m.amt+=r.amt;m.cost+=r.cost;m.margin+=r.margin;m.bills.add(r.billNo);});
+  retRows.forEach(r=>{const m=ensure(r.suppId);m.amt-=r.refund;m.cost-=r.cost;m.margin-=r.margin;});
+
+  const supRows=Object.values(map).map(m=>({...m,billCount:m.bills.size,marginPct:m.amt>0?(m.margin/m.amt*100):0})).filter(r=>r.qty>0||r.amt!==0);
+  const grandMargin=supRows.reduce((s,r)=>s+r.margin,0);
+  const grandAmt=supRows.reduce((s,r)=>s+r.amt,0);
+  supRows.forEach(r=>r.marginShare=grandMargin!==0?(r.margin/grandMargin*100):0);
+  const bestSupplier=supRows.length?[...supRows].sort((a,b)=>b.margin-a.margin)[0].name:"—";
+  return{supRows,grandMargin,grandAmt,bestSupplier,grandMarginPct:grandAmt>0?(grandMargin/grandAmt*100):0};
+}
+const SUP_PROFIT_SORT_LABELS={
+  margin_high:"📈 Profit: High→Low", margin_low:"📈 Profit: Low→High",
+  marginpct_high:"🎯 Margin %: High→Low", marginpct_low:"🎯 Margin %: Low→High",
+  amt_high:"💰 Sales: High→Low", name:"🔤 नाम A→Z"
+};
+function _sortSupProfitRows(rows,key){
+  const r=[...rows];
+  if(key==="margin_high")r.sort((a,b)=>b.margin-a.margin);
+  else if(key==="margin_low")r.sort((a,b)=>a.margin-b.margin);
+  else if(key==="marginpct_high")r.sort((a,b)=>b.marginPct-a.marginPct);
+  else if(key==="marginpct_low")r.sort((a,b)=>a.marginPct-b.marginPct);
+  else if(key==="amt_high")r.sort((a,b)=>b.amt-a.amt);
+  else if(key==="name")r.sort((a,b)=>a.name.localeCompare(b.name));
+  return r;
+}
+function renderSupplierProfitHTML(){
+  const opts={fromYMD:repFromDate,toYMD:repToDate};
+  const d=_buildSupplierProfitData(opts);
+  const sorted=_sortSupProfitRows(d.supRows,supAnProfitSort);
+  window._lastSupProfitData=d;
+  return `
+    ${repLineBlock("💹 Supplier Profitability (Sales-based)",[
+      ["💰","Net Sales","रु "+fmtN(d.grandAmt),"var(--gold)"],
+      ["📈","Net Profit","रु "+fmtN(d.grandMargin),d.grandMargin>=0?"var(--green)":"var(--red)"],
+      ["🎯","Overall Margin",d.grandMarginPct.toFixed(1)+"%","var(--purple)"],
+      ["🏆","Best Margin Supplier",d.bestSupplier,"var(--blue)"],
+    ])}
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin:14px 0;">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <select onchange="supAnProfitSort=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">
+          ${Object.entries(SUP_PROFIT_SORT_LABELS).map(([v,l])=>`<option value="${v}"${supAnProfitSort===v?" selected":""}>${l}</option>`).join("")}
+        </select>
+      </div>
+      <div style="font-size:10px;color:var(--text4);margin-top:8px;">💡 यो margin सोझै बिक्री (sale) बाट calculate भएको हो — जुन supplier बाट आएको item जति बिक्यो त्यसैको cost/profit यहाँ देखिन्छ। Purchase spend हेर्न "Purchase View" मा जानुस्।</div>
+    </div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:auto;margin-bottom:14px;">
+      <table class="tbl" style="font-size:11.5px;">
+        <tr style="background:var(--bg4);"><th>#</th><th>Supplier</th><th>Qty Sold</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Margin %</th><th>Share</th></tr>
+        ${sorted.length===0?`<tr><td colspan="8" style="text-align:center;color:var(--text4);padding:24px;">यो date range मा कुनै बिक्री data छैन</td></tr>`:
+        sorted.map((s,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"#fff"};">
+          <td style="color:var(--text4);font-weight:700;">${i+1}</td>
+          <td style="font-weight:700;color:var(--text);">${esc(s.name)}</td>
+          <td style="color:var(--text3);">${fmtN(s.qty)}</td>
+          <td style="color:var(--gold);font-weight:800;">रु ${fmtN(s.amt)}</td>
+          <td style="color:var(--text3);">रु ${fmtN(s.cost)}</td>
+          <td style="font-weight:800;color:${s.margin>=0?"var(--green)":"var(--red)"};">रु ${fmtN(s.margin)}</td>
+          <td style="font-weight:700;color:${s.marginPct>=0?"var(--green)":"var(--red)"};">${s.marginPct.toFixed(1)}%</td>
+          <td style="color:var(--purple);font-weight:700;">${s.marginShare.toFixed(1)}%</td>
+        </tr>`).join("")}
+      </table>
+    </div>`;
+}
+const SUP_AN_SORT_LABELS={
+  amt_high:"💰 Purchase: High→Low", amt_low:"💰 Purchase: Low→High",
+  inv_high:"🧾 Invoices: High→Low", due_high:"❌ Outstanding Payable: High→Low",
+  freq_high:"🔁 Most Frequent", name:"🔤 नाम A→Z"
+};
+function _sortSupRows(rows,key){
+  const r=[...rows];
+  if(key==="amt_high")r.sort((a,b)=>b.total-a.total);
+  else if(key==="amt_low")r.sort((a,b)=>a.total-b.total);
+  else if(key==="inv_high"||key==="freq_high")r.sort((a,b)=>b.invoices-a.invoices);
+  else if(key==="due_high")r.sort((a,b)=>b.due-a.due);
+  else if(key==="name")r.sort((a,b)=>a.name.localeCompare(b.name));
+  return r;
+}
+function openSupAnSortPicker(){
+  const html=`<div style="display:flex;flex-direction:column;gap:10px;">${Object.keys(SUP_AN_SORT_LABELS).map(v=>`
+    <button onclick="supAnSort='${v}';closeFullScreenDetail();renderRepContent();" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px;background:${supAnSort===v?"#fff1f1":"#fff"};border:1.5px solid ${supAnSort===v?"var(--red)":"var(--border)"};border-radius:12px;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;text-align:left;">
+      <span>${SUP_AN_SORT_LABELS[v]}</span>${supAnSort===v?'<span style="color:var(--red);">✓</span>':""}
+    </button>`).join("")}</div>`;
+  openFullScreenDetail("↕️ Sort By",html);
+}
+function _supAnFilterBar(){
+  const catOpts=`<option value="All">सबै Category</option>`+CATS.map(cc=>`<option value="${esc(cc)}"${supAnCat===cc?" selected":""}>${esc(cc)}</option>`).join("");
+  const itemOpts=`<option value="All">सबै Item</option>`+[...new Set(products.map(p=>p.name))].sort().map(n=>`<option value="${esc(n)}"${supAnItem===n?" selected":""}>${esc(n)}</option>`).join("");
+  const supOpts=`<option value="all">सबै Suppliers</option>`+suppliers.map(s=>`<option value="${s.id}"${String(supAnSupplier)===String(s.id)?" selected":""}>${esc(s.name)}</option>`).join("");
+  return `
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:12.5px;font-weight:800;color:var(--blue);margin-bottom:8px;">🔎 Filters</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <select id="supAnSel" onchange="supAnSupplier=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${supOpts}</select>
+        <select id="supAnCatSel" onchange="supAnCat=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${catOpts}</select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <select id="supAnItemSel" onchange="supAnItem=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${itemOpts}</select>
+        <select onchange="supAnPayStatus=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">
+          ${[["all","सबै Payment Status"],["paid","✅ Paid"],["partial","🟡 Partial"],["unpaid","❌ Unpaid"]].map(([v,l])=>`<option value="${v}"${supAnPayStatus===v?" selected":""}>${l}</option>`).join("")}
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <select onchange="supAnPurchType=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">
+          ${[["all","सबै Purchase Type"],["cash","💵 Cash"],["credit","📒 Credit"]].map(([v,l])=>`<option value="${v}"${supAnPurchType===v?" selected":""}>${l}</option>`).join("")}
+        </select>
+        <button onclick="supAnSupplier='all';supAnCat='All';supAnItem='All';supAnPayStatus='all';supAnPurchType='all';renderRepContent();" style="padding:7px;background:#fef3c7;border:1px solid var(--gold);color:var(--gold);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">↺ Reset Filters</button>
+      </div>
+    </div>`;
+}
+function renderSupplierAnalysisHTML(){
+  const viewToggle=`
+    <div style="display:flex;gap:6px;margin-bottom:12px;background:var(--bg4);padding:4px;border-radius:10px;">
+      <button onclick="supAnView='purchase';renderRepContent();" style="flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:11.5px;font-weight:800;background:${supAnView==="purchase"?"#fff":"transparent"};color:${supAnView==="purchase"?"var(--blue)":"var(--text4)"};box-shadow:${supAnView==="purchase"?"0 1px 3px rgba(0,0,0,.08)":"none"};">🛒 Purchase View</button>
+      <button onclick="supAnView='profit';renderRepContent();" style="flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:11.5px;font-weight:800;background:${supAnView==="profit"?"#fff":"transparent"};color:${supAnView==="profit"?"var(--green)":"var(--text4)"};box-shadow:${supAnView==="profit"?"0 1px 3px rgba(0,0,0,.08)":"none"};">💹 Profitability View</button>
+    </div>`;
+  if(supAnView==="profit")return viewToggle+renderSupplierProfitHTML();
+  const opts={fromYMD:repFromDate,toYMD:repToDate,supplier:supAnSupplier,cat:supAnCat,item:supAnItem,payStatus:supAnPayStatus,purchType:supAnPurchType};
+  const d=_buildSupplierAnalysisData(opts);
+  const sorted=_sortSupRows(d.supRows,supAnSort);
+  const topSupplier=sorted.length?sorted[0].name:"—";
+  window._lastSupAnData=d; // used by charts + export, avoids recompute
+  return `
+    ${viewToggle}
+    ${_supAnFilterBar()}
+    ${repLineBlock("📊 Supplier Summary",[
+      ["🤝","Suppliers",d.supplierCount,"var(--blue)"],
+      ["💰","Total Purchase","रु "+fmtN(d.totalPurchase),"var(--gold)"],
+      ["✅","Total Paid","रु "+fmtN(d.totalPaid),"var(--green)"],
+      ["❌","Total Payable","रु "+fmtN(d.totalPayable),"var(--red)"],
+      ["🏆","Top Supplier",topSupplier,"var(--purple)"],
+    ])}
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin:14px 0;">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <button onclick="openSupAnSortPicker()" style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:11px;font-weight:700;cursor:pointer;">
+          <span>${SUP_AN_SORT_LABELS[supAnSort]||"Sort गर्नुस्"}</span><span style="color:var(--text4);">▾</span>
+        </button>
+        <button onclick="printSupplierAnalysisReport()" style="padding:6px 12px;background:#dbeafe;border:1px solid var(--blue);color:var(--blue);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📄 PDF</button>
+        <button onclick="exportSupplierAnalysisExcel()" style="padding:6px 12px;background:#dcfce7;border:1px solid var(--green);color:var(--green);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📊 Excel</button>
+      </div>
+    </div>
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:auto;margin-bottom:14px;">
+      <table class="tbl" style="font-size:11.5px;">
+        <tr style="background:var(--bg4);"><th>#</th><th>Supplier</th><th>Invoices</th><th>Items</th><th>Qty</th><th>Total</th><th>Avg</th><th>Paid</th><th>Payable</th><th>%</th><th>Detail</th></tr>
+        ${sorted.length===0?`<tr><td colspan="11" style="text-align:center;color:var(--text4);padding:24px;">यो फिल्टरमा कुनै purchase छैन</td></tr>`:
+        sorted.map((s,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"#fff"};">
+          <td style="color:var(--text4);font-weight:700;">${i+1}</td>
+          <td style="font-weight:700;color:var(--text);">${esc(s.name)}</td>
+          <td style="color:var(--blue);font-weight:700;">${s.invoices}</td>
+          <td style="color:var(--text3);">${s.items}</td>
+          <td style="color:var(--text3);">${fmtN(s.qty)}</td>
+          <td style="color:var(--gold);font-weight:800;">रु ${fmtN(s.total)}</td>
+          <td style="color:var(--text3);">रु ${fmtN(s.avg)}</td>
+          <td style="color:var(--green);font-weight:700;">रु ${fmtN(s.paid)}</td>
+          <td style="font-weight:800;color:${s.due>0?"var(--red)":"var(--green)"};">${s.due>0?"रु "+fmtN(s.due):"✅"}</td>
+          <td style="color:var(--purple);font-weight:700;">${s.pct.toFixed(1)}%</td>
+          <td><button onclick="openSupplierDrilldown(${s.sid})" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">🔍</button></td>
+        </tr>`).join("")}
+      </table>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="card" style="height:230px;"><div class="card-title">🏆 Top Suppliers — Purchase Amount</div><div style="height:180px;"><canvas id="supAnAmtChart"></canvas></div></div>
+      <div class="card" style="height:230px;"><div class="card-title">🥧 Supplier Purchase Share</div><div style="height:180px;"><canvas id="supAnShareChart"></canvas></div></div>
+      <div class="card" style="height:230px;"><div class="card-title">📈 Purchase Trend Over Time</div><div style="height:180px;"><canvas id="supAnTrendChart"></canvas></div></div>
+      <div class="card" style="height:230px;"><div class="card-title">❌ Payable/Outstanding by Supplier</div><div style="height:180px;"><canvas id="supAnPayableChart"></canvas></div></div>
+    </div>`;
+}
+function buildSupplierAnalysisCharts(){
+  const d=window._lastSupAnData;if(!d||typeof Chart==="undefined")return;
+  Object.keys(_supAnCharts).forEach(k=>{if(_supAnCharts[k]){_supAnCharts[k].destroy();_supAnCharts[k]=null;}});
+  const sorted=_sortSupRows(d.supRows,"amt_high").slice(0,8);
+  const palette=["#f0b429","#1a3060","#16a34a","#dc2626","#7c3aed","#0891b2","#db2777","#65a30d"];
+  const cAmt=document.getElementById("supAnAmtChart");
+  if(cAmt)_supAnCharts.amt=new Chart(cAmt.getContext("2d"),{type:"bar",data:{labels:sorted.map(s=>s.name),datasets:[{label:"Purchase",data:sorted.map(s=>s.total),backgroundColor:"#f0b429"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}}});
+  const cShare=document.getElementById("supAnShareChart");
+  if(cShare)_supAnCharts.share=new Chart(cShare.getContext("2d"),{type:"doughnut",data:{labels:sorted.length?sorted.map(s=>s.name):["Data छैन"],datasets:[{data:sorted.length?sorted.map(s=>s.total):[1],backgroundColor:palette}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{boxWidth:8,font:{size:8}}}}}});
+  const cTrend=document.getElementById("supAnTrendChart");
+  if(cTrend)_supAnCharts.trend=new Chart(cTrend.getContext("2d"),{type:"line",data:{labels:d.trend.map(t=>t.date),datasets:[{label:"Purchase",data:d.trend.map(t=>t.total),borderColor:"#1a3060",backgroundColor:"#1a306033",tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:7}}},y:{ticks:{font:{size:8}}}}}});
+  const cPayable=document.getElementById("supAnPayableChart");
+  const dueSorted=_sortSupRows(d.supRows,"due_high").slice(0,8);
+  if(cPayable)_supAnCharts.payable=new Chart(cPayable.getContext("2d"),{type:"bar",data:{labels:dueSorted.map(s=>s.name),datasets:[{label:"Payable",data:dueSorted.map(s=>s.due),backgroundColor:"#dc2626"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}}});
+}
+function openSupplierDrilldown(sid){
+  const s=suppliers.find(x=>x.id===sid);if(!s)return;
+  window._supDrillSid=sid;window._supDrillCat="All";window._supDrillItem="All";
+  _renderSupplierDrilldownBody();
+}
+function _renderSupplierDrilldownBody(){
+  const sid=window._supDrillSid;const s=suppliers.find(x=>x.id===sid);if(!s)return;
+  const opts={fromYMD:repFromDate,toYMD:repToDate,supplier:sid,cat:window._supDrillCat,item:window._supDrillItem,payStatus:"all",purchType:"all"};
+  const d=_buildSupplierAnalysisData(opts);
+  const catOpts=`<option value="All">सबै Category</option>`+CATS.map(cc=>`<option value="${esc(cc)}"${window._supDrillCat===cc?" selected":""}>${esc(cc)}</option>`).join("");
+  const itemOpts=`<option value="All">सबै Item</option>`+[...new Set(d.rows.map(r=>r.name))].sort().map(n=>`<option value="${esc(n)}"${window._supDrillItem===n?" selected":""}>${esc(n)}</option>`).join("");
+  const rowsSorted=[...d.rows].sort((a,b)=>(a.date>b.date?-1:a.date<b.date?1:0));
+  const html=`
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <select onchange="window._supDrillCat=this.value;_renderSupplierDrilldownBody();" style="flex:1;padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${catOpts}</select>
+      <select onchange="window._supDrillItem=this.value;_renderSupplierDrilldownBody();" style="flex:1;padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${itemOpts}</select>
+    </div>
+    ${repLineBlock(null,[
+      ["🧾","Invoices",d.purch.length,"var(--blue)"],
+      ["💰","Total","रु "+fmtN(d.totalPurchase),"var(--gold)"],
+      ["✅","Paid","रु "+fmtN(d.totalPaid),"var(--green)"],
+      ["❌","Payable","रु "+fmtN(d.totalPayable),"var(--red)"],
+    ])}
+    <div style="font-size:11px;font-weight:700;color:var(--text4);margin:12px 0 6px;text-transform:uppercase;">📦 Item Detail</div>
+    <div style="overflow:auto;max-height:340px;background:#fff;border:1px solid var(--border);border-radius:10px;">
+      <table class="tbl" style="font-size:11px;">
+        <tr><th>मिति</th><th>Invoice#</th><th>Item</th><th>Category</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
+        ${rowsSorted.length===0?`<tr><td colspan="7" style="text-align:center;color:var(--text4);padding:20px;">कुनै record छैन</td></tr>`:
+        rowsSorted.map(r=>`<tr>
+          <td style="font-family:monospace;color:var(--text4);">${r.date}</td>
+          <td style="font-family:monospace;color:var(--text3);">${esc(r.inv)}</td>
+          <td style="font-weight:700;color:var(--text);">${esc(r.name)}</td>
+          <td style="color:var(--text3);">${esc(r.cat)}</td>
+          <td style="text-align:right;">${fmtN(r.qty)} ${esc(r.unit)}</td>
+          <td style="text-align:right;">रु ${fmt(r.rate)}</td>
+          <td style="text-align:right;color:var(--gold);font-weight:700;">रु ${fmt(r.amt)}</td>
+        </tr>`).join("")}
+      </table>
+    </div>`;
+  openFullScreenDetail("🤝 "+s.name+" — Purchase Detail",html);
+}
+function printSupplierAnalysisReport(){
+  const d=window._lastSupAnData||_buildSupplierAnalysisData({fromYMD:repFromDate,toYMD:repToDate,supplier:supAnSupplier,cat:supAnCat,item:supAnItem,payStatus:supAnPayStatus,purchType:supAnPurchType});
+  const sorted=_sortSupRows(d.supRows,supAnSort);
+  const shop=shopInfo||{};
+  const w=window.open("","_blank","width=900,height=700");if(!w)return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Supplier Analysis Report</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1a2e;background:#fff;padding:24px;}
+    .header{text-align:center;margin-bottom:20px;border-bottom:2.5px solid #1565c0;padding-bottom:14px;}
+    .shop-name{font-size:22px;font-weight:900;color:#1565c0;}
+    .report-title{font-size:16px;font-weight:800;color:#b91c1c;margin-top:8px;}
+    .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0;}
+    .sum-card{border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;text-align:center;}
+    .sum-val{font-size:16px;font-weight:900;margin-top:4px;}
+    .sum-lbl{font-size:10px;color:#666;margin-top:2px;}
+    table{width:100%;border-collapse:collapse;margin-top:16px;}
+    th{background:#1565c0;color:#fff;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;}
+    td{padding:7px 10px;border-bottom:1px solid #e5e7eb;font-size:11px;}
+    tr:nth-child(even) td{background:#f8faff;}
+    .total-row td{background:#1565c0!important;color:#fff;font-weight:900;}
+    @media print{body{padding:10px;}@page{size:A4;margin:15mm;}}
+  </style></head><body>
+  <div class="header">
+    <div class="shop-name">⚡ ${shop.name||"NabinPOS"}</div>
+    <div class="report-title">🤝 Supplier Purchase Analysis</div>
+    <div style="font-size:11px;color:#666;margin-top:4px;">Date Range: ${repFromDate||"—"} to ${repToDate||"—"} | Generated: ${new Date().toLocaleString()}</div>
+  </div>
+  <div class="summary-grid">
+    <div class="sum-card"><div class="sum-lbl">Suppliers</div><div class="sum-val" style="color:#1565c0;">${d.supplierCount}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Total Purchase</div><div class="sum-val" style="color:#92400e;">रु ${fmtN(d.totalPurchase)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Paid</div><div class="sum-val" style="color:#166534;">रु ${fmtN(d.totalPaid)}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Payable</div><div class="sum-val" style="color:#b91c1c;">रु ${fmtN(d.totalPayable)}</div></div>
+  </div>
+  <table><thead><tr><th>#</th><th>Supplier</th><th>Invoices</th><th>Items</th><th>Qty</th><th>Total</th><th>Avg</th><th>Paid</th><th>Payable</th><th>%</th></tr></thead>
+  <tbody>
+  ${sorted.map((s,i)=>`<tr><td>${i+1}</td><td style="font-weight:700;">${esc(s.name)}</td><td>${s.invoices}</td><td>${s.items}</td><td>${fmtN(s.qty)}</td><td style="font-weight:700;color:#92400e;">रु ${fmtN(s.total)}</td><td>रु ${fmtN(s.avg)}</td><td style="color:#166534;">रु ${fmtN(s.paid)}</td><td style="color:${s.due>0?'#b91c1c':'#166534'};font-weight:700;">${s.due>0?"रु "+fmtN(s.due):"✅"}</td><td>${s.pct.toFixed(1)}%</td></tr>`).join("")}
+  <tr class="total-row"><td colspan="5">जम्मा</td><td>रु ${fmtN(d.totalPurchase)}</td><td></td><td>रु ${fmtN(d.totalPaid)}</td><td>रु ${fmtN(d.totalPayable)}</td><td></td></tr>
+  </tbody></table>
+  <div style="margin-top:20px;padding-top:10px;border-top:1.5px dashed #ccc;font-size:10px;color:#888;text-align:right;">⚡ NabinPOS v1.0 | Printed: ${new Date().toLocaleString()}</div>
+  <script>setTimeout(()=>window.print(),500);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+function exportSupplierAnalysisExcel(){
+  if(typeof XLSX==="undefined"){toast$("Excel library load हुन सकेन","error");return;}
+  const d=window._lastSupAnData||_buildSupplierAnalysisData({fromYMD:repFromDate,toYMD:repToDate,supplier:supAnSupplier,cat:supAnCat,item:supAnItem,payStatus:supAnPayStatus,purchType:supAnPurchType});
+  const sorted=_sortSupRows(d.supRows,supAnSort);
+  const rankSheet=sorted.map((s,i)=>({"#":i+1,Supplier:s.name,Invoices:s.invoices,Items:s.items,Qty:s.qty,Total:s.total,Avg:+s.avg.toFixed(2),Paid:s.paid,Payable:s.due,"% of Total":+s.pct.toFixed(2)}));
+  const detailSheet=d.rows.map(r=>({Date:r.date,"Invoice#":r.inv,Supplier:r.sname,Item:r.name,Category:r.cat,Qty:r.qty,Rate:r.rate,Amount:r.amt}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rankSheet),"Supplier Ranking");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(detailSheet),"Item Detail");
+  const fname=`SupplierAnalysis_${repFromDate||"all"}_${repToDate||"all"}.xlsx`;
+  XLSX.writeFile(wb,fname);
+  addLog("Export","Supplier Analysis Excel: "+fname);
+  toast$("📊 Excel export भयो ✅");
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// CUSTOMER ANALYSIS — customer-wise purchase & profitability analytics
+// (reuses _buildCustPurchaseData / _customerAggregates defined above)
+// ══════════════════════════════════════════════════════════════════════════
+const CUST_AN_SORT_LABELS={
+  amt_high:"💰 Sales: High→Low", amt_low:"💰 Sales: Low→High",
+  profit_high:"💹 Profit: High→Low", inv_high:"🧾 Invoices: High→Low", name:"🔤 नाम A→Z"
+};
+function _sortCustRows(rows,key){
+  const r=[...rows];
+  if(key==="amt_high")r.sort((a,b)=>b.sales-a.sales);
+  else if(key==="amt_low")r.sort((a,b)=>a.sales-b.sales);
+  else if(key==="profit_high")r.sort((a,b)=>b.profit-a.profit);
+  else if(key==="inv_high")r.sort((a,b)=>b.invoices-a.invoices);
+  else if(key==="name")r.sort((a,b)=>a.name.localeCompare(b.name));
+  return r;
+}
+function openCustAnSortPicker(){
+  const html=`<div style="display:flex;flex-direction:column;gap:10px;">${Object.keys(CUST_AN_SORT_LABELS).map(v=>`
+    <button onclick="custAnSort='${v}';closeFullScreenDetail();renderRepContent();" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px;background:${custAnSort===v?"#fff1f1":"#fff"};border:1.5px solid ${custAnSort===v?"var(--red)":"var(--border)"};border-radius:12px;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;text-align:left;">
+      <span>${CUST_AN_SORT_LABELS[v]}</span>${custAnSort===v?'<span style="color:var(--red);">✓</span>':""}
+    </button>`).join("")}</div>`;
+  openFullScreenDetail("↕️ Sort By",html);
+}
+function _custAnFilterBar(){
+  const catOpts=`<option value="All">सबै Category</option>`+CATS.map(cc=>`<option value="${esc(cc)}"${custAnCat===cc?" selected":""}>${esc(cc)}</option>`).join("");
+  const itemOpts=`<option value="All">सबै Item</option>`+[...new Set(products.map(p=>p.name))].sort().map(n=>`<option value="${esc(n)}"${custAnItem===n?" selected":""}>${esc(n)}</option>`).join("");
+  const custOpts=`<option value="all">सबै Customers (Ranking)</option>`+customers.map(c=>`<option value="${c.id}"${String(custAnCust)===String(c.id)?" selected":""}>${esc(c.name)}</option>`).join("");
+  return `
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:12.5px;font-weight:800;color:var(--blue);margin-bottom:8px;">🔎 Filters</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <select onchange="custAnCust=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${custOpts}</select>
+        <select onchange="custAnCat=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${catOpts}</select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <select onchange="custAnItem=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${itemOpts}</select>
+        <input type="number" step="any" placeholder="Min Amount" value="${custAnAmtMin}" onchange="custAnAmtMin=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;"/>
+        <input type="number" step="any" placeholder="Max Amount" value="${custAnAmtMax}" onchange="custAnAmtMax=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;"/>
+      </div>
+      <button onclick="custAnCust='all';custAnCat='All';custAnItem='All';custAnAmtMin='';custAnAmtMax='';renderRepContent();" style="margin-top:8px;width:100%;padding:7px;background:#fef3c7;border:1px solid var(--gold);color:var(--gold);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">↺ Reset Filters</button>
+    </div>`;
+}
+function renderCustomerAnalysisHTML(){
+  const baseOpts={fromYMD:repFromDate,toYMD:repToDate,cat:custAnCat,item:custAnItem,amtMin:custAnAmtMin,amtMax:custAnAmtMax};
+  if(custAnCust==="all"){
+    const rows=_customerAggregates(baseOpts);
+    const sorted=_sortCustRows(rows,custAnSort);
+    const totalSales=rows.reduce((s,r)=>s+r.sales,0);
+    const totalCost=rows.reduce((s,r)=>s+r.cost,0);
+    const totalProfit=rows.reduce((s,r)=>s+r.profit,0);
+    const marginPct=totalSales>0?(totalProfit/totalSales*100):0;
+    const topCustomer=sorted.length?sorted[0].name:"—";
+    window._lastCustAnData={mode:"all",rows:sorted,totalSales,totalCost,totalProfit,marginPct,topCustomer,baseOpts};
+    return `
+      ${_custAnFilterBar()}
+      ${repLineBlock("💹 Customer Summary (सबै ग्राहक)",[
+        ["🧾","Total Sales","रु "+fmtN(totalSales),"var(--gold)"],
+        ["📦","Total Cost","रु "+fmtN(totalCost),"var(--text3)"],
+        ["💹","Gross Profit","रु "+fmtN(totalProfit),totalProfit>=0?"var(--green)":"var(--red)"],
+        ["📊","Gross Margin %",marginPct.toFixed(1)+"%","var(--purple)"],
+        ["🏆","Top Customer",topCustomer,"var(--blue)"],
+      ])}
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin:14px 0;">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <button onclick="openCustAnSortPicker()" style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:11px;font-weight:700;cursor:pointer;">
+            <span>${CUST_AN_SORT_LABELS[custAnSort]||"Sort गर्नुस्"}</span><span style="color:var(--text4);">▾</span>
+          </button>
+          <button onclick="printCustomerAnalysisReport()" style="padding:6px 12px;background:#dbeafe;border:1px solid var(--blue);color:var(--blue);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📄 PDF</button>
+          <button onclick="exportCustomerAnalysisExcel()" style="padding:6px 12px;background:#dcfce7;border:1px solid var(--green);color:var(--green);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">📊 Excel</button>
+        </div>
+      </div>
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:auto;margin-bottom:14px;">
+        <table class="tbl" style="font-size:11.5px;">
+          <tr style="background:var(--bg4);"><th>#</th><th>Customer</th><th>Invoices</th><th>Qty</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Margin%</th><th>Avg Inv.</th><th>Detail</th></tr>
+          ${sorted.length===0?`<tr><td colspan="10" style="text-align:center;color:var(--text4);padding:24px;">यो फिल्टरमा कुनै खरिद छैन</td></tr>`:
+          sorted.map((c,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"#fff"};">
+            <td style="color:var(--text4);font-weight:700;">${i+1}</td>
+            <td style="font-weight:700;color:var(--text);">${esc(c.name)}</td>
+            <td style="color:var(--blue);font-weight:700;">${c.invoices}</td>
+            <td style="color:var(--text3);">${fmtN(c.qty)}</td>
+            <td style="color:var(--gold);font-weight:800;">रु ${fmtN(c.sales)}</td>
+            <td style="color:var(--text3);">रु ${fmtN(c.cost)}</td>
+            <td style="font-weight:800;color:${c.profit>=0?"var(--green)":"var(--red)"};">रु ${fmtN(c.profit)}</td>
+            <td style="color:var(--purple);font-weight:700;">${c.marginPct.toFixed(1)}%</td>
+            <td style="color:var(--text3);">रु ${fmtN(c.avgInvoice)}</td>
+            <td><button onclick="custAnCust=${c.id};renderRepContent();" style="background:#dbeafe;border:1px solid var(--blue);color:var(--blue);padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">🔍</button></td>
+          </tr>`).join("")}
+        </table>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="card" style="height:230px;"><div class="card-title">🏆 Top Customers by Sales</div><div style="height:180px;"><canvas id="custAnTopChart"></canvas></div></div>
+        <div class="card" style="height:230px;"><div class="card-title">📊 Sales vs Cost vs Profit</div><div style="height:180px;"><canvas id="custAnCompareChart"></canvas></div></div>
+      </div>`;
+  }
+  // ── Specific customer deep-dive ──
+  const cu=customers.find(x=>x.id===parseInt(custAnCust));
+  if(!cu){custAnCust="all";return renderCustomerAnalysisHTML();}
+  const d=_buildCustPurchaseData(cu.id,baseOpts);
+  window._lastCustAnData={mode:"single",custId:cu.id,cust:cu,d,baseOpts};
+  return `
+    ${_custAnFilterBar()}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <button onclick="custAnCust='all';renderRepContent();" class="btn btn-ghost" style="padding:6px 12px;font-size:11px;">← सबै Customers</button>
+      <div style="font-size:14px;font-weight:900;color:var(--text);">👤 ${esc(cu.name)} ${cu.code?`<span style="color:var(--text4);font-weight:600;font-size:11px;">(${esc(cu.code)})</span>`:""}</div>
+    </div>
+    ${repLineBlock("💹 Profitability",[
+      ["🧾","Invoices",d.billsCount,"var(--blue)"],
+      ["📦","Qty",fmtN(d.grossQty),"var(--text3)"],
+      ["💰","Net Sales","रु "+fmtN(d.netTotal),"var(--gold)"],
+      ["🏷️","Total Cost","रु "+fmtN(d.netCost),"var(--text3)"],
+      ["💹","Gross Profit","रु "+fmtN(d.netMargin),d.netMargin>=0?"var(--green)":"var(--red)"],
+      ["📊","Gross Margin %",d.marginPct.toFixed(1)+"%","var(--purple)"],
+      ["📄","Avg Invoice Value","रु "+fmtN(d.avgInvoice),"var(--blue)"],
+    ])}
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin:14px 0;">
+      <button onclick="openCustPurchaseReportFor(${cu.id})" style="padding:8px 14px;background:#dbeafe;border:1px solid var(--blue);color:var(--blue);border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;">📄 Export PDF / Excel (Category / Item / Amount / Date / Complete)</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="card" style="overflow:auto;max-height:260px;"><div class="card-title">📂 Top Categories</div>
+        <table class="tbl" style="font-size:11px;"><tr><th>Category</th><th>Qty</th><th>Sales</th><th>Profit</th></tr>
+        ${d.byCat.slice(0,8).map(g=>`<tr><td style="font-weight:700;">${esc(g.name)}</td><td>${fmtN(g.qty)}</td><td style="color:var(--gold);font-weight:700;">रु ${fmtN(g.amt)}</td><td style="color:${g.margin>=0?"var(--green)":"var(--red)"};font-weight:700;">रु ${fmtN(g.margin)}</td></tr>`).join("")||`<tr><td colspan="4" style="text-align:center;color:var(--text4);padding:14px;">Data छैन</td></tr>`}
+        </table>
+      </div>
+      <div class="card" style="overflow:auto;max-height:260px;"><div class="card-title">📦 Top Items</div>
+        <table class="tbl" style="font-size:11px;"><tr><th>Item</th><th>Qty</th><th>Sales</th><th>Profit</th></tr>
+        ${d.byItem.slice(0,8).map(g=>`<tr><td style="font-weight:700;">${esc(g.name)}</td><td>${fmtN(g.qty)}</td><td style="color:var(--gold);font-weight:700;">रु ${fmtN(g.amt)}</td><td style="color:${g.margin>=0?"var(--green)":"var(--red)"};font-weight:700;">रु ${fmtN(g.margin)}</td></tr>`).join("")||`<tr><td colspan="4" style="text-align:center;color:var(--text4);padding:14px;">Data छैन</td></tr>`}
+        </table>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="card" style="height:230px;"><div class="card-title">📈 Spending Over Time</div><div style="height:180px;"><canvas id="custAnSpendChart"></canvas></div></div>
+      <div class="card" style="height:230px;"><div class="card-title">📊 Sales vs Cost vs Profit</div><div style="height:180px;"><canvas id="custAnCompareChart"></canvas></div></div>
+      <div class="card" style="height:230px;"><div class="card-title">📂 Top Categories (Chart)</div><div style="height:180px;"><canvas id="custAnCatChart"></canvas></div></div>
+      <div class="card" style="height:230px;"><div class="card-title">📦 Top Items (Chart)</div><div style="height:180px;"><canvas id="custAnItemChart"></canvas></div></div>
+    </div>`;
+}
+function openCustPurchaseReportFor(custId){
+  activeCustId=custId;
+  openCustPurchaseReport();
+}
+function buildCustomerAnalysisCharts(){
+  const s=window._lastCustAnData;if(!s||typeof Chart==="undefined")return;
+  Object.keys(_custAnCharts).forEach(k=>{if(_custAnCharts[k]){_custAnCharts[k].destroy();_custAnCharts[k]=null;}});
+  const palette=["#f0b429","#1a3060","#16a34a","#dc2626","#7c3aed","#0891b2","#db2777","#65a30d"];
+  if(s.mode==="all"){
+    const top=s.rows.slice(0,8);
+    const cTop=document.getElementById("custAnTopChart");
+    if(cTop)_custAnCharts.spend=new Chart(cTop.getContext("2d"),{type:"bar",data:{labels:top.map(r=>r.name),datasets:[{label:"Sales",data:top.map(r=>r.sales),backgroundColor:"#f0b429"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}}});
+    const cCmp=document.getElementById("custAnCompareChart");
+    if(cCmp)_custAnCharts.compare=new Chart(cCmp.getContext("2d"),{type:"bar",data:{labels:["Sales","Cost","Profit"],datasets:[{label:"Amount",data:[s.totalSales,s.totalCost,s.totalProfit],backgroundColor:["#1a3060","#dc2626","#16a34a"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:8}}}}}});
+    return;
+  }
+  const d=s.d;
+  const cSpend=document.getElementById("custAnSpendChart");
+  if(cSpend)_custAnCharts.spend=new Chart(cSpend.getContext("2d"),{type:"line",data:{labels:d.byDate.map(g=>g.name).sort((a,b)=>toYMD(a).localeCompare(toYMD(b))),datasets:[{label:"Sales",data:d.byDate.slice().sort((a,b)=>toYMD(a.name).localeCompare(toYMD(b.name))).map(g=>g.amt),borderColor:"#1a3060",backgroundColor:"#1a306033",tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:7}}},y:{ticks:{font:{size:8}}}}}});
+  const cCmp=document.getElementById("custAnCompareChart");
+  if(cCmp)_custAnCharts.compare=new Chart(cCmp.getContext("2d"),{type:"bar",data:{labels:["Sales","Cost","Profit"],datasets:[{label:"Amount",data:[d.netTotal,d.netCost,d.netMargin],backgroundColor:["#1a3060","#dc2626","#16a34a"]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:8}}}}}});
+  const cCat=document.getElementById("custAnCatChart");
+  const topCat=d.byCat.slice(0,6);
+  if(cCat)_custAnCharts.cat=new Chart(cCat.getContext("2d"),{type:"bar",data:{labels:topCat.map(g=>g.name),datasets:[{label:"Sales",data:topCat.map(g=>g.amt),backgroundColor:palette}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}}});
+  const cItem=document.getElementById("custAnItemChart");
+  const topItem=d.byItem.slice(0,6);
+  if(cItem)_custAnCharts.item=new Chart(cItem.getContext("2d"),{type:"bar",data:{labels:topItem.map(g=>g.name),datasets:[{label:"Sales",data:topItem.map(g=>g.amt),backgroundColor:palette}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}}});
+}
+function printCustomerAnalysisReport(){
+  const s=window._lastCustAnData;if(!s)return;
+  const shop=shopInfo||{};
+  const w=window.open("","_blank","width=900,height=700");if(!w)return;
+  let bodyHtml="";
+  if(s.mode==="all"){
+    bodyHtml=`
+    <div class="report-title">💹 Customer Purchase & Profitability — सबै ग्राहक</div>
+    <div style="font-size:11px;color:#666;margin-top:4px;">Date Range: ${repFromDate||"—"} to ${repToDate||"—"} | Generated: ${new Date().toLocaleString()}</div>
+    </div>
+    <div class="summary-grid">
+      <div class="sum-card"><div class="sum-lbl">Total Sales</div><div class="sum-val" style="color:#92400e;">रु ${fmtN(s.totalSales)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">Total Cost</div><div class="sum-val" style="color:#555;">रु ${fmtN(s.totalCost)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">Gross Profit</div><div class="sum-val" style="color:${s.totalProfit>=0?'#166534':'#b91c1c'};">रु ${fmtN(s.totalProfit)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">Margin %</div><div class="sum-val" style="color:#6d28d9;">${s.marginPct.toFixed(1)}%</div></div>
+    </div>
+    <table><thead><tr><th>#</th><th>Customer</th><th>Invoices</th><th>Qty</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Margin%</th></tr></thead>
+    <tbody>${s.rows.map((c,i)=>`<tr><td>${i+1}</td><td style="font-weight:700;">${esc(c.name)}</td><td>${c.invoices}</td><td>${fmtN(c.qty)}</td><td style="font-weight:700;color:#92400e;">रु ${fmtN(c.sales)}</td><td>रु ${fmtN(c.cost)}</td><td style="font-weight:700;color:${c.profit>=0?'#166534':'#b91c1c'};">रु ${fmtN(c.profit)}</td><td>${c.marginPct.toFixed(1)}%</td></tr>`).join("")}
+    <tr class="total-row"><td colspan="4">जम्मा</td><td>रु ${fmtN(s.totalSales)}</td><td>रु ${fmtN(s.totalCost)}</td><td>रु ${fmtN(s.totalProfit)}</td><td>${s.marginPct.toFixed(1)}%</td></tr>
+    </tbody></table>`;
+  } else {
+    const d=s.d,cu=s.cust;
+    bodyHtml=`
+    <div class="report-title">💹 Customer Profitability — ${esc(cu.name)}</div>
+    <div style="font-size:11px;color:#666;margin-top:4px;">Date Range: ${repFromDate||"—"} to ${repToDate||"—"} | Generated: ${new Date().toLocaleString()}</div>
+    </div>
+    <div class="summary-grid">
+      <div class="sum-card"><div class="sum-lbl">Net Sales</div><div class="sum-val" style="color:#92400e;">रु ${fmtN(d.netTotal)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">Total Cost</div><div class="sum-val" style="color:#555;">रु ${fmtN(d.netCost)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">Gross Profit</div><div class="sum-val" style="color:${d.netMargin>=0?'#166534':'#b91c1c'};">रु ${fmtN(d.netMargin)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">Margin %</div><div class="sum-val" style="color:#6d28d9;">${d.marginPct.toFixed(1)}%</div></div>
+    </div>
+    <table><thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Margin%</th></tr></thead>
+    <tbody>${d.byItem.map((g,i)=>`<tr><td>${i+1}</td><td style="font-weight:700;">${esc(g.name)}</td><td>${fmtN(g.qty)}</td><td style="font-weight:700;color:#92400e;">रु ${fmtN(g.amt)}</td><td>रु ${fmtN(g.cost)}</td><td style="font-weight:700;color:${g.margin>=0?'#166534':'#b91c1c'};">रु ${fmtN(g.margin)}</td><td>${g.marginPct.toFixed(1)}%</td></tr>`).join("")}
+    <tr class="total-row"><td colspan="3">जम्मा</td><td>रु ${fmtN(d.netTotal)}</td><td>रु ${fmtN(d.netCost)}</td><td>रु ${fmtN(d.netMargin)}</td><td>${d.marginPct.toFixed(1)}%</td></tr>
+    </tbody></table>`;
+  }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Customer Analysis</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1a2e;background:#fff;padding:24px;}
+    .header{text-align:center;margin-bottom:20px;border-bottom:2.5px solid #1565c0;padding-bottom:14px;}
+    .shop-name{font-size:22px;font-weight:900;color:#1565c0;}
+    .report-title{font-size:16px;font-weight:800;color:#b91c1c;margin-top:8px;}
+    .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0;}
+    .sum-card{border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;text-align:center;}
+    .sum-val{font-size:16px;font-weight:900;margin-top:4px;}
+    .sum-lbl{font-size:10px;color:#666;margin-top:2px;}
+    table{width:100%;border-collapse:collapse;margin-top:16px;}
+    th{background:#1565c0;color:#fff;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;}
+    td{padding:7px 10px;border-bottom:1px solid #e5e7eb;font-size:11px;}
+    tr:nth-child(even) td{background:#f8faff;}
+    .total-row td{background:#1565c0!important;color:#fff;font-weight:900;}
+    @media print{body{padding:10px;}@page{size:A4;margin:15mm;}}
+  </style></head><body>
+  <div class="header"><div class="shop-name">⚡ ${shop.name||"NabinPOS"}</div>${bodyHtml}
+  <div style="margin-top:20px;padding-top:10px;border-top:1.5px dashed #ccc;font-size:10px;color:#888;text-align:right;">⚡ NabinPOS v1.0 | Printed: ${new Date().toLocaleString()}</div>
+  <script>setTimeout(()=>window.print(),500);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+function exportCustomerAnalysisExcel(){
+  if(typeof XLSX==="undefined"){toast$("Excel library load हुन सकेन","error");return;}
+  const s=window._lastCustAnData;if(!s)return;
+  const wb=XLSX.utils.book_new();
+  if(s.mode==="all"){
+    const sheet=s.rows.map((c,i)=>({"#":i+1,Customer:c.name,Invoices:c.invoices,Qty:c.qty,Sales:c.sales,Cost:c.cost,Profit:c.profit,"Margin %":+c.marginPct.toFixed(2)}));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sheet),"Customer Ranking");
+  }else{
+    const d=s.d;
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.rows.map(r=>({Date:r.date,"Bill#":r.billNo,Item:r.name,Category:r.cat,Qty:r.qty,"Selling Price":r.rate,"Cost Rate":r.buyRate,"Sales Amount":r.amt,"Cost Amount":r.cost,Profit:r.margin,"Margin %":+r.marginPct.toFixed(2)}))),"Item Detail");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.byCat.map(g=>({Category:g.name,Qty:g.qty,Sales:g.amt,Cost:g.cost,Profit:g.margin,"Margin %":+g.marginPct.toFixed(2)}))),"By Category");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.byItem.map(g=>({Item:g.name,Qty:g.qty,Sales:g.amt,Cost:g.cost,Profit:g.margin,"Margin %":+g.marginPct.toFixed(2)}))),"By Item");
+  }
+  const fname=`CustomerAnalysis_${repFromDate||"all"}_${repToDate||"all"}.xlsx`;
+  XLSX.writeFile(wb,fname);
+  addLog("Export","Customer Analysis Excel: "+fname);
+  toast$("📊 Excel export भयो ✅");
 }
 
 const CREDIT_SORT_LABELS={
@@ -8869,6 +10020,128 @@ function printVaultSuppVoucher(ledgerId){
   <div class="c np" style="margin-top:10px;"><button onclick="window.print()">🖨️ Print</button></div>
   </body></html>`);
   w.document.close();setTimeout(()=>w.print(),400);
+}
+
+// ══════════════════════════════════════════════════
+// BULK PRODUCT IMPORT (CSV) — धेरै product एकैचोटि थप्न
+// ══════════════════════════════════════════════════
+function showBulkImportModal(){
+  openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">📥 Bulk Import — Products</h3><button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button></div>
+  <div style="background:#f0fdf4;border:1.5px solid var(--green);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--text3);line-height:1.6;">
+    <b>तरिका:</b><br/>
+    1️⃣ तल "Template Download" थिचेर CSV file download गर्नुस्<br/>
+    2️⃣ त्यो file Excel/Google Sheets मा खोलेर आफ्नो सबै product भर्नुस् (हरेक row = 1 product)<br/>
+    3️⃣ फेरि यहाँ आएर त्यही भरिएको CSV file upload गर्नुस्<br/>
+    4️⃣ Preview हेरेर "Import All" थिच्नुस्
+  </div>
+  <button class="btn btn-blue" style="width:100%;padding:11px;margin-bottom:10px;font-size:13px;" onclick="downloadBulkImportTemplate()">📄 Template Download (CSV)</button>
+  <div class="field"><label>Filled CSV File छान्नुस्</label><input type="file" id="bulkImportFile" accept=".csv" onchange="handleBulkImportFile(event)" style="width:100%;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:8px;"/></div>
+  <div id="bulkImportPreview"></div>`,460);
+}
+function downloadBulkImportTemplate(){
+  const header="Name,Category,Unit,BuyPrice,SalePrice,Stock,Barcode,LowStockAlert";
+  const example="उदाहरण: वाइवाइ नूडल्स,किराना,pcs,18,22,50,,10";
+  const csv=header+"\n"+example+"\n";
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="NabinPOS_Product_Template.csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast$("📄 Template download भयो — Excel/Sheets मा खोलेर भर्नुस्");
+}
+// Simple CSV parser — quoted comma भएको field पनि सही handle गर्छ
+function _parseCSV(text){
+  const rows=[];let row=[],field="",inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQuotes){
+      if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else{inQuotes=false;}}
+      else field+=c;
+    }else{
+      if(c==='"')inQuotes=true;
+      else if(c===','){row.push(field);field="";}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);rows.push(row);row=[];field="";}
+      else field+=c;
+    }
+  }
+  if(field.length||row.length){row.push(field);rows.push(row);}
+  return rows.filter(r=>r.some(c=>c.trim()!==""));
+}
+let _bulkImportRows=[];
+function handleBulkImportFile(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result.replace(/^\uFEFF/,"");
+    const rows=_parseCSV(text);
+    if(rows.length<2){toast$("File खाली छ वा data भेटिएन","error");return;}
+    const header=rows[0].map(h=>h.trim().toLowerCase());
+    const idx={name:header.indexOf("name"),cat:header.indexOf("category"),unit:header.indexOf("unit"),buy:header.indexOf("buyprice"),sale:header.indexOf("saleprice"),stock:header.indexOf("stock"),bc:header.indexOf("barcode"),low:header.indexOf("lowstockalert")};
+    if(idx.name===-1||idx.sale===-1){toast$("❌ 'Name' र 'SalePrice' column भेटिएन — Template मिलेको छैन","error");return;}
+    _bulkImportRows=[];const errors=[];
+    const existingNames=new Set(products.map(p=>p.name.trim().toLowerCase()));
+    const seenInFile=new Set();
+    let dupCount=0;
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      const name=(r[idx.name]||"").trim();
+      const salePrice=parseFloat(r[idx.sale]);
+      if(!name||name.toLowerCase().includes("उदाहरण")){continue;}
+      if(!salePrice||salePrice<=0){errors.push(`Row ${i+1}: "${name}" — Sale Price गलत/खाली`);continue;}
+      const nameKey=name.toLowerCase();
+      // ⚠️ Duplicate check — Inventory मा पहिले नै भएको, वा यही file भित्रै दोहोरिएको नाम
+      const isDup=existingNames.has(nameKey)||seenInFile.has(nameKey);
+      if(isDup)dupCount++;
+      seenInFile.add(nameKey);
+      _bulkImportRows.push({
+        name,
+        cat:(idx.cat>-1?(r[idx.cat]||"").trim():"")||"अन्य",
+        unit:(idx.unit>-1?(r[idx.unit]||"").trim():"")||"pcs",
+        buy:idx.buy>-1?(parseFloat(r[idx.buy])||0):0,
+        price:salePrice,
+        stock:idx.stock>-1?(parseFloat(r[idx.stock])||0):0,
+        bc:idx.bc>-1?(r[idx.bc]||"").trim():"",
+        low:idx.low>-1?(parseFloat(r[idx.low])||0):0,
+        isDup,
+        skip:isDup, // default: duplicate भेटिए skip हुने गरी tick-off (चाहेमा checkbox ले फेरि include गर्न मिल्छ)
+      });
+    }
+    const prev=document.getElementById("bulkImportPreview");
+    prev.innerHTML=`
+      <div style="margin-top:12px;padding:10px;background:${_bulkImportRows.length?"#f0fdf4":"#fee2e2"};border-radius:8px;font-size:12px;">
+        <b>✅ ${_bulkImportRows.length} product भेटियो</b>
+        ${dupCount?`<div style="color:#b45309;margin-top:6px;">⚠️ ${dupCount} वटा Inventory मा पहिले नै भएको/file भित्रै दोहोरिएको नाम — default रूपमा skip हुनेछ (तल checkbox ले चाहे include गर्न सकिन्छ)</div>`:""}
+        ${errors.length?`<div style="color:var(--red);margin-top:6px;">⚠️ ${errors.length} row skip भयो:<br/>${errors.slice(0,5).map(e=>esc(e)).join("<br/>")}${errors.length>5?"<br/>...":""}</div>`:""}
+      </div>
+      <div style="max-height:220px;overflow:auto;margin-top:8px;border:1px solid var(--border);border-radius:8px;">
+        <table class="tbl"><tbody><tr><th></th><th>Name</th><th>Cat</th><th>Buy</th><th>Sale</th><th>Stock</th></tr>
+        ${_bulkImportRows.map((p,i)=>`<tr style="${p.isDup?"background:#fff7ed;":""}">
+          <td><input type="checkbox" ${p.skip?"":"checked"} onchange="_bulkImportRows[${i}].skip=!this.checked;" style="width:15px;height:15px;"/></td>
+          <td style="font-size:11px;${p.isDup?"color:#b45309;font-weight:700;":""}">${esc(p.name)}${p.isDup?" ⚠️":""}</td>
+          <td style="font-size:11px;">${esc(p.cat)}</td><td style="font-size:11px;">रु${fmtN(p.buy)}</td><td style="font-size:11px;">रु${fmtN(p.price)}</td><td style="font-size:11px;">${fmtN(p.stock)}</td>
+        </tr>`).join("")}
+        </tbody></table>
+      </div>
+      ${_bulkImportRows.length?`<button class="btn btn-gold" style="width:100%;padding:12px;margin-top:12px;font-size:14px;" onclick="confirmBulkImport()">✅ Import गर्नुस् (Tick भएका मात्र)</button>`:""}
+    `;
+  };
+  reader.readAsText(file,"UTF-8");
+}
+function confirmBulkImport(){
+  if(!_bulkImportRows.length)return;
+  const toImport=_bulkImportRows.filter(p=>!p.skip);
+  if(!toImport.length){toast$("कुनै पनि product tick गरिएको छैन!","error");return;}
+  if(!confirm(toImport.length+" वटा नयाँ product थप्ने? (पछि हटाउन/edit गर्न सकिन्छ)"))return;
+  let added=0;
+  toImport.forEach((p,i)=>{
+    if(p.cat&&!CATS.includes(p.cat))CATS.push(p.cat);
+    products.push({
+      id:Date.now()+i,name:p.name,cat:p.cat,subcats:[],price:p.price,buy:p.buy,stock:p.stock,unit:p.unit,
+      bc:p.bc,vat:0,low:p.low,expiry:"",mfg:"",shelfDur:0,shelfUnit:"months",pkgQty:0,weight:"",batchNo:"",
+      suppId:null,suppIds:[],pricing:[{label:"1 "+p.unit,qty:1,unit:p.unit,price:p.price}]
+    });
+    added++;
+  });
+  addLog("Bulk Import",added+" products थपियो");
+  saveDB();closeModal();toast$("✅ "+added+" product थपियो!");renderInventory("",invCatF);
 }
 
 // ══════════════════════════════════════════════════
@@ -10275,7 +11548,7 @@ function showAddStaffForm(){
     <div class="g2">
       <div class="field"><label>Full Name *</label><input id="ns_name" placeholder="Staff नाम"/></div>
       <div class="field"><label>Username *</label><input id="ns_un" placeholder="username" autocapitalize="off" autocorrect="off" spellcheck="false"/></div>
-      <div class="field"><label>Password *</label><input type="password" autocomplete="new-password" id="ns_pw" placeholder="password"/></div>
+      <div class="field"><label>Password *</label><input type="password" autocomplete="new-password" id="ns_pw" placeholder="password"/><div style="font-size:10px;color:var(--text4);margin-top:2px;">कम्तीमा 12 अक्षर + 1 ठूलो अक्षर + 1 number + 1 special character</div></div>
       <div class="field"><label>Mobile Number *</label><input id="ns_phone" placeholder="98XXXXXXXX" inputmode="tel" maxlength="10"/></div>
       <div class="field"><label>Email Address *</label><input id="ns_email" type="email" placeholder="staff@email.com" autocapitalize="off" autocorrect="off" spellcheck="false"/></div>
       <div class="field"><label>ID Card No. (Citizenship/ID)</label><input id="ns_idcard" placeholder="जस्तै: 12-34-56-78901"/></div>
@@ -10317,7 +11590,8 @@ async function saveNewStaff(){
   const color=(document.getElementById("ns_color")||{}).value||"#4ade80";
   const resEl=document.getElementById("nsResult");
   const showErr=(msg)=>{if(resEl)resEl.innerHTML=`<div style="font-size:12px;color:var(--red);background:#fee2e2;border:1.5px solid #fca5a5;border-radius:8px;padding:9px 12px;font-weight:700;">❌ ${esc(msg)}</div>`;toast$("❌ "+msg,"error");};
-  if(!name||!un||pw.length<4){showErr("Name, Username र Password (4+ chars) भर्नुस्!");return;}
+  if(!name||!un){showErr("Name र Username भर्नुस्!");return;}
+  if(!isStrongPassword(pw)){showErr(PW_RULE_MSG);return;}
   if(!isValidPhone(phone)){showErr("Mobile Number सही (10 digit) भर्नुस् — Password Reset को लागि आवश्यक छ!");return;}
   if(!isValidEmail(email)){showErr("Email Address सही भर्नुस् — Password Reset को लागि आवश्यक छ!");return;}
   if(USERS.find(x=>x.un===un)){showErr("Username already exists!");return;}
@@ -10367,7 +11641,7 @@ async function toggleStaffActive(uid){
 async function changeStaffPW(uid){
   const u=USERS.find(x=>x.id===uid);if(!u)return;
   const np=prompt("@"+u.un+" को नयाँ Password:");
-  if(!np||!isStrongPassword(np)){if(np)toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}
+  if(!np||!isStrongPassword(np)){if(np)toast$(PW_RULE_MSG,"error");return;}
   const{salt,hash}=await hashPassword(np);
   u.salt=salt;u.pwHash=hash;delete u.pw;
   localStorage.setItem("nabin_users",JSON.stringify(USERS));
@@ -11321,10 +12595,10 @@ function openStaffManager(){
   renderStaffList();
 }
 function renderStaffList(){const el=document.getElementById("staffList");if(!el)return;const RC={admin:"#f0b429",staff:"#4ade80",cashier:"#60b4ff"};el.innerHTML=USERS.map(u=>`<div style="background:#fff;border:1.5px solid ${u.id===currentUser.id?"var(--blue)":"var(--border)"};border-radius:12px;padding:14px;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:36px;height:36px;border-radius:50%;background:${RC[u.role]}18;border:2px solid ${RC[u.role]};color:${RC[u.role]};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">${u.av}</div><div style="flex:1;"><div style="font-weight:700;color:var(--text);">${esc(u.name)}</div><div style="font-size:11px;color:var(--text4);">@${u.un} · <span style="color:${RC[u.role]};font-weight:700;">${u.role}</span></div></div><button onclick="editStaffPW(${u.id})" style="background:#fef3c7;border:1.5px solid var(--gold);color:var(--gold);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">🔑 Password</button></div>${u.role!=="admin"?`<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;">Access:</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${Object.keys(PERMS.staff).map(mod=>`<label style="display:flex;align-items:center;gap:4px;background:${PERMS[u.role]?.[mod]?"#dcfce7":"#fee2e2"};border:1px solid ${PERMS[u.role]?.[mod]?"#86efac":"#fca5a5"};padding:4px 9px;border-radius:18px;cursor:pointer;font-size:10px;font-weight:600;"><input type="checkbox" ${PERMS[u.role]?.[mod]?"checked":""} onchange="togglePerm('${u.role}','${mod}',this.checked)" style="accent-color:var(--green);cursor:pointer;"/>${mod}</label>`).join("")}</div>`:"<div style='font-size:11px;color:var(--text4);'>Admin — Full Access</div>"}</div>`).join("");}
-function editStaffPW(uid){const u=USERS.find(x=>x.id===uid);if(!u)return;openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔑 ${esc(u.name)} Password</h3><button onclick="closeModal();openStaffManager();" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">←</button></div><div style="background:#f0f7ff;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text3);">Username: <strong>@${u.un}</strong></div><div class="field"><label>New Password *</label><input type="password" autocomplete="new-password" id="npw1" placeholder="New password..."/></div><div class="field"><label>Confirm *</label><input type="password" autocomplete="new-password" id="npw2" placeholder="Repeat..."/></div><div class="field"><label>WhatsApp Number (optional)</label><input id="npw_phone" value="${esc(u.phone||"")}" placeholder="98XXXXXXXX" inputmode="tel"/></div><button onclick="saveStaffPW(${uid})" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Update</button>`,420);}
+function editStaffPW(uid){const u=USERS.find(x=>x.id===uid);if(!u)return;openModal(`<div style="display:flex;justify-content:space-between;margin-bottom:14px;"><h3 style="margin:0;color:var(--text);">🔑 ${esc(u.name)} Password</h3><button onclick="closeModal();openStaffManager();" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">←</button></div><div style="background:#f0f7ff;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text3);">Username: <strong>@${u.un}</strong></div><div class="field"><label>New Password *</label><input type="password" autocomplete="new-password" id="npw1" placeholder="New password..."/><div style="font-size:10px;color:var(--text4);margin-top:2px;">कम्तीमा 12 अक्षर + 1 ठूलो अक्षर + 1 number + 1 special character</div></div><div class="field"><label>Confirm *</label><input type="password" autocomplete="new-password" id="npw2" placeholder="Repeat..."/></div><div class="field"><label>WhatsApp Number (optional)</label><input id="npw_phone" value="${esc(u.phone||"")}" placeholder="98XXXXXXXX" inputmode="tel"/></div><button onclick="saveStaffPW(${uid})" class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;">✅ Update</button>`,420);}
 async function saveStaffPW(uid){
   const pw1=document.getElementById("npw1")?.value||"",pw2=document.getElementById("npw2")?.value||"";
-  if(!isStrongPassword(pw1)){toast$("कम्तीमा 6 अक्षर + 1 letter + 1 number चाहिन्छ!","error");return;}
+  if(!isStrongPassword(pw1)){toast$(PW_RULE_MSG,"error");return;}
   if(pw1!==pw2){toast$("Match भएन!","error");return;}
   const u=USERS.find(x=>x.id===uid);if(!u)return;
   const phone=(document.getElementById("npw_phone")?.value||"").trim().replace(/[^0-9]/g,"");
@@ -11524,7 +12798,7 @@ function saveRP(custId,due){
   openCustDetail(cust.id);
 }
 
-function printLastBill(){const b=window._lastBill;if(!b)return;const copyNum=getPrintCopyNum(b.billNo);const copyTag=copyNum>1?`<div class="c" style="border:1.5px solid #000;padding:3px;margin:4px 0;font-weight:bold;">🖨️ REPRINT — Copy #${copyNum}</div>`:`<div class="c" style="font-size:10px;color:#555;margin:2px 0;">Copy #1 (Original)</div>`;const w=window.open("","_blank","width=320,height=650");if(!w)return;w.document.write(`<!DOCTYPE html><html><head><title>Bill</title><style>*{margin:0;padding:0;font-family:'Courier New',monospace;font-size:12px;}body{width:280px;padding:10px;}.r{display:flex;justify-content:space-between;margin:3px 0;}.c{text-align:center;}@media print{.np{display:none;}}</style></head><body><h2 class="c">⚡ ${shopInfo?.name||"NabinPOS"}</h2><div class="c">${shopInfo?.addr||""}</div><div class="c">📞 ${shopInfo?.contact||""}</div><hr style="border:1px dashed #000;margin:5px 0;"/><div class="r"><span>Bill: ${esc(b.billNo)}</span><span>${b.date}</span></div><div class="r"><span>${b.cust}</span><span>${b.cashier}</span></div>${copyTag}<hr style="border:1px dashed #000;margin:5px 0;"/>${b.items.map(i=>`<div class="r"><span>${esc(i.name)} ×${i.qty}</span><span>रु ${fmtN(i.price*i.qty)}</span></div>`).join("")}<hr style="border:1px dashed #000;margin:5px 0;"/>${(b.discount||0)>0?`<div class="r"><span>Subtotal</span><span>रु ${fmt((b.subtotal||b.total)+(b.discount||0)-(b.vatAmt||0))}</span></div><div class="r" style="color:green;font-weight:bold;"><span>🎁 Discount</span><span>-रु ${fmt(b.discount)}</span></div>`:""}<div class="r" style="font-weight:bold;font-size:14px;"><span>TOTAL</span><span>रु ${fmt(b.total)}</span></div>${(b.cashRec||0)>0?`<div class="r"><span>Cash</span><span>रु ${fmt(b.cashRec)}</span></div><div class="r"><span>🔙 Change</span><span>रु ${fmt(b.change||0)}</span></div>`:""}<div class="r"><span>Payment</span><span>${b.payM}</span></div>${(b.creditAmt||0)>0?`<div style="text-align:center;border:1px solid #000;padding:3px;margin:3px 0;">📒 Credit: रु ${fmt(b.creditAmt)}</div>`:""}${(b.totalDueNow||0)>0?`<hr style="border:1px dashed #000;margin:5px 0;"/>${(b.oldDue||0)>0?`<div class="r"><span>पुरानो Due</span><span>रु ${fmt(b.oldDue)}</span></div>`:""}<div class="r" style="font-weight:bold;"><span>⚠️ कुल बाँकी Due</span><span>रु ${fmt(b.totalDueNow)}</span></div>`:""}<hr style="border:1px dashed #000;margin:5px 0;"/><div class="c">धन्यवाद! 🙏</div><div class="c">⚡ NabinPOS v1.0 | © 2026 Nabin Mart</div><div class="c np" style="margin-top:8px;"><button onclick="window.print()">🖨️ Print</button></div></body></html>`);w.document.close();setTimeout(()=>w.print(),400);}
+function printLastBill(){const b=window._lastBill;if(!b)return;const copyNum=getPrintCopyNum(b.billNo);const copyTag=copyNum>1?`<div class="c" style="border:1.5px solid #000;padding:3px;margin:4px 0;font-weight:bold;">🖨️ REPRINT — Copy #${copyNum}</div>`:`<div class="c" style="font-size:10px;color:#555;margin:2px 0;">Copy #1 (Original)</div>`;const w=window.open("","_blank","width=320,height=650");if(!w)return;w.document.write(`<!DOCTYPE html><html><head><title>Bill</title><style>*{margin:0;padding:0;font-family:'Courier New',monospace;font-size:12px;}body{width:280px;padding:10px;}.r{display:flex;justify-content:space-between;margin:3px 0;}.c{text-align:center;}@media print{.np{display:none;}}</style></head><body><h2 class="c">⚡ ${shopInfo?.name||"NabinPOS"}</h2><div class="c">${shopInfo?.addr||""}</div><div class="c">📞 ${shopInfo?.contact||""}</div><hr style="border:1px dashed #000;margin:5px 0;"/><div class="r"><span>Bill: ${esc(b.billNo)}</span><span>${b.date}</span></div><div class="r"><span>${b.cust}</span><span>${b.cashier}</span></div>${copyTag}<hr style="border:1px dashed #000;margin:5px 0;"/>${b.items.map(i=>`<div class="r"><span>${esc(i.name)} ×${i.qty}</span><span>रु ${fmtN(i.price*i.qty)}</span></div>`).join("")}<hr style="border:1px dashed #000;margin:5px 0;"/>${(b.discount||0)>0?`<div class="r"><span>Subtotal</span><span>रु ${fmt(b.subtotal!=null?b.subtotal:(b.total+(b.discount||0)-(b.vatAmt||0)))}</span></div><div class="r" style="color:green;font-weight:bold;"><span>🎁 Discount</span><span>-रु ${fmt(b.discount)}</span></div>`:""}<div class="r" style="font-weight:bold;font-size:14px;"><span>TOTAL</span><span>रु ${fmt(b.total)}</span></div>${(b.cashRec||0)>0?`<div class="r"><span>Cash</span><span>रु ${fmt(b.cashRec)}</span></div><div class="r"><span>🔙 Change</span><span>रु ${fmt(b.change||0)}</span></div>`:""}<div class="r"><span>Payment</span><span>${b.payM}</span></div>${(b.creditAmt||0)>0?`<div style="text-align:center;border:1px solid #000;padding:3px;margin:3px 0;">📒 Credit: रु ${fmt(b.creditAmt)}</div>`:""}${(b.totalDueNow||0)>0?`<hr style="border:1px dashed #000;margin:5px 0;"/>${(b.oldDue||0)>0?`<div class="r"><span>पुरानो Due</span><span>रु ${fmt(b.oldDue)}</span></div>`:""}<div class="r" style="font-weight:bold;"><span>⚠️ कुल बाँकी Due</span><span>रु ${fmt(b.totalDueNow)}</span></div>`:""}<hr style="border:1px dashed #000;margin:5px 0;"/><div class="c">धन्यवाद! 🙏</div><div class="c">⚡ NabinPOS v1.0 | © 2026 Nabin Mart</div><div class="c np" style="margin-top:8px;"><button onclick="window.print()">🖨️ Print</button></div></body></html>`);w.document.close();setTimeout(()=>w.print(),400);}
 
 function previewReport(){const r=document.getElementById("repInner");if(!r)return;const w=window.open("","_blank","width=900,height=700");if(!w)return;w.document.write(`<!DOCTYPE html><html><head><title>Preview</title><style>*{font-family:'Segoe UI',Arial,sans-serif;}body{padding:20px;background:#f5faff;}.print-btn{position:fixed;top:10px;right:10px;padding:10px 20px;background:#1565c0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;}</style></head><body><button class="print-btn" onclick="window.print()">🖨️ Print</button>${r.outerHTML}</body></html>`);w.document.close();}
 function saveReportPDF(){toast$("Ctrl+P → Save as PDF","warn");printReport();}
