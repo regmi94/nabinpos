@@ -661,7 +661,8 @@
       <div class="pos-cart">
         <!-- Customer selector -->
         <div style="padding:6px 8px;border-bottom:1px solid var(--border);flex-shrink:0;">
-          <select id="posCust" onchange="window._dueReminderAck=false;window._settleOldDue=false;window._oldDueAmt=0;window._settleOldDueCustId=null;window._oldDueNote='';renderCartTotals()" style="width:100%;padding:5px 8px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;outline:none;"><option value="">👤 Walk-in</option><option value="1784020089096">Gita</option><option value="1">राम प्रसाद श्रेष्ठ (Due:रु4500)</option><option value="2">सुमित्रा देवी</option><option value="3">कमल बहादुर थापा (Due:रु8200)</option><option value="4">Sushila Karki (Due:रु1200)</option><option value="1784017281876">Bibek (Due:रु280)</option><option value="1783387234539">Hari (Due:रु533)</option></select>
+          <div id="rtModeBanner" style="display:none;"></div>
+          <select id="posCust" onchange="window._dueReminderAck=false;window._settleOldDue=false;window._oldDueAmt=0;window._settleOldDueCustId=null;window._oldDueNote='';renderCartTotals()" style="width:100%;padding:5px 8px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11px;outline:none;"><option value="">👤 Walk-in</option></select>
         </div>
         <div style="flex:1;overflow-y:auto;padding:6px 10px;" id="cartItems"><div style="text-align:center;color:var(--border2);padding:40px 10px;"><div style="font-size:32px;">🛒</div><div style="margin-top:6px;font-size:12px;">Cart खाली</div></div></div>
         <div style="padding:10px 12px;border-top:1px solid var(--border);background:var(--bg4);">
@@ -674,7 +675,7 @@
               <input id="discInput" type="number" step="any" value="0" min="0" oninput="renderCartTotals()" onfocus="if(this.value=='0'){this.value='';}" onblur="if(this.value==='')this.value='0';" placeholder="Discount" style="flex:1;padding:6px 8px;background:#fff;border:1px solid var(--border);border-radius:7px;font-size:12px;font-weight:700;color:var(--text);outline:none;width:0;">
             </div>
           </div>
-          <button onclick="openPayModal()" id="posPayBtn" style="width:100%;padding:22px 11px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:9px;color:#000;font-weight:900;font-size:14px;">💳 Pay</button>
+          <button onclick="posPayBtnClick()" id="posPayBtn" style="width:100%;padding:22px 11px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:9px;color:#000;font-weight:900;font-size:14px;">💳 Pay</button>
         </div>
       </div>
     </div>
@@ -4230,6 +4231,8 @@ function updateMobileTitle(s){
 }
 
 function goScreen(s,_verified){
+  // Return/Exchange Mode बीचमै छाडेर अर्को screen मा गए auto-cancel (stale state रहन नदिन)
+  if(window._rtMode&&currentScreen==="pos"&&s!=="pos"){cancelRtModeSilent();}
   if(s==="settings"&&!_verified){
     // सुरक्षा फिक्स: अघिल्लो session (जस्तै Admin) बाट DOM मा "s-settings" active रहिरहेको हुन सक्छ।
     // Verify हुनुअघि नै त्यो पुरानो Settings screen लाई हटाएर safe screen (dashboard/pos) देखाइदिने —
@@ -5174,6 +5177,26 @@ function initPOS(){
   customers.forEach(c=>cs.innerHTML+=`<option value="${c.id}">${esc(c.name)}${c.bal<0?" (रु "+Math.abs(Math.round(c.bal))+")":""}</option>`);
   // low stock ticker (top bar) — near-expiry ticker moved to Dashboard (was interrupting billing)
   startLowStockTicker();
+  // Return/Void/Exchange Mode बैनर + Pay button स्वरूप
+  const banner=document.getElementById("rtModeBanner");
+  if(banner){
+    if(window._rtMode){
+      const rt=window._rtMode;
+      banner.style.display="block";
+      banner.innerHTML=`<div style="background:#fff7ed;border:1.5px solid var(--gold);border-radius:9px;padding:8px 10px;margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+          <div style="font-size:11.5px;font-weight:800;color:var(--warn);">🔄 Return/Exchange Mode — ${esc(rt.origBill.billNo)}</div>
+          <button onclick="cancelRtMode()" style="background:#fee2e2;border:1px solid var(--red);color:var(--red);padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0;">✕ रद्द</button>
+        </div>
+        <div style="font-size:10px;color:var(--text4);margin-top:2px;">घटाउनु/मेटाउनु = Return, थप्नु/बढाउनु = Exchange, ⚙️ ले Rate/Discount</div>
+      </div>`;
+    }else{banner.style.display="none";banner.innerHTML="";}
+  }
+  const payBtn=document.getElementById("posPayBtn");
+  if(payBtn){
+    if(window._rtMode){payBtn.textContent="✅ Confirm Return/Exchange";payBtn.style.background="linear-gradient(135deg,var(--green),var(--green2))";}
+    else{payBtn.textContent="💳 Pay";payBtn.style.background="linear-gradient(135deg,var(--gold),var(--gold2))";}
+  }
 }
 function setPOSCat(c){posCatF=c;initPOS();}
 function renderPOSProducts(){
@@ -5250,7 +5273,7 @@ function updCart(id,d){
   if(d>0){
     const p=products.find(x=>x.id===id);
     const pricingQty=parseFloat(c._pricingQty)||1;
-    if(p&&p.cat!=="फास्टफुड"&&cartReservedQty(id,c)+((c.qty+d)*pricingQty)>p.stock){
+    if(p&&p.cat!=="फास्टफुड"&&cartReservedQty(id,c)+((c.qty+d)*pricingQty)>_rtStockCeilingBase(id)){
       toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध)","error");return;
     }
   }
@@ -5357,7 +5380,7 @@ function applyCustomize(){
   if(p&&p.cat!=="फास्टफुड"){
     const pricingQty=parseFloat(c._pricingQty)||1;
     const otherReserved=cartReservedQty(c.id,c);
-    if(otherReserved+(qty*pricingQty)>p.stock){
+    if(otherReserved+(qty*pricingQty)>_rtStockCeilingBase(c.id)){
       toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध)","error");return;
     }
   }
@@ -5456,14 +5479,14 @@ function addToCart(id){
     return;
   }
   // Single pricing — direct add
-  if(p.cat!=="फास्टफुड"&&cartReservedQty(id)+1>p.stock){toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध, cart मा पहिल्यै "+cartReservedQty(id)+" थपिसकियो)","error");return;}
+  if(p.cat!=="फास्टफुड"&&cartReservedQty(id)+1>_rtStockCeilingBase(id)){toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध, cart मा पहिल्यै "+cartReservedQty(id)+" थपिसकियो)","error");return;}
   const ex=cart.find(c=>c.id===id&&!c._pricingLabel);
   if(ex)ex.qty++;else cart.push({...p,qty:1,_unitPrice:p.price,_cartUnit:p.unit||"pcs"});
   renderCart();toast$(p.name+" थपियो ✅");
 }
 function addToCartWithPricing(id,label,qty,price,unit){
   const p=products.find(x=>x.id===id);if(!p)return;
-  if(p.cat!=="फास्टफुड"&&cartReservedQty(id)+qty>p.stock){toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध, यो "+label+" थप्दा "+(cartReservedQty(id)+qty)+" "+p.unit+" चाहिन्छ)","error");return;}
+  if(p.cat!=="फास्टफुड"&&cartReservedQty(id)+qty>_rtStockCeilingBase(id)){toast$("⚠️ Stock मा बाँकी छैन! ("+p.stock+" "+p.unit+" मात्र उपलब्ध, यो "+label+" थप्दा "+(cartReservedQty(id)+qty)+" "+p.unit+" चाहिन्छ)","error");return;}
   // Each pricing option is a separate cart line (keyed by id+label)
   const ex=cart.find(c=>c.id===id&&c._pricingLabel===label);
   if(ex){ex.qty+=1;}
@@ -10811,7 +10834,182 @@ function openBillActionGate(billId){
   requireAdminPW(()=>openReturnFromBill(billId),"Bill Return/Void: "+bill.billNo+(isClosedDay?" ⚠️ आजको Day Close भइसक्यो!":""));
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// RETURN / VOID / EXCHANGE — "CART REOPEN" MODE (नयाँ)
+// पुरानो अलग wizard-modal हटाएर, असली POS Billing cart screen नै reopen गरिन्छ —
+// bill का item pre-loaded भएर देखिन्छ, cashier ले सामान्य cart जस्तै freely
+// add/delete/qty-change/Customize(discount) गर्न सक्छ। Confirm गर्दा original bill
+// सँग diff गरेर स्वतः Return (qty घट्यो) र Exchange (qty बढ्यो/नयाँ item थपियो) छुट्याइन्छ।
+// ══════════════════════════════════════════════════════════════════════════
+window._rtMode=null;
+function openReturnCartMode(billId){
+  const bill=salesHistory.find(x=>x.id===billId);
+  if(!bill){toast$("बिल भेटिएन!","error");return;}
+  if(bill.status==="voided"){toast$("पहिल्यै Void भइसकेको छ!","warn");return;}
+  if(cart.length>0){toast$("⚠️ Cart मा अर्को active sale छ — पहिले clear/complete गर्नुस्, त्यसपछि मात्र Return/Exchange खोल्न मिल्छ।","error");return;}
+
+  // एउटै product बिलमा दुई फरक pricing-line मा भए पनि id अनुसार जोड्ने
+  const origMap={};
+  bill.items.forEach(it=>{
+    if(!origMap[it.id])origMap[it.id]={qty:0,amt:0,buyAmt:0,unit:it.unit,pricingQty:it.pricingQty||1,name:it.name};
+    const o=origMap[it.id];
+    o.qty+=(it.qty||0);o.amt+=(it.price||0)*(it.qty||0);
+    o.buyAmt+=(typeof it.buy==="number"?it.buy:0)*(it.qty||0)*(it.pricingQty||1);
+  });
+  Object.keys(origMap).forEach(pidStr=>{
+    const pid=parseInt(pidStr),o=origMap[pid];
+    const alreadyRtn=(returnEntries||[]).filter(r=>r.billRef===bill.billNo&&r.productId===pid&&r.kind!=="exchange_add").reduce((s,r)=>s+(parseFloat(r.qty)||0),0);
+    o.remainQty=+((o.qty-alreadyRtn).toFixed(3));
+    o.avgPrice=o.qty>0?(o.amt/o.qty):0;
+    o.avgBuy=(o.qty*o.pricingQty)>0?(o.buyAmt/(o.qty*o.pricingQty)):0;
+  });
+
+  window._rtMode={billId:bill.id,origBill:bill,origMap};
+  cart=Object.keys(origMap).filter(pidStr=>origMap[pidStr].remainQty>0.0001).map(pidStr=>{
+    const pid=parseInt(pidStr),o=origMap[pid],p=products.find(x=>x.id===pid);
+    return{id:pid,name:o.name,price:+o.avgPrice.toFixed(2),qty:o.remainQty,_unitPrice:+o.avgPrice.toFixed(2),_pricingQty:o.pricingQty,_cartUnit:o.unit,cat:p?p.cat:""};
+  });
+  if(!cart.length)toast$("⚠️ यो बिलका सबै item पहिल्यै पूर्ण फिर्ता भइसकेको छ — नयाँ Exchange item मात्र थप्न सकिन्छ","warn");
+  goScreen("pos");
+  toast$("🔄 Return/Exchange Mode — "+bill.billNo+" — घटाउनु=Return, थप्नु/बढाउनु=Exchange, ⚙️=Rate/Discount");
+}
+// कुनै return-mode active भएकोमा मात्र extra ceiling थपिने — अरू बेला सामान्य p.stock नै हुन्छ
+function _rtStockCeilingBase(id){
+  const p=products.find(x=>x.id===id);
+  let ceiling=p?(p.stock||0):0;
+  if(window._rtMode){
+    const o=window._rtMode.origMap[id];
+    if(o)ceiling+=(o.remainQty*o.pricingQty);
+  }
+  return ceiling;
+}
+function cancelRtModeSilent(){
+  if(window._rtMode){window._rtMode=null;cart=[];toast$("Return/Exchange Mode रद्द भयो","warn");}
+}
+function cancelRtMode(){
+  cancelRtModeSilent();
+  goScreen("saleslog");
+}
+function posPayBtnClick(){
+  if(window._rtMode)confirmRtMode();
+  else openPayModal();
+}
+function confirmRtMode(){
+  const rt=window._rtMode;if(!rt)return;
+  if(!cart.length&&!Object.keys(rt.origMap).some(pidStr=>rt.origMap[pidStr].remainQty>0.0001)){
+    // cart पनि खाली, original मा फर्काउने केही पनि थिएन — गर्ने केही छैन
+  }
+  openModal(`
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin:0;color:var(--text);">✅ Confirm — ${esc(rt.origBill.billNo)}</h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div class="field"><label>Return Category *</label>
+      <select id="rtReason2" style="width:100%;padding:9px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;">
+        <option>Defective/खराब सामान</option><option>Wrong Item/गलत सामान</option>
+        <option>Customer Changed Mind</option><option>Expired/म्याद सकिएको</option>
+        <option>Quality Issue/गुणस्तर खराब</option><option>Overcharged/बढी लिएको</option>
+        <option>Other/अन्य</option>
+      </select>
+    </div>
+    <div class="field"><label>Refund Method</label>
+      <select id="rtMethod2" style="width:100%;padding:9px;background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);outline:none;">
+        <option>💵 Cash Refund</option><option>🟢 eSewa Refund</option><option>🟣 Khalti Refund</option>
+        <option>📒 Store Credit</option><option>🔄 Exchange Only</option>
+      </select>
+    </div>
+    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="_finalizeRtMode()">✅ Confirm गर्नुस्</button>`,420);
+}
+function _finalizeRtMode(){
+  const rt=window._rtMode;if(!rt)return;
+  const reason=(document.getElementById("rtReason2")||{}).value||"Other/अन्य";
+  const method=(document.getElementById("rtMethod2")||{}).value||"💵 Cash Refund";
+  const origBill=rt.origBill,origMap=rt.origMap;
+  const now=new Date(),dateStr=now.toLocaleDateString("en-GB"),timeStr=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+  const origDate=origBill.date,origBillNo=origBill.billNo,custName=origBill.custName||"Walk-in";
+
+  const finalMap={};
+  cart.forEach(c=>{
+    if(!finalMap[c.id])finalMap[c.id]={qty:0,amt:0,pricingQty:parseFloat(c._pricingQty)||1,name:c.name,unit:c._cartUnit||c.unit};
+    const f=finalMap[c.id];
+    f.qty+=(parseFloat(c.qty)||0);f.amt+=(parseFloat(c.price)||0)*(parseFloat(c.qty)||0);
+  });
+
+  let totalRefund=0,totalExtra=0,itemCount=0,extraCount=0,deletedProdCount=0,skipped=false;
+  const allIds=new Set([...Object.keys(origMap).map(Number),...Object.keys(finalMap).map(Number)]);
+  allIds.forEach(pid=>{
+    const o=origMap[pid],f=finalMap[pid];
+    const origQty=o?o.remainQty:0,finalQty=f?f.qty:0;
+    const diff=+(finalQty-origQty).toFixed(3);
+    const p=products.find(x=>x.id===pid);
+    if(diff<-0.0001){
+      const retQty=-diff,amt=+(retQty*o.avgPrice).toFixed(2);
+      if(p){
+        const before=p.stock,baseQty=+(retQty*o.pricingQty).toFixed(3);
+        p.stock+=baseQty;
+        stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+baseQty,before,after:p.stock,ref:origBillNo,date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name});
+        const buyCost=+(o.avgBuy*baseQty).toFixed(2);
+        returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo,custName,productId:p.id,productName:o.name,unit:o.unit,qty:retQty,refundAmt:amt,buyCost,method,reason,date:dateStr,origDate,user:currentUser.name});
+      }else{
+        deletedProdCount++;
+        returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo,custName,productId:pid,productName:o.name+" (deleted product)",unit:o.unit,qty:retQty,refundAmt:amt,buyCost:0,method,reason,date:dateStr,origDate,user:currentUser.name,productDeleted:true});
+      }
+      totalRefund+=amt;itemCount++;
+    }else if(diff>0.0001){
+      const exQty=diff,baseQty=+(exQty*(f.pricingQty||1)).toFixed(3);
+      if(!p||(p.stock||0)<baseQty){toast$("⚠️ "+(f?f.name:"item")+" — पर्याप्त स्टक छैन, skip भयो","warn");skipped=true;return;}
+      const unitPrice=f.qty>0?(f.amt/f.qty):0;
+      const amt=+(exQty*unitPrice).toFixed(2);
+      const before=p.stock;p.stock-=baseQty;
+      stockMovements.unshift({id:Date.now()+1000+extraCount,productId:p.id,productName:p.name,type:"sale",qty:-baseQty,before,after:p.stock,ref:origBillNo+"-EX",date:dateStr,time:timeStr,user:currentUser.name});
+      returnEntries.unshift({id:Date.now()+2000+extraCount,billRef:origBillNo,custName,productId:p.id,productName:p.name,unit:f.unit||p.unit,qty:exQty,refundAmt:amt,buyCost:(p.buy||0)*baseQty,method,reason:"Exchange",date:dateStr,origDate:dateStr,user:currentUser.name,kind:"exchange_add"});
+      totalExtra+=amt;extraCount++;
+    }
+  });
+
+  if(!itemCount&&!extraCount){toast$(skipped?"⚠️ Stock अपुग भएर process हुन सकेन!":"कुनै परिवर्तन भेटिएन — Cart मा item add/remove/qty change गर्नुस्!","error");return;}
+
+  const net=+(totalExtra-totalRefund).toFixed(2);
+  if((net!==0||totalRefund>0)&&custName){
+    const _rtCu=customers.find(x=>x.id===origBill.custId)||customers.find(x=>x.name===custName);
+    if(_rtCu){
+      if(net!==0){
+        _rtCu.bal-=net;
+        ledger.unshift({id:Date.now(),cid:_rtCu.id,type:net>0?"exchange_extra":"return_refund",amt:Math.abs(net),note:(net>0?"Exchange Extra: ":"Return Refund: ")+origBillNo+(extraCount?" ("+itemCount+" return + "+extraCount+" exchange)":" ("+itemCount+" items)"),date:dateStr,bal:_rtCu.bal});
+      }
+      _rtCu.total=Math.max(0,(_rtCu.total||0)-totalRefund+totalExtra);
+    }else if(net>0){
+      toast$("⚠️ Walk-in ग्राहकबाट रु "+fmt(net)+" थप असुल्नुस् (नगद)","warn");
+    }
+  }
+  if(net>0){
+    cashRegisterEntries.unshift({id:Date.now()+2,type:"exchange_extra_cash",billNo:origBillNo+"-EX",custName,amt:net,payMethod:"Cash",date:dateStr,time:timeStr,cashier:currentUser.name});
+  }
+
+  // सबै item पूर्ण फर्कियो + आजकै बिल + कुनै exchange भएन भने मात्र "Void" label
+  const isFullVoid=!extraCount&&origBill.date===dateStr&&Object.keys(origMap).every(pidStr=>{
+    const pid=parseInt(pidStr);
+    const alreadyRtn=(returnEntries||[]).filter(r=>r.billRef===origBillNo&&r.productId===pid&&r.kind!=="exchange_add").reduce((s,r)=>s+(parseFloat(r.qty)||0),0);
+    return alreadyRtn>=origMap[pidStr].qty-0.0001;
+  });
+  if(origBill.status!=="voided")origBill.status=isFullVoid?"voided":"returned";
+  if(isFullVoid)origBill.voidedAt=dateStr;
+
+  addLog(extraCount?"Return/Exchange":(isFullVoid?"Void":"Return"),itemCount+" return + "+extraCount+" exchange — "+origBillNo+" — Net: रु "+fmt(net));
+  localStorage.setItem("nabin_returns",JSON.stringify(returnEntries));
+  saveDB();closeModal();
+  toast$(net>0?"🔄 Exchange processed! ग्राहकबाट थप लिने: रु "+fmt(net):net<0?"↩️ Return processed! फिर्ता: रु "+fmt(-net):"🔄 Processed! (बराबर, पैसा चलेन)");
+  if(deletedProdCount>0)toast$("⚠️ "+deletedProdCount+" item(s) को product अगाडि नै delete भइसकेको थियो — refund रेकर्ड भयो तर stock adjust हुन सकेन","warn");
+  cart=[];window._rtMode=null;
+  goScreen("saleslog");
+  renderReturns();renderSalesLog();
+}
+
 function openReturnFromBill(billId){
+  // Bill-based (Return/Void/Exchange) → real POS cart screen खोल्ने (नयाँ, "cart nai khulne" तरिका)।
+  // billId नभएको (Sales History बाहिरको standalone "नयाँ Return") मात्र तलको पुरानो modal-wizard प्रयोग गर्छ,
+  // किनभने त्यहाँ diff गर्ने कुनै "original bill" नै हुँदैन।
+  if(billId){return openReturnCartMode(billId);}
   const bill=billId?salesHistory.find(x=>x.id===billId):null;
   // Pool to search within: if returning against a specific bill, restrict to that bill's items —
   // capped by (original sold qty − already returned qty for this bill+product), not just original qty.
@@ -10959,9 +11157,24 @@ function addExtraItem(pid){
   if((p.stock||0)<=0){toast$("⚠️ "+p.name+" स्टकमा छैन!","error");return;}
   const ex=window._rtExtra[pid];
   if(ex)ex.qty=Math.min((ex.qty||0)+1,p.stock);
-  else window._rtExtra[pid]={name:p.name,price:p.price,unit:p.unit,qty:1,maxQty:p.stock};
+  else window._rtExtra[pid]={name:p.name,price:p.price,origPrice:p.price,buy:p.buy||0,unit:p.unit,qty:1,maxQty:p.stock};
   const se=document.getElementById("rtExtraSearch");if(se)se.value="";
   renderRtExtraSearchList();
+  renderRtExtraSelectedList();
+  updateRtSummary();
+}
+// नयाँ/exchange item मा rate directly edit गर्न सकिने — Discount दिन normal cart को "Customize"
+// जस्तै। Buy cost भन्दा तल जान नदिने floor-protection सहित (loss मा नबेचियोस्)।
+function updateExtraRate(pid,val){
+  pid=parseInt(pid);
+  const ex=window._rtExtra[pid];if(!ex)return;
+  let rate=parseFloat(val);
+  if(isNaN(rate)||rate<0)rate=ex.origPrice;
+  if(ex.buy>0&&rate<ex.buy){
+    toast$("⚠️ Buy cost (रु "+fmt(ex.buy)+") भन्दा कम rate राख्न मिल्दैन!","error");
+    rate=ex.buy;
+  }
+  ex.price=rate;
   renderRtExtraSelectedList();
   updateRtSummary();
 }
@@ -10986,13 +11199,21 @@ function renderRtExtraSelectedList(){
   if(!ids.length){el.innerHTML="";return;}
   el.innerHTML=ids.map(pidStr=>{
     const pid=parseInt(pidStr),ex=window._rtExtra[pid];
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--border2);background:#eef2ff;">
-      <div style="flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ex.name)}</div>
-      <button onclick="extraStep(${pid},-1)" style="width:24px;height:24px;border-radius:6px;border:1.5px solid var(--purple);background:#fff;color:var(--purple);font-weight:900;cursor:pointer;">−</button>
-      <span style="min-width:26px;text-align:center;font-size:12px;font-weight:700;">${ex.qty}</span>
-      <button onclick="extraStep(${pid},1)" style="width:24px;height:24px;border-radius:6px;border:1.5px solid var(--purple);background:#fff;color:var(--purple);font-weight:900;cursor:pointer;">+</button>
-      <div style="width:60px;text-align:right;font-size:11px;font-weight:800;color:var(--purple);">रु ${fmtN(ex.qty*ex.price)}</div>
-      <button onclick="removeExtraItem(${pid})" style="background:none;border:none;color:var(--text4);font-size:14px;cursor:pointer;">🗑</button>
+    const discPct=ex.origPrice>0?((ex.origPrice-ex.price)/ex.origPrice*100):0;
+    return `<div style="padding:8px;border-bottom:1px solid var(--border2);background:#eef2ff;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ex.name)}</div>
+        <button onclick="extraStep(${pid},-1)" style="width:24px;height:24px;border-radius:6px;border:1.5px solid var(--purple);background:#fff;color:var(--purple);font-weight:900;cursor:pointer;">−</button>
+        <span style="min-width:26px;text-align:center;font-size:12px;font-weight:700;">${ex.qty}</span>
+        <button onclick="extraStep(${pid},1)" style="width:24px;height:24px;border-radius:6px;border:1.5px solid var(--purple);background:#fff;color:var(--purple);font-weight:900;cursor:pointer;">+</button>
+        <button onclick="removeExtraItem(${pid})" style="background:none;border:none;color:var(--text4);font-size:14px;cursor:pointer;">🗑</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;padding-left:2px;">
+        <label style="font-size:10px;color:var(--text4);">Rate:</label>
+        <input type="number" step="any" value="${ex.price}" oninput="updateExtraRate(${pid},this.value)" style="width:70px;padding:4px 6px;border:1.5px solid var(--purple);border-radius:6px;font-size:11px;font-weight:700;color:${ex.price<ex.origPrice?"var(--red)":"var(--text)"};outline:none;"/>
+        ${discPct>0.05?`<span style="font-size:10px;font-weight:700;color:var(--red);">-${discPct.toFixed(0)}% छुट</span>`:""}
+        <div style="flex:1;text-align:right;font-size:12px;font-weight:800;color:var(--purple);">= रु ${fmtN(ex.qty*ex.price)}</div>
+      </div>
     </div>`;
   }).join("");
 }
@@ -12068,7 +12289,8 @@ function openDayClose(){
 
 function runStartupChecks(){
   setTimeout(()=>{
-    checkLowStockAlerts();
+    // Low stock notification banner हटाइयो — Dashboard मा "Low Stock Alert" card मै यही जानकारी
+    // देखिन्छ, दोहोरो/redundant भएकोले।
     setTimeout(checkDueAlerts,3000);
     setTimeout(checkExpiryAlerts,5000);
     setTimeout(startDayCloseTimer,8000);
