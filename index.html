@@ -20,6 +20,9 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{overscroll-behavior-y:none;} /* 🔧 फिक्स: mobile Chrome को pull-down-to-refresh gesture ले पूरा page reload
+    गराउँथ्यो — जसले app को in-memory login session हराएर सिधै logout जस्तो देखिन्थ्यो। यसले त्यो browser-level
+    gesture लाई नै निष्क्रिय गर्छ; भित्री scroll (list/table) मा कुनै असर पर्दैन। */
   :root{
     --bg:#e8f4fd;--bg2:#ffffff;--bg3:#f0f7ff;--bg4:#f5faff;
     --border:#b8d4ec;--border2:#90bce0;
@@ -498,6 +501,11 @@
   <div class="mobile-topbar" id="mobileTopbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
     <span class="mt-title" id="mobileTitle">⚙️ Settings</span>
+    <div class="mt-zoom" style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+      <button onclick="appZoomOut()" style="width:24px;height:24px;background:#f0f7ff;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">－</button>
+      <span class="zoomPctDisplay" onclick="appZoomReset()" style="font-size:9px;font-weight:700;color:var(--text4);width:28px;text-align:center;cursor:pointer;">100%</span>
+      <button onclick="appZoomIn()" style="width:24px;height:24px;background:#f0f7ff;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
+    </div>
     <button class="mt-logout" onclick="doLogout()">⏏</button>
   </div>
   <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
@@ -508,6 +516,11 @@
       <div class="sub">Butwal · Final Edition</div>
     </div>
     <nav class="sidebar-nav" id="sideNav"><button class="nav-btn" data-screen="dashboard" onclick="goScreen('dashboard')"><span style="font-size:14px;">▦</span>Dashboard</button><button class="nav-btn" data-screen="pos" onclick="goScreen('pos')"><span style="font-size:14px;">🧾</span>POS Billing</button><button class="nav-btn" data-screen="saleslog" onclick="goScreen('saleslog')"><span style="font-size:14px;">📜</span>Sales History</button><button class="nav-btn" data-screen="customers" onclick="goScreen('customers')"><span style="font-size:14px;">👥</span>Customers</button><button class="nav-btn" data-screen="purchase" onclick="goScreen('purchase')"><span style="font-size:14px;">🛒</span>Purchase</button><button class="nav-btn" data-screen="suppliers" onclick="goScreen('suppliers')"><span style="font-size:14px;">🤝</span>Suppliers</button><button class="nav-btn" data-screen="inventory" onclick="goScreen('inventory')"><span style="font-size:14px;">📦</span>Inventory</button><button class="nav-btn" data-screen="stocklog" onclick="goScreen('stocklog')"><span style="font-size:14px;">🔄</span>Stock Log</button><button class="nav-btn" data-screen="damage" onclick="goScreen('damage')"><span style="font-size:14px;">💔</span>Damage/Loss</button><button class="nav-btn" data-screen="assets" onclick="goScreen('assets')"><span style="font-size:14px;">🏢</span>Fixed Assets</button><button class="nav-btn" data-screen="returns" onclick="goScreen('returns')"><span style="font-size:14px;">↩️</span>Returns</button><button class="nav-btn" data-screen="reports" onclick="goScreen('reports')"><span style="font-size:14px;">📊</span>Reports</button><button class="nav-btn" data-screen="expenses" onclick="goScreen('expenses')"><span style="font-size:14px;">💸</span>Expenses</button><button class="nav-btn" data-screen="vault" onclick="goScreen('vault')"><span style="font-size:14px;">🏦</span>Cash Vault</button><button class="nav-btn" data-screen="actlog" onclick="goScreen('actlog')"><span style="font-size:14px;">📋</span>Activity</button></nav>
+    <div class="sidebar-zoom" style="padding:8px 12px;display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid var(--border);">
+      <button onclick="appZoomOut()" title="Zoom Out" style="width:26px;height:26px;background:#fff;border:1px solid var(--border2);border-radius:7px;color:var(--text3);font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">－</button>
+      <span class="zoomPctDisplay" onclick="appZoomReset()" title="Reset Zoom" style="font-size:10px;font-weight:700;color:var(--text4);width:34px;text-align:center;cursor:pointer;">100%</span>
+      <button onclick="appZoomIn()" title="Zoom In" style="width:26px;height:26px;background:#fff;border:1px solid var(--border2);border-radius:7px;color:var(--text3);font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
+    </div>
     <div class="sidebar-user">
       <div class="user-card">
         <div class="avatar" id="sideAvatar" style="background: rgba(74, 222, 128, 0.094); border: 2px solid rgb(74, 222, 128); color: rgb(74, 222, 128);">BI</div>
@@ -597,7 +610,7 @@
         </div>
         <div class="card">
           <div class="card-title">⚡ Quick Access</div>
-          <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;" id="quickAccess"><button onclick="goScreen('pos')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:12px 8px;cursor:pointer;text-align:center;"><div style="font-size:20px;">🧾</div><div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;">New Bill</div></button><button onclick="goScreen('customers')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:12px 8px;cursor:pointer;text-align:center;"><div style="font-size:20px;">👥</div><div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;">Customers</div></button><button onclick="goScreen('purchase')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:12px 8px;cursor:pointer;text-align:center;"><div style="font-size:20px;">🛒</div><div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;">Purchase</div></button><button onclick="goScreen('inventory')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:12px 8px;cursor:pointer;text-align:center;"><div style="font-size:20px;">📦</div><div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;">Inventory</div></button><button onclick="goScreen('reports')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:12px 8px;cursor:pointer;text-align:center;"><div style="font-size:20px;">📊</div><div style="font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;">Reports</div></button></div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;" id="quickAccess"><button onclick="goScreen('pos')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:14px 4px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;"><div style="font-size:20px;">🧾</div><div style="font-size:10px;line-height:1.2;color:var(--text3);font-weight:600;">New Bill</div></button><button onclick="goScreen('customers')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:14px 4px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;"><div style="font-size:20px;">👥</div><div style="font-size:10px;line-height:1.2;color:var(--text3);font-weight:600;">Customers</div></button><button onclick="goScreen('purchase')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:14px 4px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;"><div style="font-size:20px;">🛒</div><div style="font-size:10px;line-height:1.2;color:var(--text3);font-weight:600;">Purchase</div></button><button onclick="goScreen('inventory')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:14px 4px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;"><div style="font-size:20px;">📦</div><div style="font-size:10px;line-height:1.2;color:var(--text3);font-weight:600;">Inventory</div></button><button onclick="goScreen('reports')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:14px 4px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;"><div style="font-size:20px;">📊</div><div style="font-size:10px;line-height:1.2;color:var(--text3);font-weight:600;">Reports</div></button><button onclick="goScreen('suppliers')" style="background:var(--bg4);border:1px solid var(--border);border-radius:9px;padding:14px 4px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:74px;"><div style="font-size:20px;">🤝</div><div style="font-size:10px;line-height:1.2;color:var(--text3);font-weight:600;">Suppliers</div></button></div>
         </div>
         <div id="dashNotifBox" style="margin-top:12px;"></div>
       </div>
@@ -3466,8 +3479,10 @@ const SB_TABLES={
   damageEntries:"damage_entries",cashRegisterEntries:"cash_register",returnEntries:"returns",
   purchaseReturns:"purchase_returns",monthEndCounts:"month_end_counts",
   fixedAssets:"fixed_assets",assetLossLog:"asset_loss_log",
-  vaultAdjustments:"vault_adjustments",vaultSettings:"vault_settings"
+  vaultAdjustments:"vault_adjustments",vaultSettings:"vault_settings",categories:"categories"
 };
+
+function catsToSyncArr(){return CATS.map(name=>({id:name,name,icon:CICON[name]||"📦"}));}
 
 function saveDB(){
   saveDBLocal();
@@ -3507,7 +3522,7 @@ function syncToSupabase(){
         stockMovements,damageEntries,cashRegisterEntries:cashRegisterEntries||[],
         returnEntries:returnEntries||[],purchaseReturns:purchaseReturns||[],monthEndCounts:monthEndCounts||[],
         fixedAssets:fixedAssets||[],assetLossLog:assetLossLog||[],
-        vaultAdjustments:vaultAdjustments||[],vaultSettings:vaultSettings||[]};
+        vaultAdjustments:vaultAdjustments||[],vaultSettings:vaultSettings||[],categories:catsToSyncArr()};
       await Promise.all(Object.entries(SB_TABLES).map(([arrKey,tbl])=>pushTable(tbl,arrays[arrKey])));
       console.log("☁️ Supabase synced");
     }catch(e){console.error("Supabase sync failed:",e);}
@@ -3726,7 +3741,7 @@ async function loadDB(isInitialBoot){
         // पूर्ण empty ले overwrite नगर्ने।
         const currentArr={products,customers,ledger,suppliers,purchases,expenses,salesHistory,
           stockMovements,damageEntries,cashRegisterEntries,returnEntries,purchaseReturns,
-          monthEndCounts,fixedAssets,assetLossLog,vaultAdjustments,vaultSettings}[arrKey]||[];
+          monthEndCounts,fixedAssets,assetLossLog,vaultAdjustments,vaultSettings,categories:catsToSyncArr()}[arrKey]||[];
         if(mapped.length===0&&Array.isArray(currentArr)&&currentArr.length>0){
           console.error(`⚠️ SAFETY GUARD: "${tbl}" cloud बाट खाली आयो तर local मा ${currentArr.length} records थिए — overwrite SKIP गरियो, local data सुरक्षित राखियो। सम्भावित कारण: Supabase RLS policy ले access block गर्यो।`);
           _suspiciousEmpty.push(tbl);
@@ -3780,6 +3795,19 @@ async function loadDB(isInitialBoot){
         else if(arrKey==="assetLossLog")assetLossLog=merged;
         else if(arrKey==="vaultAdjustments")vaultAdjustments=merged;
         else if(arrKey==="vaultSettings"){if(merged.length)vaultSettings=merged;}
+        else if(arrKey==="categories"){
+          // 🆕 Categories अब products/customers जस्तै <1 सेकेन्डमा auto-sync हुन्छ — पहिले यो केवल
+          // यो device को localStorage मा मात्र बस्थ्यो, त्यसैले PC र mobile मा फरक-फरक category
+          // list देखिन्थ्यो। अब सबै device मा एउटै cloud "categories" table बाट sync हुन्छ।
+          if(merged.length){
+            CATS.splice(0,CATS.length,...merged.map(o=>o.name));
+            merged.forEach(o=>{if(o.icon)CICON[o.name]=o.icon;});
+            localStorage.setItem("nabin_cats",JSON.stringify(CATS));
+            localStorage.setItem("nabin_cicons",JSON.stringify(CICON));
+            if(typeof renderCatList==="function")renderCatList();
+            if(typeof renderSettingsCats==="function")renderSettingsCats();
+          }
+        }
         // cloud-confirmed भागलाई मात्र "last synced" मान्ने — preserved (unsynced) record हरूलाई
         // snapshot मा नथप्ने, ताकि तिनको लागि आफ्नै pending push फेरि सही तरिकाले चल्न पाओस्
         for(const k in snap)delete snap[k];
@@ -4638,12 +4666,32 @@ async function doLogin(){
   }
   let u=(uCand&&await verifyPassword(pw,uCand.salt,uCand.pwHash))?uCand:null;
   if(!u&&uCand){
-    // 🔧 फिक्स: username त भेटियो तर password नमिलेको भए — सम्भवतः अर्को device (जस्तै mobile) बाट
-    // भर्खरै password बदलिएको छ र यो device (PC) मा localStorage अझै पुरानो hash सँगै बसिरहेको छ।
-    // तुरुन्तै "गलत password" नभनी, एक पटक cloud बाट फेरि ताजा data तानेर पुनः जाँच्ने।
+    // 🔧 फिक्स (round 1): username त भेटियो तर password नमिलेको भए — सम्भवतः अर्को device बाट भर्खरै
+    // password बदलिएको छ र यो device मा localStorage अझै पुरानो hash सँगै बसिरहेको छ। एक पटक cloud
+    // बाट फेरि ताजा data तान्ने कोशिस (यदि यो device मा पहिल्यैको authenticated Supabase session अझै
+    // valid छ भने यसले काम गर्छ)।
     try{await pullUsersFromCloud();}catch(e){}
     const fresh=USERS.find(x=>x.un===un);
     if(fresh&&await verifyPassword(pw,fresh.salt,fresh.pwHash)){uCand=fresh;u=fresh;}
+  }
+  if(!u&&uCand&&uCand.email){
+    // 🔧 फिक्स (round 2 — असली समाधान): माथिको cloud pull ले पनि काम नगर्न सक्छ किनभने त्यो आफैं
+    // authenticated Supabase session चाहिन्छ, जुन यो device मा अझै बनेकै छैन (chicken-and-egg)।
+    // त्यसैले यहाँ सिधै Supabase Auth (जुन RLS भन्दा अलग हो, table read मा निर्भर छैन) मार्फत नै
+    // password verify गर्ने कोशिस — यदि Supabase Auth ले यो password सही मान्यो भने, त्यो नै ठूलो
+    // प्रमाण हो कि typed password नै हालको सहि password हो (अर्को device मा त्यहीँ बाट बदलिएको)।
+    // त्यसपछि यो device को local hash पनि तुरुन्तै सोही password मा अपडेट गरिन्छ, र त्यही authenticated
+    // session प्रयोग गरेर बाँकी cloud data (products/customers/आदि) पनि सही तरिकाले sync हुन्छ।
+    try{
+      const{error}=await sb.auth.signInWithPassword({email:uCand.email,password:pw});
+      if(!error){
+        const{salt,hash}=await hashPassword(pw);
+        uCand.salt=salt;uCand.pwHash=hash;delete uCand.pw;uCand.pwChangedByUser=true;
+        localStorage.setItem("nabin_users",JSON.stringify(USERS));
+        pushUsersToCloud().catch(e=>console.warn("Background users push failed (non-blocking):",e));
+        u=uCand;window._lastAuthErr=null;
+      }
+    }catch(e){console.warn("Supabase Auth fallback verify network issue:",e);}
   }
   if(!u){
     _failCount++;
@@ -4714,6 +4762,21 @@ async function doLogin(){
   }runStartupChecks();toast$("नमस्ते "+u.name+"! 🙏");
   checkBiometricSupport();
 }
+// ── App Zoom (PC sidebar + mobile topbar दुवैमा — पूरा app content zoom गर्ने, कुनै अरू button/layout block नगरी) ──
+let _appZoom=parseInt(localStorage.getItem("nabin_zoom")||"100",10)||100;
+function applyAppZoom(){
+  _appZoom=Math.max(70,Math.min(150,_appZoom));
+  const el=document.getElementById("mainApp");
+  if(el)el.style.zoom=_appZoom+"%";
+  localStorage.setItem("nabin_zoom",String(_appZoom));
+  document.querySelectorAll(".zoomPctDisplay").forEach(el2=>el2.textContent=_appZoom+"%");
+}
+function appZoomIn(){_appZoom+=10;applyAppZoom();}
+function appZoomOut(){_appZoom-=10;applyAppZoom();}
+function appZoomReset(){_appZoom=100;applyAppZoom();}
+document.addEventListener("DOMContentLoaded",applyAppZoom);
+if(document.readyState==="complete"||document.readyState==="interactive")applyAppZoom();
+
 function closeAllOverlays(){
   // सुरक्षा फिक्स: यो app मा modal धेरै छुट्टा-छुट्टै overlay (#payModalEl, #bcModalOverlay, #receiptModal,
   // #fsDetailOverlay, dynamically-created फुलस्क्रिन wizard जस्तै Customer Analysis Full View) मा बनेका छन् —
@@ -6719,30 +6782,23 @@ function renderSuppliers(){
   document.getElementById("suppSub").textContent=`${suppliers.length} suppliers · Total Due: रु ${fmtN(due)}`;
   const cards=suppliers.map(s=>{
     const dueCol=s.due>0?"var(--red)":"var(--green)";
-    return`<div class="suppCard" style="background:var(--bg);border:1px solid var(--border);border-left:3px solid ${s.due>0?"#dc2626":"var(--border)"};border-radius:10px;margin-bottom:8px;overflow:hidden;">
-      <div onclick="toggleSupplierCard(${s.id})" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;">
+    return`<div class="suppCard" onclick="openSupplierDetail(${s.id})" style="background:var(--bg);border:1px solid var(--border);border-left:3px solid ${s.due>0?"#dc2626":"var(--border)"};border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
         <div style="font-size:13px;font-weight:800;color:var(--text);">${esc(s.name)}</div>
         <div style="display:flex;align-items:center;gap:8px;">
           ${s.due>0?`<span style="font-size:11px;font-weight:800;color:${dueCol};">रु ${fmtN(s.due)}</span>`:""}
-          <span id="suppArrow_${s.id}" style="font-size:14px;color:var(--text4);transition:transform .2s;">▼</span>
+          <span style="width:26px;height:26px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">›</span>
         </div>
       </div>
-      <div id="suppBody_${s.id}" style="display:none;padding:0 14px 14px;border-top:1px solid var(--border);"></div>
     </div>`;
   }).join("");
   document.getElementById("suppGrid").innerHTML=cards||'<div style="color:var(--text4);padding:20px;font-size:12px;">कुनै supplier छैन</div>';
 }
-function toggleSupplierCard(id){
-  const body=document.getElementById("suppBody_"+id),arrow=document.getElementById("suppArrow_"+id);
-  if(!body)return;
-  const showing=body.style.display==="block";
-  if(showing){body.style.display="none";if(arrow)arrow.style.transform="rotate(0deg)";return;}
-  if(arrow)arrow.style.transform="rotate(180deg)";
-  body.style.display="block";
+function openSupplierDetail(id){
   const s=suppliers.find(x=>x.id===id);if(!s)return;
   const st=getSupplierStats(id);
   const phones=(s.contacts&&s.contacts.length?s.contacts:[s.contact]).filter(Boolean);
-  body.innerHTML=`
+  const html=`
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;">
       ${(s.cats&&s.cats.length?s.cats:[s.cat||"General"]).map(c=>`<span style="background:#ede9fe;color:var(--purple);padding:3px 9px;border-radius:12px;font-size:10px;font-weight:700;">${esc(c)}</span>`).join("")}
     </div>
@@ -6780,6 +6836,7 @@ function toggleSupplierCard(id){
       <button onclick="openSuppPayModal(${s.id})" style="padding:9px 4px;background:#f0fdf4;border:1.5px solid var(--green);color:var(--green);border-radius:8px;cursor:pointer;font-weight:700;font-size:10.5px;">💰 Pay Due</button>
       <button onclick="editSupp(${s.id})" style="padding:9px 4px;background:#fef3c7;border:1.5px solid var(--gold);color:#92400e;border-radius:8px;cursor:pointer;font-weight:700;font-size:10.5px;">✏️ Edit</button>
     </div>`;
+  openFullScreenDetail("🤝 "+s.name,html);
 }
 function openSupplierLowStockList(suppId){
   const s=suppliers.find(x=>x.id===suppId);if(!s)return;
@@ -13155,7 +13212,7 @@ function renderCatList(){const el=document.getElementById("catList");if(!el)retu
 function addCategory(){const name=document.getElementById("newCatInput")?.value?.trim();const icon=document.getElementById("newCatIcon")?.value?.trim()||"📦";if(!name){toast$("Category नाम भर्नुस्!","error");return;}if(CATS.includes(name)){toast$("Already exists!","error");return;}CATS.push(name);if(icon&&icon!=="📦")CICON[name]=icon;saveCats();renderCatList();document.getElementById("newCatInput").value="";toast$("✅ '"+name+"' added!");}
 function editCategory(i){const old=CATS[i];const nn=prompt("Rename:",old);if(!nn||nn===old)return;products.forEach(p=>{if(p.cat===old)p.cat=nn;});CATS[i]=nn;saveCats();saveDB();renderCatList();toast$("✅ Renamed!");}
 function deleteCat(i){const cat=CATS[i];const count=products.filter(p=>p.cat===cat).length;if(count>0&&!confirm(`'${cat}' मा ${count} products छन्। Delete?`))return;CATS.splice(i,1);saveCats();renderCatList();toast$("Deleted","warn");}
-function saveCats(){localStorage.setItem("nabin_cats",JSON.stringify(CATS));localStorage.setItem("nabin_cicons",JSON.stringify(CICON));}
+function saveCats(){localStorage.setItem("nabin_cats",JSON.stringify(CATS));localStorage.setItem("nabin_cicons",JSON.stringify(CICON));syncToSupabase();}
 // CATS/CICON/USERS/PERMS loads moved to top of script — see hoisted section above
 
 function openStaffManager(){
