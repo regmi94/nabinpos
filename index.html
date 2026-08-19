@@ -54,7 +54,7 @@
   .avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
   .main{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);}
   /* CARDS */
-  .card{background:#ffffff;border:1.5px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(21,101,192,.07);overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+  .card{background:#ffffff;border:1.5px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(21,101,192,.07);max-width:100%;}
   .card-title{font-weight:700;color:var(--text2);font-size:12px;margin-bottom:12px;}
   /* FORMS */
   .field{margin-bottom:11px;}
@@ -9458,8 +9458,10 @@ function _custAnFilterBar(){
         <select onchange="custAnCust=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${custOpts}</select>
         <select onchange="custAnCat=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${catOpts}</select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-        <select onchange="custAnItem=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${itemOpts}</select>
+      <div style="margin-bottom:8px;">
+        <select onchange="custAnItem=this.value;renderRepContent();" style="width:100%;padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;">${itemOpts}</select>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;">
         <input type="number" step="any" placeholder="Min Amount" value="${custAnAmtMin}" onchange="custAnAmtMin=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;"/>
         <input type="number" step="any" placeholder="Max Amount" value="${custAnAmtMax}" onchange="custAnAmtMax=this.value;renderRepContent();" style="padding:7px;border:1px solid var(--border2);border-radius:7px;font-size:11.5px;"/>
       </div>
@@ -10952,15 +10954,133 @@ function confirmRtMode(){
         <option>🔄 Exchange Only</option>
       </select>
     </div>
-    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="_finalizeRtMode()">✅ Confirm गर्नुस्</button>`,420);
+    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;" onclick="_previewRtMode()">➡️ अगाडि बढ्नुस्</button>`,420);
+}
+// ── Return/Exchange preview — असल बिलको Payment screen जस्तै: कति फिर्ता दिने / कति थप लिने
+// स्पष्ट देखाउने, त्यसपछि मात्र Confirm गर्ने। कुनै data यहाँ change हुँदैन (पछि Confirm मा मात्र हुन्छ)।
+function _computeRtPreview(){
+  const rt=window._rtMode;if(!rt)return null;
+  const now=new Date(),dateStr=now.toLocaleDateString("en-GB");
+  const cartMap={};cart.forEach(c=>{cartMap[c.id]=(cartMap[c.id]||0)+(parseFloat(c.qty)||0);});
+  const isFullVoid=rt.origBill.date===dateStr&&cart.length===0&&
+    Object.keys(rt.origMap).every(pidStr=>{const o=rt.origMap[pidStr];return Math.abs(o.remainQty-o.qty)<0.0001;});
+  const returnLines=[],extraLines=[];
+  let totalRefund=0,totalExtra=0;
+  if(!isFullVoid){
+    const cartMapCopy={...cartMap};
+    Object.keys(rt.origMap).forEach(pidStr=>{
+      const pid=parseInt(pidStr);const o=rt.origMap[pid];
+      const finalQty=cartMapCopy[pid]||0;
+      const returnedQty=+(o.remainQty-finalQty).toFixed(3);
+      if(returnedQty>0.0001){
+        const amt=+(returnedQty*o.avgPrice).toFixed(2);
+        returnLines.push({productId:pid,name:o.name,qty:returnedQty,unit:o.unit,amt});
+        totalRefund+=amt;
+      }
+      delete cartMapCopy[pid];
+    });
+    Object.keys(cartMapCopy).forEach(pidStr=>{
+      const pid=parseInt(pidStr);const extraQty=cartMapCopy[pid];
+      if(extraQty<=0.0001)return;
+      const p=products.find(x=>x.id===pid);
+      const c=cart.find(x=>x.id===pid);
+      const price=c?c.price:(p?p.price:0);
+      const amt=+(extraQty*price).toFixed(2);
+      extraLines.push({productId:pid,name:c?c.name:(p?p.name:"?"),qty:extraQty,unit:c?c._cartUnit:(p?p.unit:""),amt});
+      totalExtra+=amt;
+    });
+  }
+  const voidRefund=isFullVoid?+((rt.origBill.total||0)-(rt.origBill.creditAmt||0)).toFixed(2):0;
+  return{isFullVoid,returnLines,extraLines,totalRefund:+totalRefund.toFixed(2),totalExtra:+totalExtra.toFixed(2),net:isFullVoid?-voidRefund:+(totalExtra-totalRefund).toFixed(2),voidRefund};
+}
+function calcRtChange(net){
+  const v=parseFloat((document.getElementById("rtCashRec")||{}).value||0);
+  const cb=document.getElementById("rtChangeBox");if(!cb)return;
+  if(!v||v<=0){cb.textContent="";return;}
+  if(v<net){cb.textContent="❌ कम: रु "+fmt(net-v);cb.style.color="var(--red)";}
+  else{cb.textContent="🔙 फिर्ता: रु "+fmt(v-net);cb.style.color="var(--green)";}
+}
+function _previewRtMode(){
+  const rt=window._rtMode;if(!rt)return;
+  const reason=(document.getElementById("rtReason")||{}).value||"Other/अन्य";
+  const method=(document.getElementById("rtMethod")||{}).value||"💵 Cash Refund";
+  window._rtReasonMethod={reason,method};
+  const pv=_computeRtPreview();
+  window._rtPreview=pv;
+  if(!pv.isFullVoid&&!pv.returnLines.length&&!pv.extraLines.length){toast$("कुनै परिवर्तन भेटिएन!","error");return;}
+
+  let bodyHtml="";
+  if(pv.isFullVoid){
+    bodyHtml=`<div style="background:#fee2e2;border:1.5px solid var(--red);border-radius:10px;padding:14px;text-align:center;margin-bottom:6px;">
+      <div style="font-size:34px;">🚫</div>
+      <div style="font-size:14px;font-weight:800;color:var(--red);">यो बिल पूर्ण रूपमा VOID हुनेछ</div>
+      <div style="font-size:11px;color:var(--text4);margin-top:2px;">सबै items फिर्ता, Stock पुनः थपिनेछ</div>
+    </div>`;
+    if(pv.voidRefund>0.0001){
+      bodyHtml+=`<div style="background:linear-gradient(135deg,#fee2e2,#fff1f2);border:2px solid var(--red);border-radius:14px;padding:16px;text-align:center;">
+        <div style="font-size:12px;color:var(--text4);margin-bottom:4px;">🔙 ग्राहकलाई पूरै रकम फिर्ता दिनुस्</div>
+        <div style="font-size:32px;font-weight:900;color:var(--red);">रु ${fmt(pv.voidRefund)}</div>
+        <div style="font-size:10px;color:var(--text4);margin-top:4px;">(${esc(rt.origBill.payM||"Cash")} मा तिरेको थियो)</div>
+      </div>`;
+    }
+  }else{
+    if(pv.returnLines.length){
+      bodyHtml+=`<div style="font-size:11.5px;font-weight:800;color:var(--red);margin-bottom:5px;">↩️ Return हुने Items</div>`+
+        pv.returnLines.map(l=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--border);"><span>${esc(l.name)} ×${l.qty}</span><span style="font-weight:700;color:var(--red);">-रु ${fmt(l.amt)}</span></div>`).join("");
+    }
+    if(pv.extraLines.length){
+      bodyHtml+=`<div style="font-size:11.5px;font-weight:800;color:var(--green);margin:8px 0 5px;">🔄 Exchange हुने Items</div>`+
+        pv.extraLines.map(l=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--border);"><span>${esc(l.name)} ×${l.qty}</span><span style="font-weight:700;color:var(--green);">+रु ${fmt(l.amt)}</span></div>`).join("");
+    }
+    bodyHtml+=`<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;padding-top:8px;margin-top:6px;border-top:1.5px solid var(--border);"><span>कुल Return</span><span style="color:var(--red);">-रु ${fmt(pv.totalRefund)}</span></div>`;
+    if(pv.totalExtra>0)bodyHtml+=`<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;"><span>कुल Exchange</span><span style="color:var(--green);">+रु ${fmt(pv.totalExtra)}</span></div>`;
+    if(pv.net<0){
+      bodyHtml+=`<div style="background:linear-gradient(135deg,#fee2e2,#fff1f2);border:2px solid var(--red);border-radius:14px;padding:16px;margin-top:12px;text-align:center;">
+        <div style="font-size:12px;color:var(--text4);margin-bottom:4px;">🔙 ग्राहकलाई फिर्ता दिनुस्</div>
+        <div style="font-size:32px;font-weight:900;color:var(--red);">रु ${fmt(-pv.net)}</div>
+      </div>`;
+    }else if(pv.net>0){
+      bodyHtml+=`<div style="background:linear-gradient(135deg,#dcfce7,#f0fdf4);border:2px solid var(--green);border-radius:14px;padding:14px;margin-top:12px;">
+        <div style="font-size:12px;color:var(--text4);text-align:center;margin-bottom:6px;">💰 ग्राहकबाट थप लिनुपर्ने</div>
+        <div style="font-size:28px;font-weight:900;color:var(--green);text-align:center;margin-bottom:10px;">रु ${fmt(pv.net)}</div>
+        <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:4px;">प्राप्त रकम (Received)</label>
+        <input type="number" step="any" id="rtCashRec" placeholder="0.00" oninput="calcRtChange(${pv.net})" style="width:100%;padding:10px;background:#fff;border:1.5px solid var(--border2);border-radius:9px;color:var(--green);font-size:17px;font-weight:800;outline:none;box-sizing:border-box;"/>
+        <div id="rtChangeBox" style="margin-top:5px;font-size:12px;font-weight:700;text-align:center;"></div>
+      </div>`;
+    }else{
+      bodyHtml+=`<div style="background:#f0f7ff;border:1.5px solid var(--blue);border-radius:12px;padding:12px;margin-top:12px;text-align:center;font-size:12.5px;font-weight:700;color:var(--blue);">✅ बराबर — पैसा साटिँदैन</div>`;
+    }
+  }
+  openModal(`
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+      <h3 style="margin:0;color:var(--text);font-size:16px;">🧾 Return/Exchange Summary</h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--text4);margin-bottom:10px;">Bill: <b>${esc(rt.origBill.billNo)}</b> · ${esc(rt.origBill.custName||"Walk-in")}</div>
+    ${bodyHtml}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+      <button onclick="confirmRtMode()" style="padding:12px 6px;background:#fff;border:1.5px solid var(--border2);color:var(--text3);border-radius:11px;cursor:pointer;font-weight:700;font-size:12px;">‹ Back</button>
+      <button onclick="_finalizeRtMode()" style="padding:12px 6px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;color:#000;border-radius:11px;cursor:pointer;font-weight:800;font-size:12px;">✅ Confirm</button>
+    </div>`,440);
 }
 function _finalizeRtMode(){
   if(window._rtProcessing){toast$("⏳ Return/Void process हुँदैछ — फेरि click नगर्नुस्","warn");return;}
   const rt=window._rtMode;if(!rt){closeModal();return;}
-  window._rtProcessing=true;
+  const pv=window._rtPreview||_computeRtPreview();
+  if(!pv){closeModal();return;}
+  const{reason,method}=window._rtReasonMethod||{reason:"Other/अन्य",method:"💵 Cash Refund"};
 
-  const reason=(document.getElementById("rtReason")||{}).value||"Other/अन्य";
-  const method=(document.getElementById("rtMethod")||{}).value||"💵 Cash Refund";
+  // ग्राहकबाट थप लिनुपर्ने भएमा (net>0) — सामान्य बिल जस्तै Cash Received तिरे/नतिरे validate गर्ने
+  if(!pv.isFullVoid&&pv.net>0){
+    const rtInp=document.getElementById("rtCashRec");
+    if(rtInp){
+      const rec=parseFloat(rtInp.value||0);
+      if(!rec||rec<=0){rtInp.focus();rtInp.style.border="2px solid var(--red)";toast$("💰 प्राप्त रकम enter गर्नुस्!","error");return;}
+      if(rec<pv.net){rtInp.focus();rtInp.style.border="2px solid var(--red)";toast$("❌ रकम कम छ! रु "+fmt(pv.net-rec)+" थप चाहिन्छ","error");return;}
+    }
+  }
+
+  window._rtProcessing=true;
   const origBill=rt.origBill;
   const origBillNo=origBill.billNo;
   const custName=origBill.custName||"Walk-in";
@@ -10970,17 +11090,7 @@ function _finalizeRtMode(){
   const origDate=origBill.date;
   const txId="RTX-"+Date.now().toString(36).toUpperCase()+"-"+Math.random().toString(36).slice(2,7).toUpperCase();
 
-  // अहिलेको cart state सँग origMap तुलना गरेर हरेक item को return-qty / exchange-extra-qty निकाल्ने
-  const cartMap={};cart.forEach(c=>{cartMap[c.id]=(cartMap[c.id]||0)+(parseFloat(c.qty)||0);});
-
-  const isFullVoid=origBill.date===dateStr&&cart.length===0&&
-    Object.keys(rt.origMap).every(pidStr=>{
-      const o=rt.origMap[pidStr];
-      // पूरै बिल Void तब मात्र मानिन्छ जब यो बिलबाट अघि कहिल्यै return भएको छैन (remainQty===qty)
-      return Math.abs(o.remainQty-o.qty)<0.0001;
-    });
-
-  if(isFullVoid){
+  if(pv.isFullVoid){
     origBill.items.forEach(it=>{
       const p=products.find(x=>x.id===it.id);
       if(p){
@@ -10999,58 +11109,49 @@ function _finalizeRtMode(){
     origBill.status="voided";origBill.voidedAt=dateStr;
     saveDB();
     addLog("Void",origBillNo);
-    toast$("🚫 "+origBillNo+" voided!","warn");
-    cart=[];window._rtMode=null;window._rtProcessing=false;
-    closeModal();goScreen("saleslog");
+    cart=[];window._rtMode=null;window._rtProcessing=false;window._rtPreview=null;
+
+    // ग्राहकले पहिले तिरेको (credit नभएको, actual नगद/eSewa/Khalti मा तिरेको) रकम — पूरै बिल Void
+    // भएकोले फिर्ता दिनुपर्छ। Cash Register मा log गर्ने ताकि Cash-in-Hand सही रहोस्, र receipt/print
+    // मा पनि "फिर्ता गरिएको" रकम clearly देखियोस् — सामान्य Return जस्तै नै।
+    const voidRefund=+((origBill.total||0)-(origBill.creditAmt||0)).toFixed(2);
+    if(voidRefund>0.0001){
+      cashRegisterEntries.unshift({id:Date.now()+3,type:"void_refund_cash",billNo:origBillNo+"-VOID",custName,amt:voidRefund,payMethod:origBill.payM||"Cash",date:dateStr,time:timeStr,cashier:currentUser.name,actionId:txId});
+    }
+
+    showRtReceipt({billNo:origBillNo,custName,type:"void",date:dateStr,time:timeStr,cashier:currentUser.name,returnLines:[],extraLines:[],totalRefund:voidRefund,totalExtra:0,net:-voidRefund,cashRec:0,change:0,reason,method:origBill.payM||method});
     renderSalesLog();renderReturns();
     if(typeof renderDashboard==="function")renderDashboard();
     return;
   }
 
-  // Partial Return / Exchange
-  let totalRefund=0,totalExtra=0,itemCount=0,extraCount=0;
-  Object.keys(rt.origMap).forEach(pidStr=>{
-    const pid=parseInt(pidStr);const o=rt.origMap[pid];
-    const finalQty=cartMap[pid]||0;
-    const returnedQty=+(o.remainQty-finalQty).toFixed(3); // remainQty थियो, cart मा घटाइयो भने यति return भयो
-    if(returnedQty>0.0001){
-      const p=products.find(x=>x.id===pid);
-      const amt=+(returnedQty*o.avgPrice).toFixed(2);
-      if(p){
-        const before=p.stock;
-        const baseQty=+(returnedQty*o.pricingQty).toFixed(3);
-        p.stock+=baseQty;
-        stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+baseQty,before,after:p.stock,ref:origBillNo,date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name,actionId:txId});
-        const buyCost=+(o.avgBuy*baseQty).toFixed(2);
-        returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo,custName,productId:p.id,productName:p.name,unit:o.unit,qty:returnedQty,refundAmt:amt,buyCost,method,reason,date:dateStr,origDate,user:currentUser.name,actionId:txId,actionType:"return"});
-      }else{
-        returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo,custName,productId:pid,productName:o.name+" (deleted product)",unit:o.unit||"",qty:returnedQty,refundAmt:amt,buyCost:0,method,reason,date:dateStr,origDate,user:currentUser.name,productDeleted:true,actionId:txId,actionType:"return"});
-      }
-      totalRefund+=amt;itemCount++;
+  // Partial Return / Exchange — pv बाटै line-items लिने (preview मा देखाइएकै हिसाब यहाँ apply हुने)
+  let itemCount=0,extraCount=0;
+  pv.returnLines.forEach(l=>{
+    const p=products.find(x=>x.id===l.productId);
+    const o=rt.origMap[l.productId];
+    if(p){
+      const before=p.stock;
+      const baseQty=+(l.qty*(o?o.pricingQty:1)).toFixed(3);
+      p.stock+=baseQty;
+      stockMovements.unshift({id:Date.now()+itemCount,productId:p.id,productName:p.name,type:"return",qty:+baseQty,before,after:p.stock,ref:origBillNo,date:dateStr,attribDate:origDate,time:timeStr,user:currentUser.name,actionId:txId});
+      const buyCost=+((o?o.avgBuy:0)*baseQty).toFixed(2);
+      returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo,custName,productId:p.id,productName:p.name,unit:l.unit,qty:l.qty,refundAmt:l.amt,buyCost,method,reason,date:dateStr,origDate,user:currentUser.name,actionId:txId,actionType:"return"});
+    }else{
+      returnEntries.unshift({id:Date.now()+itemCount,billRef:origBillNo,custName,productId:l.productId,productName:l.name+" (deleted product)",unit:l.unit||"",qty:l.qty,refundAmt:l.amt,buyCost:0,method,reason,date:dateStr,origDate,user:currentUser.name,productDeleted:true,actionId:txId,actionType:"return"});
     }
-    delete cartMap[pid]; // बाँकी जे रह्यो, त्यो exchange-extra वा नयाँ item हो
+    itemCount++;
   });
-  // Exchange-extra: original qty भन्दा बढी राखिएको वा cart मा नयाँ थपिएको item
-  Object.keys(cartMap).forEach(pidStr=>{
-    const pid=parseInt(pidStr);const extraQty=cartMap[pid];
-    if(extraQty<=0.0001)return;
-    const p=products.find(x=>x.id===pid);
-    const c=cart.find(x=>x.id===pid);
-    const price=c?c.price:(p?p.price:0);
-    const amt=+(extraQty*price).toFixed(2);
+  pv.extraLines.forEach(l=>{
+    const p=products.find(x=>x.id===l.productId);
     if(!p){toast$("⚠️ Item भेटिएन, skip भयो","warn");return;}
-    const before=p.stock;p.stock-=extraQty;
-    stockMovements.unshift({id:Date.now()+1000+extraCount,productId:p.id,productName:p.name,type:"sale",qty:-extraQty,before,after:p.stock,ref:origBillNo+"-EX",date:dateStr,time:timeStr,user:currentUser.name,actionId:txId});
-    returnEntries.unshift({id:Date.now()+2000+extraCount,billRef:origBillNo,custName,productId:p.id,productName:p.name,unit:p.unit,qty:extraQty,refundAmt:amt,buyCost:(p.buy||0)*extraQty,method,reason:"Exchange",date:dateStr,origDate:dateStr,user:currentUser.name,kind:"exchange_add",actionId:txId,actionType:"exchange"});
-    totalExtra+=amt;extraCount++;
+    const before=p.stock;p.stock-=l.qty;
+    stockMovements.unshift({id:Date.now()+1000+extraCount,productId:p.id,productName:p.name,type:"sale",qty:-l.qty,before,after:p.stock,ref:origBillNo+"-EX",date:dateStr,time:timeStr,user:currentUser.name,actionId:txId});
+    returnEntries.unshift({id:Date.now()+2000+extraCount,billRef:origBillNo,custName,productId:p.id,productName:p.name,unit:l.unit,qty:l.qty,refundAmt:l.amt,buyCost:(p.buy||0)*l.qty,method,reason:"Exchange",date:dateStr,origDate:dateStr,user:currentUser.name,kind:"exchange_add",actionId:txId,actionType:"exchange"});
+    extraCount++;
   });
 
-  if(!itemCount&&!extraCount){
-    toast$("कुनै परिवर्तन भेटिएन!","error");
-    window._rtProcessing=false;closeModal();return;
-  }
-
-  const net=+(totalExtra-totalRefund).toFixed(2);
+  const{totalRefund,totalExtra,net}=pv;
   if((net!==0||totalRefund>0)&&custName){
     const cu=origBill.custId?customers.find(x=>x.id===origBill.custId):customers.find(x=>x.name===custName);
     if(cu){
@@ -11063,6 +11164,7 @@ function _finalizeRtMode(){
       toast$("⚠️ Walk-in ग्राहकबाट रु "+fmt(net)+" थप असुल्नुस् (नगद)","warn");
     }
   }
+  const rtCashRec=net>0?parseFloat((document.getElementById("rtCashRec")||{}).value||net):0;
   if(net>0){
     cashRegisterEntries.unshift({id:Date.now()+2,type:"exchange_extra_cash",billNo:origBillNo+"-EX",custName,amt:net,payMethod:"Cash",date:dateStr,time:timeStr,cashier:currentUser.name,actionId:txId});
   }else if(net<0&&String(method).toLowerCase().includes("cash")){
@@ -11075,14 +11177,79 @@ function _finalizeRtMode(){
   localStorage.setItem("nabin_returns",JSON.stringify(returnEntries));
   saveDB();
 
-  toast$(net>0?"🔄 Exchange processed! ग्राहकबाट थप लिने: रु "+fmt(net):net<0?"↩️ Return processed! फिर्ता: रु "+fmt(-net):"🔄 Exchange processed! (बराबर, पैसा चलेन)");
-
-  cart=[];window._rtMode=null;window._rtProcessing=false;
-  closeModal();
-  goScreen("saleslog");
+  cart=[];window._rtMode=null;window._rtProcessing=false;window._rtPreview=null;
+  showRtReceipt({billNo:origBillNo,custName,type:extraCount?"exchange":"return",date:dateStr,time:timeStr,cashier:currentUser.name,returnLines:pv.returnLines,extraLines:pv.extraLines,totalRefund,totalExtra,net,cashRec:net>0?rtCashRec:0,change:net>0?Math.max(0,rtCashRec-net):0,reason,method});
   renderReturns();renderSalesLog();
   if(typeof renderDashboard==="function")renderDashboard();
 }
+// ── सामान्य बिलको receipt जस्तै — Return/Void/Exchange पछि पनि print गर्न मिल्ने slip देखाउने ──
+function showRtReceipt(r){
+  window._lastRtBill=r;
+  const titleMap={void:"🚫 VOID Slip",return:"↩️ Return Slip",exchange:"🔄 Exchange Slip"};
+  let itemsHtml="";
+  if(r.returnLines&&r.returnLines.length){
+    itemsHtml+=`<div style="font-size:10px;font-weight:800;color:var(--red);margin:4px 0 2px;">↩️ RETURNED</div>`+
+      r.returnLines.map(l=>`<div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="font-size:11px;">${esc(l.name)} ×${l.qty}</span><span style="font-size:11px;font-weight:700;color:var(--red);">-रु ${fmtN(l.amt)}</span></div>`).join("");
+  }
+  if(r.extraLines&&r.extraLines.length){
+    itemsHtml+=`<div style="font-size:10px;font-weight:800;color:var(--green);margin:6px 0 2px;">🔄 EXCHANGED (नयाँ)</div>`+
+      r.extraLines.map(l=>`<div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="font-size:11px;">${esc(l.name)} ×${l.qty}</span><span style="font-size:11px;font-weight:700;color:var(--green);">+रु ${fmtN(l.amt)}</span></div>`).join("");
+  }
+  document.getElementById("receiptBox").innerHTML=`<div style="font-family:'Courier New',monospace;font-size:12px;text-align:left;">
+    <div style="font-size:17px;font-weight:900;color:var(--gold);text-align:center;">⚡ ${shopInfo?.name||"NabinPOS"}</div>
+    <div style="font-size:10px;color:var(--text4);text-align:center;">${shopInfo?.addr||""} ${shopInfo?.contact?"📞"+shopInfo.contact:""}</div>
+    <div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>
+    <div style="font-size:13px;font-weight:800;text-align:center;color:var(--text);">${titleMap[r.type]||"Return Slip"}</div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text4);margin-top:4px;"><span>Bill Ref: <strong>${esc(r.billNo)}</strong></span><span>${r.date} ${r.time||""}</span></div>
+    <div style="font-size:10px;color:var(--text4);">Customer: ${esc(r.custName)} | ${esc(r.cashier)}</div>
+    <div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>
+    ${r.type==="void"?`<div style="text-align:center;font-size:12px;font-weight:800;color:var(--red);padding:6px 0;">यो बिल पूर्ण रूपमा VOID भयो</div>`:itemsHtml}
+    <div style="border-top:1px dashed var(--border2);margin:8px 0;"></div>
+    ${r.type!=="void"?`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>कुल Return</span><span style="color:var(--red);">-रु ${fmt(r.totalRefund)}</span></div>${r.totalExtra>0?`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>कुल Exchange</span><span style="color:var(--green);">+रु ${fmt(r.totalExtra)}</span></div>`:""}`:""}
+    ${r.net<0?`<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;margin-top:4px;"><span>🔙 फिर्ता गरिएको</span><span style="color:var(--red);">रु ${fmt(-r.net)}</span></div>`:r.net>0?`<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;margin-top:4px;"><span>थप लिइयो</span><span style="color:var(--green);">रु ${fmt(r.net)}</span></div>${r.cashRec?`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>Received</span><span>रु ${fmt(r.cashRec)}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--green);"><span>🔙 Change</span><span>रु ${fmt(r.change||0)}</span></div>`:""}`:r.type!=="void"?`<div style="text-align:center;font-size:12px;font-weight:700;color:var(--blue);margin-top:4px;">बराबर — पैसा साटिएन</div>`:""}
+    <div style="font-size:11px;color:var(--blue);margin-top:4px;">Reason: ${esc(r.reason||"")}</div>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text4);">धन्यवाद! 🙏</div>
+    <div style="text-align:center;font-size:10px;color:var(--text4);">⚡ NabinPOS v1.0 | © 2026 Nabin Mart</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+      <button onclick="printRtBill()" style="padding:9px;background:#dbeafe;border:1.5px solid var(--blue);color:var(--blue);border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;">🖨️ Print</button>
+      <button onclick="document.getElementById('receiptModal').style.display='none';goScreen('saleslog');" class="btn btn-gold" style="padding:9px;font-size:12px;">✓ Close</button>
+    </div>`;
+  document.getElementById("receiptModal").style.display="flex";
+}
+function printRtBill(){
+  const r=window._lastRtBill;if(!r)return;
+  const copyNum=getPrintCopyNum(r.billNo+"-RT");
+  const copyTag=copyNum>1?`<div class="c" style="border:1.5px solid #000;padding:3px;margin:4px 0;font-weight:bold;">🖨️ REPRINT — Copy #${copyNum}</div>`:"";
+  const titleMap={void:"VOID SLIP",return:"RETURN SLIP",exchange:"EXCHANGE SLIP"};
+  let lines="";
+  (r.returnLines||[]).forEach(l=>{lines+=`<div class="r"><span>↩️ ${esc(l.name)} ×${l.qty}</span><span>-रु ${fmtN(l.amt)}</span></div>`;});
+  (r.extraLines||[]).forEach(l=>{lines+=`<div class="r"><span>🔄 ${esc(l.name)} ×${l.qty}</span><span>+रु ${fmtN(l.amt)}</span></div>`;});
+  const w=window.open("","_blank","width=320,height=650");
+  if(!w)return;
+  w.document.write(`<!DOCTYPE html><html><head><title>Return Slip</title><style>*{margin:0;padding:0;font-family:'Courier New',monospace;font-size:12px;}body{width:280px;padding:10px;}.r{display:flex;justify-content:space-between;margin:3px 0;}.c{text-align:center;}@media print{.np{display:none;}}</style></head><body>
+  <h2 class="c">⚡ ${shopInfo?.name||"NabinPOS"}</h2>
+  <div class="c">${shopInfo?.addr||""}</div>
+  <div class="c">📞 ${shopInfo?.contact||""}</div>
+  <hr style="border:1px dashed #000;margin:5px 0;"/>
+  <div class="c" style="font-weight:bold;">${titleMap[r.type]||"RETURN SLIP"}</div>
+  <div class="r"><span>Bill Ref: ${esc(r.billNo)}</span><span>${r.date}</span></div>
+  <div class="r"><span>${esc(r.custName)}</span><span>${esc(r.cashier)}</span></div>
+  ${copyTag}
+  <hr style="border:1px dashed #000;margin:5px 0;"/>
+  ${r.type==="void"?`<div class="c" style="font-weight:bold;">यो बिल पूर्ण रूपमा VOID भयो</div>`:lines}
+  <hr style="border:1px dashed #000;margin:5px 0;"/>
+  ${r.type!=="void"?`<div class="r"><span>कुल Return</span><span>-रु ${fmt(r.totalRefund)}</span></div>${r.totalExtra>0?`<div class="r"><span>कुल Exchange</span><span>+रु ${fmt(r.totalExtra)}</span></div>`:""}`:""}
+  ${r.net<0?`<div class="r" style="font-weight:bold;font-size:14px;"><span>🔙 फिर्ता गरिएको</span><span>रु ${fmt(-r.net)}</span></div>`:r.net>0?`<div class="r" style="font-weight:bold;font-size:14px;"><span>थप लिइयो</span><span>रु ${fmt(r.net)}</span></div>${r.cashRec?`<div class="r"><span>Received</span><span>रु ${fmt(r.cashRec)}</span></div><div class="r"><span>🔙 Change</span><span>रु ${fmt(r.change||0)}</span></div>`:""}`:""}
+  <div>Reason: ${esc(r.reason||"")}</div>
+  <hr style="border:1px dashed #000;margin:5px 0;"/>
+  <div class="c">धन्यवाद! 🙏</div>
+  <div class="c">⚡ NabinPOS v1.0 | © 2026 Nabin Mart</div>
+  <div class="c np" style="margin-top:8px;"><button onclick="window.print()">🖨️ Print</button></div>
+  </body></html>`);
+  w.document.close();setTimeout(()=>w.print(),400);
+}
+
 
 function openReturnFromBill(billId){
   const bill=billId?salesHistory.find(x=>x.id===billId):null;
