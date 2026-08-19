@@ -35,7 +35,12 @@
     --warn:#b45309;
   }
   html{overflow-x:hidden;max-width:100vw;}
-  body{font-family:'Segoe UI','Noto Sans Devanagari',Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;overflow-x:hidden;max-width:100vw;font-size:13px;}
+  body{font-family:'Segoe UI','Noto Sans Devanagari',Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow-y:auto;overflow-x:hidden;max-width:100vw;font-size:13px;}
+  /* 🔧 फिक्स: पहिले overflow:hidden थियो — PC मा zoom (＋/－) गर्दा app content viewport भन्दा अग्लो
+     भएपछि तल्लो button/sidebar item (जस्तै Settings, zoom control आफैं) कहिल्यै देख्न/pointer गर्न
+     नमिल्ने हुन्थ्यो, किनभने page-level scroll गर्ने कुनै बाटो नै थिएन। अब आवश्यक परे मात्र
+     page-level vertical scroll देखिन्छ (सामान्य अवस्थामा app आफैं viewport भित्र ठीक अटाउँछ, केही
+     बदलिँदैन)। */
   button{cursor:pointer;font-family:inherit;}
   input,select,textarea{font-family:inherit;}
   ::-webkit-scrollbar{width:5px;height:5px;}
@@ -498,14 +503,15 @@
   </div>
 </div>
 <div id="mainApp" class="app" style="display: none;">
+  <div id="floatZoom" style="position:fixed;z-index:9000;display:flex;align-items:center;gap:2px;background:#1e293b;border-radius:20px;padding:5px 6px;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.5;transition:opacity .15s;cursor:grab;touch-action:none;">
+    <span id="floatZoomHandle" style="color:#fff;font-size:11px;padding:0 3px;user-select:none;">⠿</span>
+    <button onclick="appZoomOut()" style="width:24px;height:24px;background:rgba(255,255,255,.15);border:none;border-radius:50%;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">－</button>
+    <span class="zoomPctDisplay" onclick="appZoomReset()" style="font-size:9px;font-weight:700;color:#fff;width:26px;text-align:center;cursor:pointer;user-select:none;">100%</span>
+    <button onclick="appZoomIn()" style="width:24px;height:24px;background:rgba(255,255,255,.15);border:none;border-radius:50%;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
+  </div>
   <div class="mobile-topbar" id="mobileTopbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
     <span class="mt-title" id="mobileTitle">⚙️ Settings</span>
-    <div class="mt-zoom" style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
-      <button onclick="appZoomOut()" style="width:24px;height:24px;background:#f0f7ff;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">－</button>
-      <span class="zoomPctDisplay" onclick="appZoomReset()" style="font-size:9px;font-weight:700;color:var(--text4);width:28px;text-align:center;cursor:pointer;">100%</span>
-      <button onclick="appZoomIn()" style="width:24px;height:24px;background:#f0f7ff;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
-    </div>
     <button class="mt-logout" onclick="doLogout()">⏏</button>
   </div>
   <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
@@ -516,11 +522,6 @@
       <div class="sub">Butwal · Final Edition</div>
     </div>
     <nav class="sidebar-nav" id="sideNav"><button class="nav-btn" data-screen="dashboard" onclick="goScreen('dashboard')"><span style="font-size:14px;">▦</span>Dashboard</button><button class="nav-btn" data-screen="pos" onclick="goScreen('pos')"><span style="font-size:14px;">🧾</span>POS Billing</button><button class="nav-btn" data-screen="saleslog" onclick="goScreen('saleslog')"><span style="font-size:14px;">📜</span>Sales History</button><button class="nav-btn" data-screen="customers" onclick="goScreen('customers')"><span style="font-size:14px;">👥</span>Customers</button><button class="nav-btn" data-screen="purchase" onclick="goScreen('purchase')"><span style="font-size:14px;">🛒</span>Purchase</button><button class="nav-btn" data-screen="suppliers" onclick="goScreen('suppliers')"><span style="font-size:14px;">🤝</span>Suppliers</button><button class="nav-btn" data-screen="inventory" onclick="goScreen('inventory')"><span style="font-size:14px;">📦</span>Inventory</button><button class="nav-btn" data-screen="stocklog" onclick="goScreen('stocklog')"><span style="font-size:14px;">🔄</span>Stock Log</button><button class="nav-btn" data-screen="damage" onclick="goScreen('damage')"><span style="font-size:14px;">💔</span>Damage/Loss</button><button class="nav-btn" data-screen="assets" onclick="goScreen('assets')"><span style="font-size:14px;">🏢</span>Fixed Assets</button><button class="nav-btn" data-screen="returns" onclick="goScreen('returns')"><span style="font-size:14px;">↩️</span>Returns</button><button class="nav-btn" data-screen="reports" onclick="goScreen('reports')"><span style="font-size:14px;">📊</span>Reports</button><button class="nav-btn" data-screen="expenses" onclick="goScreen('expenses')"><span style="font-size:14px;">💸</span>Expenses</button><button class="nav-btn" data-screen="vault" onclick="goScreen('vault')"><span style="font-size:14px;">🏦</span>Cash Vault</button><button class="nav-btn" data-screen="actlog" onclick="goScreen('actlog')"><span style="font-size:14px;">📋</span>Activity</button></nav>
-    <div class="sidebar-zoom" style="padding:8px 12px;display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid var(--border);">
-      <button onclick="appZoomOut()" title="Zoom Out" style="width:26px;height:26px;background:#fff;border:1px solid var(--border2);border-radius:7px;color:var(--text3);font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">－</button>
-      <span class="zoomPctDisplay" onclick="appZoomReset()" title="Reset Zoom" style="font-size:10px;font-weight:700;color:var(--text4);width:34px;text-align:center;cursor:pointer;">100%</span>
-      <button onclick="appZoomIn()" title="Zoom In" style="width:26px;height:26px;background:#fff;border:1px solid var(--border2);border-radius:7px;color:var(--text3);font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
-    </div>
     <div class="sidebar-user">
       <div class="user-card">
         <div class="avatar" id="sideAvatar" style="background: rgba(74, 222, 128, 0.094); border: 2px solid rgb(74, 222, 128); color: rgb(74, 222, 128);">BI</div>
@@ -3482,7 +3483,14 @@ const SB_TABLES={
   vaultAdjustments:"vault_adjustments",vaultSettings:"vault_settings",categories:"categories"
 };
 
-function catsToSyncArr(){return CATS.map(name=>({id:name,name,icon:CICON[name]||"📦"}));}
+function catNameHash(name){
+  // category नाम बाट स्थिर (सधैं उही) numeric id बनाउने — किनभने Supabase को categories.id column
+  // "bigint" (number) हो, नाम (text) सिधै id को रूपमा पठाउँदा type mismatch ले push असफल हुन्थ्यो।
+  let h=5381;
+  for(let i=0;i<name.length;i++)h=((h<<5)+h+name.charCodeAt(i))>>>0;
+  return h;
+}
+function catsToSyncArr(){return CATS.map(name=>({id:catNameHash(name),name,icon:CICON[name]||"📦"}));}
 
 function saveDB(){
   saveDBLocal();
@@ -3730,6 +3738,7 @@ async function loadDB(isInitialBoot){
     if(_syncTimer){console.warn("⏳ Fetch हुँदै गर्दा नयाँ edit भयो — overwrite skip गरियो");return;}
     const _suspiciousEmpty=[]; // ⚠️ SAFETY GUARD: cloud ले खाली [] फर्काएको तर local मा data भएको tables
     entries.forEach(([arrKey,tbl],i)=>{
+      try{
       const{data,error}=results[i];
       if(error){console.error("Supabase load["+tbl+"]:",error.message);return;}
       if(!data)return; // fetch error already handled above; data itself can validly be []
@@ -3799,13 +3808,18 @@ async function loadDB(isInitialBoot){
           // 🆕 Categories अब products/customers जस्तै <1 सेकेन्डमा auto-sync हुन्छ — पहिले यो केवल
           // यो device को localStorage मा मात्र बस्थ्यो, त्यसैले PC र mobile मा फरक-फरक category
           // list देखिन्थ्यो। अब सबै device मा एउटै cloud "categories" table बाट sync हुन्छ।
-          if(merged.length){
-            CATS.splice(0,CATS.length,...merged.map(o=>o.name));
-            merged.forEach(o=>{if(o.icon)CICON[o.name]=o.icon;});
+          // ⚠️ SAFETY: cloud बाट malformed/आंशिक data आए (जस्तै table schema नमिलेको) local list
+          // कहिल्यै "undefined" वा खाली नाम ले नबिग्रियोस् भनेर validate गरेर मात्र apply गर्ने।
+          const validCats=merged.filter(o=>o&&typeof o.name==="string"&&o.name.trim());
+          if(validCats.length){
+            CATS.splice(0,CATS.length,...validCats.map(o=>o.name));
+            validCats.forEach(o=>{if(o.icon)CICON[o.name]=o.icon;});
             localStorage.setItem("nabin_cats",JSON.stringify(CATS));
             localStorage.setItem("nabin_cicons",JSON.stringify(CICON));
             if(typeof renderCatList==="function")renderCatList();
             if(typeof renderSettingsCats==="function")renderSettingsCats();
+          }else if(merged.length){
+            console.error(`⚠️ "categories" cloud data malformed (name missing) — local categories जोगाइयो, apply गरिएन। Supabase table schema जाँच्नुपर्ने हुन सक्छ।`);
           }
         }
         // cloud-confirmed भागलाई मात्र "last synced" मान्ने — preserved (unsynced) record हरूलाई
@@ -3815,6 +3829,12 @@ async function loadDB(isInitialBoot){
         _lastKnownCloudIds[tbl]=new Set(mapped.map(o=>o.id)); // यही table मा cloud मा साँच्चै भएको id हरूको ताजा baseline
         _persistKnownCloudIds();
         if(preserved>0)syncToSupabase(); // जोगिएका unsynced record हरू फेरि push गर्ने कोशिस गर्ने
+      }
+      }catch(tblErr){
+        // 🔧 फिक्स: कुनै एउटा table (जस्तै "categories") process गर्दा unexpected error आए पनि
+        // बाँकी सबै table (products/customers/sales आदि) र त्यसपछिको dashboard render रोकिनु
+        // हुँदैन — यहीं isolate गरेर console मा मात्र देखाउने।
+        console.error(`⚠️ "${tbl}" table process गर्दा error आयो (अरू data मा असर परेन):`,tblErr);
       }
     });
     await pullUsersFromCloud(); // staff/admin password लगायत हरेक device मा ताजा राख्ने
@@ -4762,7 +4782,7 @@ async function doLogin(){
   }runStartupChecks();toast$("नमस्ते "+u.name+"! 🙏");
   checkBiometricSupport();
 }
-// ── App Zoom (PC sidebar + mobile topbar दुवैमा — पूरा app content zoom गर्ने, कुनै अरू button/layout block नगरी) ──
+// ── App Zoom (एउटै floating, movable, अर्ध-पारदर्शी widget — PC/mobile दुवैमा, जहाँ चाहन्छ त्यहाँ राख्न मिल्ने) ──
 let _appZoom=parseInt(localStorage.getItem("nabin_zoom")||"100",10)||100;
 function applyAppZoom(){
   _appZoom=Math.max(70,Math.min(150,_appZoom));
@@ -4774,8 +4794,50 @@ function applyAppZoom(){
 function appZoomIn(){_appZoom+=10;applyAppZoom();}
 function appZoomOut(){_appZoom-=10;applyAppZoom();}
 function appZoomReset(){_appZoom=100;applyAppZoom();}
-document.addEventListener("DOMContentLoaded",applyAppZoom);
-if(document.readyState==="complete"||document.readyState==="interactive")applyAppZoom();
+document.addEventListener("DOMContentLoaded",()=>{applyAppZoom();initFloatZoomDrag();});
+if(document.readyState==="complete"||document.readyState==="interactive"){applyAppZoom();initFloatZoomDrag();}
+
+function initFloatZoomDrag(){
+  const w=document.getElementById("floatZoom");if(!w||w._dragInit)return;w._dragInit=true;
+  // सुरुको ठाउँ (साविक: bottom-right) — पहिले move गरेको भए त्यही ठाउँमा फेरि देखिने
+  try{
+    const saved=JSON.parse(localStorage.getItem("nabin_zoom_pos")||"null");
+    if(saved&&typeof saved.right==="number"&&typeof saved.bottom==="number"){
+      w.style.right=saved.right+"px";w.style.bottom=saved.bottom+"px";
+    }else{w.style.right="14px";w.style.bottom="70px";}
+  }catch(e){w.style.right="14px";w.style.bottom="70px";}
+  w.addEventListener("mouseenter",()=>w.style.opacity="1");
+  w.addEventListener("mouseleave",()=>w.style.opacity=".5");
+  let dragging=false,startX=0,startY=0,startRight=0,startBottom=0,moved=false;
+  const handle=document.getElementById("floatZoomHandle");
+  const start=(x,y)=>{
+    dragging=true;moved=false;w.style.cursor="grabbing";w.style.opacity="1";
+    startX=x;startY=y;
+    const r=w.getBoundingClientRect();
+    startRight=window.innerWidth-r.right;startBottom=window.innerHeight-r.bottom;
+  };
+  const move=(x,y)=>{
+    if(!dragging)return;
+    const dx=x-startX,dy=y-startY;
+    if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;
+    let newRight=startRight-dx,newBottom=startBottom-dy;
+    newRight=Math.max(2,Math.min(window.innerWidth-40,newRight));
+    newBottom=Math.max(2,Math.min(window.innerHeight-40,newBottom));
+    w.style.right=newRight+"px";w.style.bottom=newBottom+"px";
+  };
+  const end=()=>{
+    if(!dragging)return;dragging=false;w.style.cursor="grab";
+    if(moved){
+      const right=parseFloat(w.style.right)||14,bottom=parseFloat(w.style.bottom)||70;
+      localStorage.setItem("nabin_zoom_pos",JSON.stringify({right,bottom}));
+    }
+    setTimeout(()=>{if(!w.matches(":hover"))w.style.opacity=".5";},150);
+  };
+  handle.addEventListener("pointerdown",e=>{start(e.clientX,e.clientY);handle.setPointerCapture(e.pointerId);});
+  handle.addEventListener("pointermove",e=>move(e.clientX,e.clientY));
+  handle.addEventListener("pointerup",end);
+  handle.addEventListener("pointercancel",end);
+}
 
 function closeAllOverlays(){
   // सुरक्षा फिक्स: यो app मा modal धेरै छुट्टा-छुट्टै overlay (#payModalEl, #bcModalOverlay, #receiptModal,
@@ -5073,10 +5135,9 @@ function toggleStatBox(key){
   }
 }
 function renderDashboard(){
-  renderExpiryWidget();
-  // आजको सही नेपाली मिति देखाउने — पहिले library (CDN) बाट कोशिस, त्यो fail भए
-  // AD मिति नै देखाउने (कहिल्यै बासी/गलत BS मिति नदेखाउने — पहिले "२०८१ माघ १५" जस्तो
-  // हार्डकोड placeholder सधैं अड्किएर बस्ने bug थियो, जुन अब हटाइयो)
+  // 🔧 फिक्स: date-update code लाई सबैभन्दा माथि सार्दै — पहिले renderExpiryWidget() वा तलको कुनै
+  // पनि function मा error आए (जस्तै corrupt data भएको बेला) date "05 August 2026" जस्तो पुरानो
+  // placeholder मै अड्किएर बस्थ्यो, किनभने JS error ले त्यसपछिको सबै code रोकिदिन्थ्यो।
   (function renderDashDate(){
     const sub=document.getElementById("dashDateSub");
     if(!sub)return;
@@ -5093,6 +5154,7 @@ function renderDashboard(){
       sub.textContent=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"})+" — आजको अवलोकन";
     }
   })();
+  try{renderExpiryWidget();}catch(e){console.error("renderExpiryWidget failed (non-blocking):",e);}
   const lowS=products.filter(p=>p.stock<=p.low&&p.low>0);
   const custDue=customers.reduce((s,c)=>s+Math.abs(Math.min(0,c.bal)),0);
   const today=new Date().toLocaleDateString("en-GB");
