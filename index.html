@@ -443,7 +443,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nepali-date-converter@3.4.0/dist/nepali-date-converter.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -1489,8 +1489,8 @@
           <!-- Summary Bar -->
           <div id="salesSummaryBar" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;"><div style="background:#fefce8;border:1px solid var(--gold);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--gold);white-space:nowrap;">💰 Total (Net): <span style="font-size:13px;">रु 6,621</span></div><div style="background:#eff6ff;border:1px solid var(--blue);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;">🤝 Credit: <span style="font-size:13px;">रु 1,298</span></div><div style="background:var(--bg4);border:1px solid var(--text3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap;">🧾 Bills: <span style="font-size:13px;">66</span></div><div style="background:#fff8f0;border:1px solid var(--warn);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap;">↩️ Return Bills: <span style="font-size:13px;">8</span></div><div style="background:#fff8f0;border:1px solid var(--warn);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap;">↩️ Refunded: <span style="font-size:13px;">रु 1,160</span></div></div>
         </div>
-        <div class="card" style="overflow:auto;">
-          <table class="tbl" id="saleslogTable">
+        <div class="card" style="overflow-x:auto;">
+          <table class="tbl" id="saleslogTable" style="min-width:820px;">
     <tbody><tr><th>Bill No</th><th>मिति</th><th>Time</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>
     <tr style="background:#fff8f0;opacity:.8;">
         <td style="color:var(--warn);font-weight:700;font-family:monospace;">BILL-260805-0001</td>
@@ -4636,7 +4636,15 @@ async function doLogin(){
     try{await pullUsersFromCloud();}catch(e){}
     uCand=USERS.find(x=>x.un===un);
   }
-  const u=(uCand&&await verifyPassword(pw,uCand.salt,uCand.pwHash))?uCand:null;
+  let u=(uCand&&await verifyPassword(pw,uCand.salt,uCand.pwHash))?uCand:null;
+  if(!u&&uCand){
+    // 🔧 फिक्स: username त भेटियो तर password नमिलेको भए — सम्भवतः अर्को device (जस्तै mobile) बाट
+    // भर्खरै password बदलिएको छ र यो device (PC) मा localStorage अझै पुरानो hash सँगै बसिरहेको छ।
+    // तुरुन्तै "गलत password" नभनी, एक पटक cloud बाट फेरि ताजा data तानेर पुनः जाँच्ने।
+    try{await pullUsersFromCloud();}catch(e){}
+    const fresh=USERS.find(x=>x.un===un);
+    if(fresh&&await verifyPassword(pw,fresh.salt,fresh.pwHash)){uCand=fresh;u=fresh;}
+  }
   if(!u){
     _failCount++;
     const allowedTries=_lockLevel===0?3:2; // पहिलो round 3 try, त्यसपछि हरेक round 2-2 try मात्र
@@ -4706,14 +4714,26 @@ async function doLogin(){
   }runStartupChecks();toast$("नमस्ते "+u.name+"! 🙏");
   checkBiometricSupport();
 }
+function closeAllOverlays(){
+  // सुरक्षा फिक्स: यो app मा modal धेरै छुट्टा-छुट्टै overlay (#payModalEl, #bcModalOverlay, #receiptModal,
+  // #fsDetailOverlay, dynamically-created फुलस्क्रिन wizard जस्तै Customer Analysis Full View) मा बनेका छन् —
+  // closeModal() ले केवल generic #modalOverlay मात्र बन्द गर्थ्यो। यसले ती सबै एकैचोटि बन्द गर्छ, ताकि
+  // logout/auto-idle-logout/lock हुँदा कुनै पनि wizard खुलै रहेर काम गर्न नमिलोस्।
+  closeModal();
+  ["bcModalOverlay","payModalEl","receiptModal","fsDetailOverlay"].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display="none";
+  });
+  document.querySelectorAll('[id$="FsOverlay"]').forEach(el=>el.remove());
+  if(typeof stopQRScanner==="function")stopQRScanner();
+}
 function doLogout(auto=false){
   if(!auto&&!confirm("Logout गर्ने?"))return;
   clearIdleTimer();
   addLog("Logout",(currentUser?.name||"")+(auto?" (auto-idle)":" out"));localStorage.setItem("nabin_last_screen",currentScreen||"dashboard");localStorage.setItem("nabin_last_screen_time",String(Date.now()));currentUser=null;_lastLoginPw=null;
-  // 🔒 सुरक्षा फिक्स: कुनै modal (जस्तै Staff Detail/Permissions wizard) खुला भइरहेको भए logout हुँदा
-  // बन्द गर्ने — नत्र logout भइसकेपछि पनि त्यो modal खुलै रहन्थ्यो र त्यसबाट सबै काम (permission change,
-  // password reset, delete) गर्न मिल्थ्यो, जुन ठूलो security gap थियो।
-  closeModal();
+  // 🔒 सुरक्षा फिक्स: कुनै modal (जस्तै Staff Detail/Permissions wizard, Payment wizard, Barcode scanner,
+  // Receipt, वा कुनै फुलस्क्रिन wizard) खुला भइरहेको भए logout हुँदा बन्द गर्ने — नत्र logout भइसकेपछि पनि
+  // त्यो खुलै रहेर काम गर्न मिल्थ्यो, जुन ठूलो security gap थियो।
+  closeAllOverlays();
   // सुरक्षा फिक्स: DOM बाट हरेक screen को "active" class हटाउने (विशेषगरी Settings) — ताकि
   // अर्को/नयाँ Staff ले यही device मा login गर्दा पुरानो screen कहिल्यै residual/leftover नदेखियोस्
   document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
@@ -4757,7 +4777,7 @@ let _lockPending=false;
 function lockApp(){
   if(!currentUser)return;
   const ov=document.getElementById("appLockOverlay");if(!ov)return;
-  closeModal(); // 🔒 यहाँ पनि खुला modal (permissions/detail wizard) बन्द गर्ने — lock overlay अगाडि आउँदा पनि सुरक्षित रहोस्
+  closeAllOverlays(); // 🔒 यहाँ पनि खुला सबै modal/wizard बन्द गर्ने — lock overlay अगाडि आउँदा पनि सुरक्षित रहोस्
   const nm=document.getElementById("lockUserName");if(nm)nm.textContent="🔒 "+currentUser.name+" ("+currentUser.role+") — Locked";
   ov.style.display="flex";
   const creds=JSON.parse(localStorage.getItem("nabin_bio_creds")||"{}");
@@ -5160,7 +5180,7 @@ function retryLoadChart(){
   _chartRetryInProgress=true;
   const note=document.getElementById("trendNote");if(note)note.innerHTML="⏳ फेरि load गर्दै...";
   const s=document.createElement("script");
-  s.src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js";
+  s.src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js";
   s.onload=()=>{_chartRetryInProgress=false;renderSalesTrend();};
   s.onerror=()=>{
     _chartRetryInProgress=false;
@@ -9556,17 +9576,13 @@ function renderCustomerAnalysisHTML(){
     <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px;margin:14px 0;">
       <button onclick="openCustPurchaseReportFor(${cu.id})" style="padding:8px 14px;background:#dbeafe;border:1px solid var(--blue);color:var(--blue);border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;">📄 Export PDF / Excel (Category / Item / Amount / Date / Complete)</button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-      <div class="card" style="overflow:auto;max-height:260px;"><div class="card-title">📂 Top Categories</div>
-        <table class="tbl" style="font-size:11px;"><tr><th>Category</th><th>Qty</th><th>Sales</th><th>Profit</th></tr>
-        ${d.byCat.slice(0,8).map(g=>`<tr><td style="font-weight:700;">${esc(g.name)}</td><td>${fmtN(g.qty)}</td><td style="color:var(--gold);font-weight:700;">रु ${fmtN(g.amt)}</td><td style="color:${g.margin>=0?"var(--green)":"var(--red)"};font-weight:700;">रु ${fmtN(g.margin)}</td></tr>`).join("")||`<tr><td colspan="4" style="text-align:center;color:var(--text4);padding:14px;">Data छैन</td></tr>`}
-        </table>
-      </div>
-      <div class="card" style="overflow:auto;max-height:260px;"><div class="card-title">📦 Top Items</div>
-        <table class="tbl" style="font-size:11px;"><tr><th>Item</th><th>Qty</th><th>Sales</th><th>Profit</th></tr>
-        ${d.byItem.slice(0,8).map(g=>`<tr><td style="font-weight:700;">${esc(g.name)}</td><td>${fmtN(g.qty)}</td><td style="color:var(--gold);font-weight:700;">रु ${fmtN(g.amt)}</td><td style="color:${g.margin>=0?"var(--green)":"var(--red)"};font-weight:700;">रु ${fmtN(g.margin)}</td></tr>`).join("")||`<tr><td colspan="4" style="text-align:center;color:var(--text4);padding:14px;">Data छैन</td></tr>`}
-        </table>
-      </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <button onclick="openCustAnFullscreen('cat')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 16px;background:#fff;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:800;color:var(--text);cursor:pointer;">
+        <span>📂 Top Categories हेर्नुस् <span style="color:var(--text4);font-weight:600;font-size:11px;">(${d.byCat.length} items)</span></span><span style="color:var(--blue);">⛶ Full View</span>
+      </button>
+      <button onclick="openCustAnFullscreen('item')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 16px;background:#fff;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:800;color:var(--text);cursor:pointer;">
+        <span>📦 Top Items हेर्नुस् <span style="color:var(--text4);font-weight:600;font-size:11px;">(${d.byItem.length} items)</span></span><span style="color:var(--blue);">⛶ Full View</span>
+      </button>
     </div>
     <div class="g2">
       <div class="card" style="height:230px;"><div class="card-title">📈 Spending Over Time</div><div style="height:180px;"><canvas id="custAnSpendChart"></canvas></div></div>
@@ -9578,6 +9594,38 @@ function renderCustomerAnalysisHTML(){
 function openCustPurchaseReportFor(custId){
   activeCustId=custId;
   openCustPurchaseReport();
+}
+// ── Fullscreen mobile-friendly wizard for Customer Analysis "Top Categories" / "Top Items" ──
+function openCustAnFullscreen(kind){
+  const s=window._lastCustAnData;
+  if(!s||s.mode!=="single"||!s.d)return;
+  const d=s.d;
+  const rows=kind==="cat"?d.byCat:d.byItem;
+  const title=kind==="cat"?"📂 Top Categories — "+esc(s.cust.name):"📦 Top Items — "+esc(s.cust.name);
+  const colLabel=kind==="cat"?"Category":"Item";
+  const sorted=rows.slice().sort((a,b)=>b.amt-a.amt);
+  document.body.insertAdjacentHTML("beforeend",`
+    <div id="custAnFsOverlay" style="position:fixed;inset:0;background:var(--bg);z-index:999999;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1.5px solid var(--border);box-shadow:0 2px 8px rgba(21,101,192,.07);">
+        <div style="font-size:14px;font-weight:900;color:var(--text);">${title}</div>
+        <button onclick="document.getElementById('custAnFsOverlay').remove()" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text);width:34px;height:34px;border-radius:9px;font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:14px;">
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:auto;">
+          <table class="tbl" style="font-size:12px;width:100%;">
+            <tr style="background:var(--bg4);"><th>#</th><th>${colLabel}</th><th>Qty</th><th>Sales</th><th>Profit</th></tr>
+            ${sorted.length===0?`<tr><td colspan="5" style="text-align:center;color:var(--text4);padding:24px;">Data छैन</td></tr>`:
+            sorted.map((g,i)=>`<tr style="background:${i%2===0?"var(--bg2)":"#fff"};">
+              <td style="color:var(--text4);font-weight:700;">${i+1}</td>
+              <td style="font-weight:700;color:var(--text);">${esc(g.name)}</td>
+              <td style="color:var(--text3);">${fmtN(g.qty)}</td>
+              <td style="color:var(--gold);font-weight:800;">रु ${fmtN(g.amt)}</td>
+              <td style="color:${g.margin>=0?"var(--green)":"var(--red)"};font-weight:800;">रु ${fmtN(g.margin)}</td>
+            </tr>`).join("")}
+          </table>
+        </div>
+      </div>
+    </div>`);
 }
 function buildCustomerAnalysisCharts(){
   const s=window._lastCustAnData;if(!s||typeof Chart==="undefined")return;
